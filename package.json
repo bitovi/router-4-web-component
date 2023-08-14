@@ -1,0 +1,13 @@
+{
+  "name": "router-for-web-components",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "start": "./node_modules/.bin/ws --hostname localhost -p 3000 -d ./src -n"
+  },
+  "devDependencies": {
+    "eslint": "^8.46.0",
+    "local-web-server": "^5.3.0",
+    "prettier": "3.0.1"
+  }
+}
