@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -9,7 +9,13 @@
 
 <body>
   Hello world!
-  <r4w-router><r4w-route path="foo"></r4w-route></r4w-router>
+  <rt4cw-link href="/foo">FOO</rt4cw-link>
+  <rt4cw-link href="/bar">BAR</rt4cw-link>
+  <rt4cw-router>
+    <rt4cw-route path="/foo"></rt4cw-route>
+    <rt4cw-route path="/bar"></rt4cw-route>
+    <rt4cw-redirect to="/foo" />
+  </rt4cw-router>
 </body>
 
 </html>
