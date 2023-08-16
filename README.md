@@ -12,6 +12,8 @@ npm install
 
 ### Dev Server
 
+Does not reload automatically.
+
 ```sh
 npm run start
 ```

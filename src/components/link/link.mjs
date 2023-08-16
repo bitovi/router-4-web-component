@@ -1,6 +1,8 @@
-class Link extends HTMLElement {
+class Link extends HTMLAnchorElement {
   constructor() {
     super();
+
+    this.addEventListener("click", handleClick);
   }
 
   static get name() {
@@ -8,20 +10,25 @@ class Link extends HTMLElement {
   }
 
   connectedCallback() {
-    /** @type {HTMLLinkElement} */
-    const a = document.createElement("a");
-    for (const key in Object.keys(a)) {
-      a[key] = this.getAttribute(key);
-    }
+    // console.log("Link.connectedCallback");
+  }
 
-    a.textContent = this.textContent;
-
-    this.append(a);
+  disconnectedCallback() {
+    // console.log("Link.disconnectedCallback");
   }
 }
 
 if (!customElements.get(Link.name)) {
-  customElements.define(Link.name, Link);
+  customElements.define(Link.name, Link, { extends: "a" });
 }
 
 export { Link };
+
+/**
+ * 
+ * @param {Event} evt 
+ */
+function handleClick(evt) {
+  console.log("Link handleClick: evt=", evt);
+  evt.preventDefault();
+}
