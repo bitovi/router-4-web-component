@@ -1,5 +1,3 @@
-// import { RouterForWebComponentBase } from "../r4w-base/r4w-base.mjs";
-
 import { Redirect } from "../redirect/redirect.mjs";
 import { Route } from "../route/route.mjs";
 
@@ -16,16 +14,27 @@ class Router extends HTMLElement {
     this._shadowRoot = this.attachShadow({ mode: "closed" });
     this._shadowRoot.append(slot);
 
-    /** @type {"connecting" | "idle"} */
-    this._state = "connecting";
-
-    setupNavigationHandling(url => {
+    /**
+     * @param {string} url Just the path portion of a URL. 
+     */
+    function handleUrlChange(url) {
       const children = this._shadowRoot.childNodes[0].assignedElements();
+      if (!children.length) {
+        return;
+      }
 
       for (const child of children) {
-        child.match && child.match(url);
+        if (child.matchPath) {
+          if (child.matchPath(url)) {
+            child.activate && child.activate();
+          } else {
+            child.deactivate && child.deactivate();
+          }
+        }
       }
-    });
+    }
+
+    setupNavigationHandling(handleUrlChange.bind(this));
   }
 
   static get name() {
@@ -33,8 +42,6 @@ class Router extends HTMLElement {
   }
 
   connectedCallback() {
-    // console.log("Router.connectedCallback");
-
     /** @type {Route[]} */
     const children = this._shadowRoot.childNodes[0].assignedElements();
 
@@ -43,8 +50,7 @@ class Router extends HTMLElement {
     if (children.length) {
       for (const child of children) {
         if (child.tagName === Route.name.toLocaleUpperCase()) {
-          child.data = { match: matchPath };
-          matched = matched || matchPath(child.path);
+          matched = matched || child.matchPath(child.path);
         } else if (
           !redirect &&
           child.tagName === Redirect.name.toLocaleUpperCase()
@@ -59,12 +65,6 @@ class Router extends HTMLElement {
         window.history.pushState({}, "", redirect.to);
       }
     }
-
-    updateState(this, "idle");
-  }
-
-  disconnectedCallback() {
-    // console.log("Router.disconnectedCallback");
   }
 }
 
@@ -75,23 +75,11 @@ if (!customElements.get(Router.name)) {
 export { Router };
 
 /**
- * @param {string} path
- * @returns {boolean}
- */
-function matchPath(path) {
-  if (window.location.pathname === path) {
-    return true;
-  }
-
-  return false;
-}
-
-/**
  * @param {OnUrlChange} onUrlChange
  */
 function setupNavigationHandling(onUrlChange) {
-  window.addEventListener("popstate", () => {
-    console.log("setupNavigationHandling: popstate event.");
+  window.addEventListener("popstate", (/** @type {PopStateEvent} */ evt) => {
+    onUrlChange(window.location.pathname);
   });
 
   // Create a proxy for `pushState`.
@@ -99,12 +87,7 @@ function setupNavigationHandling(onUrlChange) {
     const handler = {
       apply: (target, thisArg, [state, , url]) => {
         const result = target.apply(thisArg, [state, "", url]);
-
-        // window.dispatchEvent(
-        //   new CustomEvent("rt4wc-urlchange", { detail: url })
-        // );
         onUrlChange(url);
-
         return result;
       },
       get: (target, propertyKey, receiver) => {
@@ -118,15 +101,6 @@ function setupNavigationHandling(onUrlChange) {
 
     window.history.pushState = new Proxy(window.history.pushState, handler);
   }
-}
-
-/**
- *
- * @param {Router} router
- * @param {"connecting" | "idle"} state
- */
-function updateState(router, state) {
-  router._state = state;
 }
 
 /**

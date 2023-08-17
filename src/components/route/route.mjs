@@ -1,14 +1,18 @@
 const PROPERTY_NAMES = ["path"];
 
 /**
- * @class Route
+ * @implements {RouteMatch}
+ * @implements {RouteActivation}
  */
 class Route extends HTMLElement {
   constructor() {
     super();
 
-    /** @type {RouteData} */
-    this._data;
+    /** @type {boolean} */
+    this._active = false;
+
+    /** @type {HTMLElement} */
+    this._element;
 
     /** @type {ShadowRoot} */
     this._shadowRoot = this.attachShadow({ mode: "closed" });
@@ -22,16 +26,6 @@ class Route extends HTMLElement {
     return PROPERTY_NAMES;
   }
 
-  /** @returns {RouteData} */
-  get data() {
-    return { ...this._data };
-  }
-
-  set data(/** @type {RouteData} */ next) {
-    // console.log("Route.data: next=", next);
-    this._data = next;
-  }
-
   /**
    * @param {string} name
    * @param {string | null} current
@@ -41,26 +35,26 @@ class Route extends HTMLElement {
     // TODO?
   }
 
-  connectedCallback() {
-    window.addEventListener("rt4wc-urlchange", evt => {
-      const path = this.getAttribute("path");
+  /** @type {Match} */
+  matchPath(path) {
+    return path === this.getAttribute("path");
+  }
 
-      if (this._data.match(path)) {
-        const para = document.createElement("p");
-        para.textContent = `path = '${path}'`;
-        this._shadowRoot.append(para);
-      } else {
-        this._shadowRoot.innerHTML = "";
+  /** @type {Activate} */
+  activate() {
+    this._active = true;
+    import(this.getAttribute("path")).then((/** @type {RouteChildModule} */ module) => {
+      if (this._active) {
+        this._element = module.init();
+        this._shadowRoot.append(this._element);
       }
     });
   }
 
-  disconnectedCallback() {
-    // console.log("Route.disconnectedCallback");
-  }
-
-  match(url) {
-    console.log(`Route.match: url='${url}'`);
+  /** @type {Deactivate} */
+  deactivate() {
+    this._active = false;
+    this._element && this._shadowRoot.hasChildNodes() && this._shadowRoot.removeChild(this._element);
   }
 }
 
@@ -77,11 +71,32 @@ export { Route };
  */
 
 /**
- * @typedef RouteData
- * @property {Match} match
+ * @typedef RouteMatch
+ * @property {Match} matchPath
  */
 
 /**
- * @interface RoutePath
- * @property {RoutePathMatcher} match
+ * @callback Activate
+ * @returns {void}
+ */
+
+/**
+ * @callback Deactivate
+ * @returns {void}
+ */
+
+/**
+ * @typedef RouteActivation
+ * @property {Activate} activate;
+ * @property {Deactivate} deactivate;
+ */
+
+/**
+ * @callback RouteChildModuleInit
+ * @returns {HTMLElement}
+ */
+
+/**
+ * @typedef RouteChildModule
+ * @property {RouteChildModuleInit} init;
  */

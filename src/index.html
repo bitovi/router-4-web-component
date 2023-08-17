@@ -9,13 +9,12 @@
 
 <body>
   Hello world!
-  <rt4cw-link to="/foo">foo</rt4cw-link>
-  <rt4cw-link to="/bar">bar</rt4cw-link>
-  <rt4cw-link to="/fubar">fubar</rt4cw-link>
+  <rt4cw-link to="/app/foo.mjs">foo</rt4cw-link>
+  <rt4cw-link to="/app/bar.mjs">bar</rt4cw-link>
   <rt4cw-router>
-    <rt4cw-route path="/foo"></rt4cw-route>
-    <rt4cw-route path="/bar"></rt4cw-route>
-    <!-- <rt4cw-redirect to="/foo" /> -->
+    <rt4cw-route path="/app/foo.mjs"></rt4cw-route>
+    <rt4cw-route path="/app/bar.mjs"></rt4cw-route>
+    <rt4cw-redirect to="/app/foo.mjs" />
   </rt4cw-router>
 </body>
 
