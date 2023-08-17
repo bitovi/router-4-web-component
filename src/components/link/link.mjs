@@ -1,8 +1,28 @@
-class Link extends HTMLAnchorElement {
+export class Link extends HTMLElement {
   constructor() {
     super();
 
-    this.addEventListener("click", handleClick);
+    const to = this.getAttribute("to");
+
+    /**
+     *
+     * @param {Event} evt
+     */
+    function handleClick(evt) {
+      console.log("Link handleClick: evt=", evt);
+      evt.preventDefault();
+
+      window.history.pushState(null, "", to);
+    }
+
+    const a = document.createElement("a");
+    a.href = to;
+    a.addEventListener("click", handleClick);
+    a.appendChild(document.createElement("slot"));
+
+    /** @type {ShadowRoot} */
+    this._shadowRoot = this.attachShadow({ mode: "closed" });
+    this._shadowRoot.append(a);
   }
 
   static get name() {
@@ -10,7 +30,7 @@ class Link extends HTMLAnchorElement {
   }
 
   connectedCallback() {
-    // console.log("Link.connectedCallback");
+    // console.log("Link2.connectedCallback");
   }
 
   disconnectedCallback() {
@@ -19,16 +39,5 @@ class Link extends HTMLAnchorElement {
 }
 
 if (!customElements.get(Link.name)) {
-  customElements.define(Link.name, Link, { extends: "a" });
-}
-
-export { Link };
-
-/**
- * 
- * @param {Event} evt 
- */
-function handleClick(evt) {
-  console.log("Link handleClick: evt=", evt);
-  evt.preventDefault();
+  customElements.define(Link.name, Link);
 }

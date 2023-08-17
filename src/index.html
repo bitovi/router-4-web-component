@@ -3,14 +3,15 @@
 
 <head>
   <base href="/" />
-  <title>WCR test app</title>
+  <title>RT4WC test app</title>
   <script src="./index.mjs" type="module"></script>
 </head>
 
 <body>
   Hello world!
-  <a is="rt4cw-link" href="/foo">FOO</a>
-  <a is="rt4cw-link" href="/bar">BAR</a>
+  <rt4cw-link to="/foo">foo</rt4cw-link>
+  <rt4cw-link to="/bar">bar</rt4cw-link>
+  <rt4cw-link to="/fubar">fubar</rt4cw-link>
   <rt4cw-router>
     <rt4cw-route path="/foo"></rt4cw-route>
     <rt4cw-route path="/bar"></rt4cw-route>

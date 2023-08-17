@@ -38,9 +38,7 @@ class Route extends HTMLElement {
    * @param {string | null} next
    */
   attributeChangedCallback(name, current, next) {
-    if (name === "path") {
-      handlePathChanged(this, current, next);
-    }
+    // TODO?
   }
 
   connectedCallback() {
@@ -60,6 +58,10 @@ class Route extends HTMLElement {
   disconnectedCallback() {
     // console.log("Route.disconnectedCallback");
   }
+
+  match(url) {
+    console.log(`Route.match: url='${url}'`);
+  }
 }
 
 if (!customElements.get(Route.name)) {
@@ -67,15 +69,6 @@ if (!customElements.get(Route.name)) {
 }
 
 export { Route };
-
-/**
- * @param {Route} route
- * @param {string} current
- * @param {string} next
- */
-function handlePathChanged(route, current, next) {
-  // console.log(`handlePathChanged: current='${current}', next='${next}'`);
-}
 
 /**
  * @callback Match
@@ -86,4 +79,9 @@ function handlePathChanged(route, current, next) {
 /**
  * @typedef RouteData
  * @property {Match} match
+ */
+
+/**
+ * @interface RoutePath
+ * @property {RoutePathMatcher} match
  */

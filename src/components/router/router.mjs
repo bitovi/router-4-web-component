@@ -19,7 +19,13 @@ class Router extends HTMLElement {
     /** @type {"connecting" | "idle"} */
     this._state = "connecting";
 
-    setupNavigationHandling();
+    setupNavigationHandling(url => {
+      const children = this._shadowRoot.childNodes[0].assignedElements();
+
+      for (const child of children) {
+        child.match && child.match(url);
+      }
+    });
   }
 
   static get name() {
@@ -80,7 +86,10 @@ function matchPath(path) {
   return false;
 }
 
-function setupNavigationHandling() {
+/**
+ * @param {OnUrlChange} onUrlChange
+ */
+function setupNavigationHandling(onUrlChange) {
   window.addEventListener("popstate", () => {
     console.log("setupNavigationHandling: popstate event.");
   });
@@ -89,13 +98,12 @@ function setupNavigationHandling() {
   if (!window.history.pushState._isProxy) {
     const handler = {
       apply: (target, thisArg, [state, , url]) => {
-        // console.log(`setupNavigationHandling: invoking=`, target);
         const result = target.apply(thisArg, [state, "", url]);
 
-        // TODO: fire an event with current path? What if none of the routes has that path?
-        window.dispatchEvent(
-          new CustomEvent("rt4wc-urlchange", { detail: url })
-        );
+        // window.dispatchEvent(
+        //   new CustomEvent("rt4wc-urlchange", { detail: url })
+        // );
+        onUrlChange(url);
 
         return result;
       },
@@ -120,3 +128,9 @@ function setupNavigationHandling() {
 function updateState(router, state) {
   router._state = state;
 }
+
+/**
+ * @callback OnUrlChange
+ * @param {string} url
+ * @returns {void}
+ */
