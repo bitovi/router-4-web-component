@@ -20,7 +20,7 @@ class Route extends HTMLElement {
   }
 
   static get name() {
-    return "rt4cw-route";
+    return "r4w-route";
   }
 
   /** @type {Match} */

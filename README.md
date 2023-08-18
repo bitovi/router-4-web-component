@@ -33,7 +33,7 @@ The server's configuration file `lws.config.js` has been customized to return
 
 ### API
 
-#### `<rt4wc-link />`
+#### `<r4w-link />`
 
 When the element is clicked browser history is updated with the URL but the
 browser does not navigate.
@@ -42,14 +42,14 @@ browser does not navigate.
 
 - `to` The path to the resource this element references.
 
-#### `<rt4wc-router>`
+#### `<r4w-router>`
 
-Contains `<rt4wc-route>` and `<rt4wc-redirect>` elements as children.
+Contains `<r4w-route>` and `<r4w-redirect>` elements as children.
 
-#### `<rt4wc-route />`
+#### `<r4w-route />`
 
 A route the application can navigate to, usually accessed when the user clicks a
-`<rt4wc-link>` element. Must be a child of `<rt3wc-router>`. **When activated
+`<r4w-link>` element. Must be a child of `<rt3wc-router>`. **When activated
 the Route will download the associated module using the path \`{path
 attribute}.mjs\`**. The downloaded module must implement the `RouteChildModule`
 interface; its `init` method is invoked and if the module returns an
@@ -60,10 +60,10 @@ interface; its `init` method is invoked and if the module returns an
 - `path` The path to the resource this element references. This path will have
   ".mjs" appended as the file path to fetch content from the server.
 
-#### `<rt4wc-redirect />`
+#### `<r4w-redirect />`
 
-When included as a child of `<rt4wc-router>` this will be used to navigate the
-browser if none of the `<rt4wc-route>` elements match the current URL. Must be a
-child of `<rt3wc-router>`.
+When included as a child of `<r4w-router>` this will be used to navigate the
+browser if none of the `<r4w-route>` elements match the current URL. Must be a
+child of `<r4w-router>`.
 
 - `to` The path to the resource this element references.

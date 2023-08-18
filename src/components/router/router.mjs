@@ -39,7 +39,7 @@ class Router extends HTMLElement {
   }
 
   static get name() {
-    return "rt4cw-router";
+    return "r4w-router";
   }
 
   connectedCallback() {

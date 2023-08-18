@@ -26,7 +26,7 @@ export class Link extends HTMLElement {
   }
 
   static get name() {
-    return "rt4cw-link";
+    return "r4w-link";
   }
 }
 

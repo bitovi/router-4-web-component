@@ -4,7 +4,7 @@ class Redirect extends HTMLElement {
   }
 
   static get name() {
-    return "rt4cw-redirect";
+    return "r4w-redirect";
   }
 
   static get observedAttributes() {
