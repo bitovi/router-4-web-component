@@ -30,17 +30,3 @@
  * @typedef RouteMatch
  * @property {Match} matchPath
  */
-
-/*****************************
-  Route child types
-*****************************/
-
-/**
- * @callback RouteChildModuleInit
- * @returns {HTMLElement | void}
- */
-
-/**
- * @typedef RouteChildModule
- * @property {RouteChildModuleInit} init
- */

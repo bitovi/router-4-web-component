@@ -49,11 +49,10 @@ Contains `<r4w-route>` and `<r4w-redirect>` elements as children.
 #### `<r4w-route />`
 
 A route the application can navigate to, usually accessed when the user clicks a
-`<r4w-link>` element. Must be a child of `<r4w-router>`. **When activated
-the Route will download the associated module using the path \`{path
-attribute}.mjs\`**. The downloaded module must implement the `RouteChildModule`
-interface; its `init` method is invoked and if the module returns an
-`HTMLElement` it will be attached to the DOM.
+`<r4w-link>` element. Must be a child of `<r4w-router>`. **When activated the
+Route will download the associated module using the path \`{path
+attribute}.mjs\`**. If the module returns an `HTMLElement` as its `default
+export` the exported element will be attached to the DOM.
 
 ##### Attributes
 

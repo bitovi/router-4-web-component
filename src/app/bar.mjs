@@ -19,12 +19,4 @@ if (!customElements.get(Bar.name)) {
   customElements.define(Bar.name, Bar);
 }
 
-/**
- * @type {RouteChildModule["init"]}
- */
-function init() {
-  return document.createElement(Bar.name);
-}
-
-/** @type {RouteChildModule} */
-export { init };
+export default document.createElement(Bar.name);

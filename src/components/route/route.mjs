@@ -33,9 +33,12 @@ class Route extends HTMLElement {
 
     Promise.resolve(
       this._element ??
-        import(createImportPath(this.getAttribute("path"))).then(
-          (/**  @type {RouteChildModule} */ module) => module.init()
-        )
+      import(createImportPath(this.getAttribute("path"))).then(
+        (/**  @type {Module} */ module) => {
+          const { default: modDefault } = module;
+          return modDefault && modDefault instanceof HTMLElement ? modDefault : undefined;
+        }
+      )
     ).then((/** @type {HTMLElement | undefined} */ element) => {
       this._element = element || undefined;
 

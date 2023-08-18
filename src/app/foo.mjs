@@ -12,16 +12,8 @@ if (!customElements.get(Foo.name)) {
   customElements.define(Foo.name, Foo);
 }
 
-/**
- * @type {RouteChildModule["init"]}
- */
-function init() {
-  const p = document.createElement("p");
-  p.is = Foo.name;
-  p.textContent = "foo para";
+const p = document.createElement("p");
+p.is = Foo.name;
+p.textContent = "foo para";
 
-  return p;
-}
-
-/** @type {RouteChildModule} */
-export { init };
+export default p;
