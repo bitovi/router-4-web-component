@@ -1,6 +1,13 @@
-class Bar extends HTMLParagraphElement {
+class Bar extends HTMLElement {
   constructor() {
-    super()
+    super();
+
+    const h2 = document.createElement("h2");
+    h2.textContent = "bar title";
+
+    /** @type {ShadowRoot} */
+    this._shadowRoot = this.attachShadow({ mode: "closed" });
+    this._shadowRoot.append(h2);
   }
 
   static get name() {
@@ -13,12 +20,11 @@ if (!customElements.get(Bar.name)) {
 }
 
 /**
- * @returns {HTMLElement}
+ * @type {RouteChildModule["init"]}
  */
-export function init() {
-  const p = document.createElement("p");
-  p.is = Bar.name;
-  p.textContent = "bar para"
+function init() {
+  return document.createElement(Bar.name);
+}
 
-  return p;
-};
+/** @type {RouteChildModule} */
+export { init };

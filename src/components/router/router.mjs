@@ -15,9 +15,10 @@ class Router extends HTMLElement {
     this._shadowRoot.append(slot);
 
     /**
-     * @param {string} url Just the path portion of a URL. 
+     * @param {string} url Just the path portion of a URL.
      */
     function handleUrlChange(url) {
+      /** @type {Route[]} */
       const children = this._shadowRoot.childNodes[0].assignedElements();
       if (!children.length) {
         return;
@@ -42,14 +43,18 @@ class Router extends HTMLElement {
   }
 
   connectedCallback() {
-    /** @type {Route[]} */
+    // Determine if there is currently a path available and if so activate it,
+    // otherwise if there is a redirect navigate to it.
+
+    /** @type {(Route | Redirect)[]} */
     const children = this._shadowRoot.childNodes[0].assignedElements();
 
     let matched = false;
+    /** @type {Redirect | undefined} */
     let redirect;
-    if (children.length) {
+    if (children?.length) {
       for (const child of children) {
-        if (child.tagName === Route.name.toLocaleUpperCase()) {
+        if (isRoute(child)) {
           matched = matched || child.matchPath(child.path);
         } else if (
           !redirect &&
@@ -101,6 +106,14 @@ function setupNavigationHandling(onUrlChange) {
 
     window.history.pushState = new Proxy(window.history.pushState, handler);
   }
+}
+
+/**
+ * @param {HTMLElement} obj
+ * @@returns {obj is Route}
+ */
+function isRoute(obj) {
+  return obj.tagName === Route.name.toLocaleUpperCase();
 }
 
 /**

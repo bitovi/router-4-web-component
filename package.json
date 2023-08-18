@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "./node_modules/.bin/ws --hostname localhost -p 3000 -d ./src -n"
+    "start": "./node_modules/.bin/ws --hostname localhost -p 3000 -d ./src -n --spa index.html"
   },
   "devDependencies": {
     "eslint": "^8.46.0",
