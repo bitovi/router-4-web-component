@@ -3,7 +3,7 @@
 
 <head>
   <base href="/" />
-  <title>RT4WC test app</title>
+  <title>R4W test app</title>
   <script src="./index.mjs" type="module"></script>
 </head>
 
@@ -12,8 +12,8 @@
   <r4w-link to="/app/foo">foo</r4w-link>
   <r4w-link to="/app/bar">bar</r4w-link>
   <r4w-router>
-    <r4w-route path="/app/foo"></r4w-route>
-    <r4w-route path="/app/bar"></r4w-route>
+    <r4w-route path="/app/foo"><app-foo /></r4w-route>
+    <r4w-route path="/app/bar"><app-bar /></r4w-route>
     <r4w-redirect to="/app/foo" />
   </r4w-router>
 </body>

@@ -18,5 +18,3 @@ class Bar extends HTMLElement {
 if (!customElements.get(Bar.name)) {
   customElements.define(Bar.name, Bar);
 }
-
-export default document.createElement(Bar.name);

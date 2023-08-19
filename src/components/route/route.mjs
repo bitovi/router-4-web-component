@@ -12,11 +12,14 @@ class Route extends HTMLElement {
     /** @type {boolean} */
     this._active = false;
 
-    /** @type {HTMLElement | undefined} */
-    this._element;
+    /** @type {boolean} */
+    this._module = false;
+
+    this._slot = document.createElement("slot");
 
     /** @type {ShadowRoot} */
     this._shadowRoot = this.attachShadow({ mode: "closed" });
+    this._shadowRoot.append(this._slot);
   }
 
   static get name() {
@@ -29,33 +32,33 @@ class Route extends HTMLElement {
   }
 
   activate() {
+    if (this._active) {
+      return;
+    }
+
     this._active = true;
 
     Promise.resolve(
-      this._element ??
-      import(createImportPath(this.getAttribute("path"))).then(
-        (/**  @type {Module} */ module) => {
-          const { default: modDefault } = module;
-          return modDefault && modDefault instanceof HTMLElement ? modDefault : undefined;
-        }
-      )
-    ).then((/** @type {HTMLElement | undefined} */ element) => {
-      this._element = element || undefined;
-
-      if (!this._active || this._shadowRoot.hasChildNodes() || !this._element) {
-        return;
-      }
-
-      this._shadowRoot.append(this._element);
+      this._module
+        ? undefined
+        : import(createImportPath(this.getAttribute("path"))).then(() => {
+            this._module = true;
+          })
+    ).then(() => {
+      this._active && this._shadowRoot.append(this._slot);
     });
   }
 
   deactivate() {
+    if (!this._active) {
+      return;
+    }
+
     this._active = false;
 
-    this._element &&
+    this._slot &&
       this._shadowRoot.hasChildNodes() &&
-      this._shadowRoot.removeChild(this._element);
+      this._shadowRoot.removeChild(this._slot);
   }
 }
 

@@ -44,20 +44,25 @@ browser does not navigate.
 
 #### `<r4w-router>`
 
-Contains `<r4w-route>` and `<r4w-redirect>` elements as children.
+##### Children
+
+Contains `<r4w-route>` and `<r4w-redirect>` elements.
 
 #### `<r4w-route />`
 
 A route the application can navigate to, usually accessed when the user clicks a
 `<r4w-link>` element. Must be a child of `<r4w-router>`. **When activated the
 Route will download the associated module using the path \`{path
-attribute}.mjs\`**. If the module returns an `HTMLElement` as its `default
-export` the exported element will be attached to the DOM.
+attribute}.mjs\`**.
 
 ##### Attributes
 
 - `path` The path to the resource this element references. This path will have
   ".mjs" appended as the file path to fetch content from the server.
+
+##### Children
+
+Will be displayed when the Route is activated.
 
 #### `<r4w-redirect />`
 
