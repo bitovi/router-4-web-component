@@ -3,7 +3,7 @@ import { Redirect } from "../redirect/redirect.ts";
 import { Route } from "../route/route.ts";
 
 /**
- * The base element for routing. Accepts one child element.
+ * The base element for routing.
  */
 class Router extends HTMLElement {
   _shadowRoot: ShadowRoot;
@@ -11,17 +11,10 @@ class Router extends HTMLElement {
   constructor() {
     super();
 
-    const slot = document.createElement("slot");
-
-    /** @type {ShadowRoot} */
     this._shadowRoot = this.attachShadow({ mode: "closed" });
-    this._shadowRoot.append(slot);
+    this._shadowRoot.append(document.createElement("slot"));
 
-    /**
-     * @param {string} url Just the path portion of a URL.
-     */
     function handleUrlChange(url: string) {
-      /** @type {Route[]} */
       const children: Route[] =
         this._shadowRoot.childNodes[0].assignedElements();
       if (!children.length) {
@@ -49,7 +42,6 @@ class Router extends HTMLElement {
   connectedCallback() {
     // Determine if there is currently a path available and if so activate it,
     // otherwise if there is a redirect navigate to it.
-
     const children = (
       this._shadowRoot.childNodes[0] as HTMLSlotElement
     ).assignedElements() as Route[] | Redirect[];
@@ -59,7 +51,9 @@ class Router extends HTMLElement {
     if (children?.length) {
       for (const child of children) {
         if (isRoute(child)) {
-          matched = matched || child.matchPath(window.location.pathname);
+          const childMatch = child.matchPath(window.location.pathname);
+          childMatch && child.activate();
+          matched = matched || childMatch;
         } else if (
           !redirect &&
           child.tagName === Redirect.webComponentName.toLocaleUpperCase()
@@ -83,17 +77,14 @@ if (!customElements.get(Router.webComponentName)) {
 
 export { Router };
 
-/**
- *
- */
 function setupNavigationHandling(onUrlChange: OnUrlChange) {
-  window.addEventListener("popstate", (/** @type {PopStateEvent} */ evt) => {
+  window.addEventListener("popstate", () => {
     onUrlChange(window.location.pathname);
   });
 
   // Create a proxy for `pushState`.
-  if (!(window.history.pushState as any)._isProxy) {
-    const handler = {
+  if (!(window.history.pushState as PushStateProxy)._isProxy) {
+    const handler: ProxyHandler<PushStateProxy> = {
       apply: (target, thisArg, [state, , url]) => {
         const result = target.apply(thisArg, [state, "", url]);
         onUrlChange(url);
@@ -112,10 +103,15 @@ function setupNavigationHandling(onUrlChange: OnUrlChange) {
   }
 }
 
-function isRoute(obj: any): obj is Route {
+function isRoute(obj: HTMLElement): obj is Route {
   return obj.tagName === Route.webComponentName.toLocaleUpperCase();
 }
 
+type HistoryPushState = typeof window.history.pushState;
+
 interface OnUrlChange {
   (url: string): void;
+}
+interface PushStateProxy extends HistoryPushState {
+  _isProxy: true;
 }

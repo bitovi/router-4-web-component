@@ -5,7 +5,11 @@ import { transform } from "@swc-node/core";
 
 /**
  * lws middleware to read TypeScript files, transform them into JavaScript, and
- * return them in the response.
+ * return them in the response as "Content-Type" `text/javascript`. By default
+ * the files include an embedded source map.
+ *
+ * Simply include a path in your code to a TypeScript file whose name ends with
+ * ".ts" and the file will be transpiled and returned as the response body.
  */
 export default class TsGet {
   middleware(config) {
@@ -28,8 +32,8 @@ export default class TsGet {
           { encoding: "utf8" }
         );
 
-        // Finally transform the TS file to a JS file and return it in the
-        // response.
+        // Finally transform the TS file to a JS file using `swc` and return it
+        // in the response.
         const { code } = await transform(file, sourceFilename, {
           target: "es2022",
           sourcemap: "inline",

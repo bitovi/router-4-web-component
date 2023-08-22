@@ -1,9 +1,5 @@
 import type { RouteActivation, RouteMatch } from "../../types.ts";
 
-/**
- * @implements {RouteMatch}
- * @implements {RouteActivation}
- */
 class Route extends HTMLElement implements RouteActivation, RouteMatch {
   _active: boolean;
   _module: boolean;
@@ -16,15 +12,9 @@ class Route extends HTMLElement implements RouteActivation, RouteMatch {
   constructor() {
     super();
 
-    /** @type {boolean} */
     this._active = false;
-
-    /** @type {boolean} */
     this._module = false;
-
     this._slot = document.createElement("slot");
-
-    /** @type {ShadowRoot} */
     this._shadowRoot = this.attachShadow({ mode: "closed" });
     this._shadowRoot.append(this._slot);
   }
@@ -33,10 +23,16 @@ class Route extends HTMLElement implements RouteActivation, RouteMatch {
     return "r4w-route";
   }
 
+  /******************************************************************
+   * RouteMatch
+   *****************************************************************/
   matchPath(path: string): boolean {
     return path === this.getAttribute("path");
   }
 
+  /******************************************************************
+   * RouteActivation
+   *****************************************************************/
   activate() {
     if (this._active) {
       return;
