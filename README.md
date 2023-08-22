@@ -36,44 +36,75 @@ The server's configuration file `lws.config.js` has been customized to return
 
 ### API
 
-#### `<r4w-link />`
+#### `<r4w-link>`
 
-When the element is clicked browser history is updated with the URL but the
-browser does not navigate.
+Must be a **descendant** of an `<rw4-router>` element. When the element is
+clicked browser history is updated and a matching route that is a child of the
+same `<rw4-router>` ancestor element is activated.
 
 ##### Attributes
 
-- `to` The path to the resource this element references.
+- `to` - The path that will be pushed to browser history. Must match the `path`
+  attribute of an `<r4w-route>` element.
+
+##### Descendants
+
+Same descendants as an `<a>` tag.
+
+---
 
 #### `<r4w-router>`
 
-##### Children
-
-Contains `<r4w-route>` and `<r4w-redirect>` elements.
-
-#### `<r4w-route />`
-
-A route the application can navigate to, usually accessed when the user clicks a
-`<r4w-link>` element. Must be a child of `<r4w-router>`. **When activated the
-Route will download the associated module using the path \`{path
-attribute}.mjs\`**.
+Activates child `<r4w-route>` elements when a descendant `<r4w-link>` element
+is clicked or an `<rw4-redirect>` takes effect.
 
 ##### Attributes
 
-- `path` The path to the resource this element references. This path will have
-  ".mjs" appended as the file path to fetch content from the server.
+None
 
-##### Children
+##### Descendants
 
-Will be displayed when the Route is activated.
+Any element. The `<r4w-route>` and `<r4w-redirect>` elements must be direct
+children of this element.
 
-#### `<r4w-redirect />`
+---
 
-When included as a child of `<r4w-router>` this will be used to navigate the
-browser if none of the `<r4w-route>` elements match the current URL. Must be a
-child of `<r4w-router>`.
+#### `<r4w-route>`
 
-- `to` The path to the resource this element references.
+Must be an immediate child of `<r4w-router>`. Child elements will be added to the DOM when
+the route becomes active, and will be removed when it is deactivated. Usually
+activated when the user clicks an `<r4w-link>` element. If the route has a `src`
+attribute the source file will be dynamically imported (and cached) then the
+children added to the DOM; otherwise children are immediately attached to the
+DOM.
+
+##### Attributes
+
+- `path` - The path pushed to browser history. Must match the `to` attribute of
+  an `<r4w-link>` that shares the same ancestor `<r4w-router>`.
+- `src` - A path to a source code file. Will be imported dynamically (and
+  cached) the first time the route is activated.
+
+##### Descendants
+
+Any element.
+
+---
+
+#### `<r4w-redirect>`
+
+Must be an immediate child of `<r4w-router>`. Will be used to update browser
+history if none of the `<r4w-route>` elements match the current URL.
+
+##### Attributes
+
+- `to` - Must match the path of a sibling `<r4w-route>` element.
+
+##### Descendants
+
+None.
+
+---
 
 ### Routing Sequence
 

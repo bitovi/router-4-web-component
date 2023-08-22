@@ -1,4 +1,6 @@
 class Bar extends HTMLElement {
+  private _shadowRoot: ShadowRoot;
+
   constructor() {
     super();
 
@@ -10,11 +12,11 @@ class Bar extends HTMLElement {
     this._shadowRoot.append(h2);
   }
 
-  static get name() {
+  static get webComponentName(): string {
     return "app-bar";
   }
 }
 
-if (!customElements.get(Bar.name)) {
-  customElements.define(Bar.name, Bar);
+if (!customElements.get(Bar.webComponentName)) {
+  customElements.define(Bar.webComponentName, Bar);
 }

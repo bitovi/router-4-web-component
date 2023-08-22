@@ -1,18 +1,30 @@
-class Redirect extends HTMLElement implements RedirectProps {
+import { RouteSelector } from "../../types";
+
+class Redirect extends HTMLElement implements RouteSelector {
+  private _to: string;
+
   constructor() {
     super();
+  }
+
+  static get observedAttributes(): string[] {
+    return ["to"];
   }
 
   static get webComponentName() {
     return "r4w-redirect";
   }
 
-  static get observedAttributes() {
-    return ["to"];
+  get to(): string {
+    return this._to;
   }
 
-  get to(): string {
-    return this.getAttribute("to");
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    this[`_${name}`] = newValue;
   }
 }
 
@@ -21,7 +33,3 @@ if (!customElements.get(Redirect.webComponentName)) {
 }
 
 export { Redirect };
-
-export interface RedirectProps {
-  readonly to: string;
-}

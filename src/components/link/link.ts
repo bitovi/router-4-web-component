@@ -4,11 +4,10 @@ import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
 
 export class Link extends HTMLElement {
   private _shadowRoot: ShadowRoot;
+  private _to: string;
 
   constructor() {
     super();
-
-    const to = this.getAttribute("to");
 
     function handleClick(evt: MouseEvent) {
       // Don't let the browser navigate, we're going to push state ourselves.
@@ -27,7 +26,7 @@ export class Link extends HTMLElement {
 
       window.dispatchEvent(
         new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          detail: { routerUid: (parent as Router).uid, to }
+          detail: { routerUid: (parent as Router).uid, to: this._to }
         })
       );
     }
@@ -36,7 +35,7 @@ export class Link extends HTMLElement {
       "a",
       {
         listeners: { click: handleClick.bind(this) },
-        properties: { href: to }
+        properties: { href: this._to }
       },
       builder.create("slot")
     );
@@ -45,8 +44,20 @@ export class Link extends HTMLElement {
     this._shadowRoot.append(a);
   }
 
+  static get observedAttributes(): string[] {
+    return ["to"];
+  }
+
   static get webComponentName() {
     return "r4w-link";
+  }
+
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    this[`_${name}`] = newValue;
   }
 }
 

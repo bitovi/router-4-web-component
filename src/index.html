@@ -9,11 +9,15 @@
 
 <body>
   <r4w-router>
-    <h1>Hello world!</h1>
-    <r4w-link to="/app/foo">foo</r4w-link>
-    <r4w-link to="/app/bar">bar</r4w-link>
-    <r4w-route path="/app/foo"><app-foo /></r4w-route>
-    <r4w-route path="/app/bar"><app-bar /></r4w-route>
+    <div style="display: block;">
+      <h1>Hello world!</h1>
+      <div style="display: flex;">
+        <r4w-link style="flex: 1;text-align: center;" to="/app/foo">foo</r4w-link>
+        <r4w-link style="flex: 1;text-align: center;" to="/app/bar">bar</r4w-link>
+      </div>
+    </div>
+    <r4w-route path="/app/foo"><span>foo has a static element</span></r4w-route>
+    <r4w-route path="/app/bar" src="/app/bar.ts"><app-bar /></r4w-route>
     <r4w-redirect to="/app/foo" />
   </r4w-router>
 </body>

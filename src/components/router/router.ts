@@ -3,11 +3,10 @@ import type {
   LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
-  RouterProps
+  RouterProps,
+  RouteSelector
 } from "../../types.ts";
-import type { RedirectProps } from "../redirect/redirect.ts";
 import { Redirect } from "../redirect/redirect.ts";
-import { Route } from "../route/route.ts";
 
 /**
  * Incremented for each Router instance that's created.
@@ -21,6 +20,26 @@ class Router extends HTMLElement implements RouterProps {
   private _shadowRoot: ShadowRoot;
   private _uid: string | undefined;
 
+  private _handleUrlChange(url: string) {
+    const children = (
+      this._shadowRoot.childNodes[0] as HTMLSlotElement
+    ).assignedElements();
+
+    if (!children.length) {
+      return;
+    }
+
+    for (const child of children) {
+      if (isRouteLike(child)) {
+        if (child.matchPath(url)) {
+          child.activate();
+        } else {
+          child.deactivate();
+        }
+      }
+    }
+  }
+
   constructor() {
     super();
 
@@ -30,25 +49,7 @@ class Router extends HTMLElement implements RouterProps {
     this._shadowRoot = this.attachShadow({ mode: "closed" });
     this._shadowRoot.append(builder.create("slot"));
 
-    function handleUrlChange(url: string) {
-      const children: Route[] =
-        this._shadowRoot.childNodes[0].assignedElements();
-      if (!children.length) {
-        return;
-      }
-
-      for (const child of children) {
-        if (isRouteLike(child)) {
-          if (child.matchPath(url)) {
-            child.activate();
-          } else {
-            child.deactivate();
-          }
-        }
-      }
-    }
-
-    setupNavigationHandling.call(this, handleUrlChange.bind(this));
+    setupNavigationHandling.call(this, this._handleUrlChange.bind(this));
   }
 
   static get webComponentName() {
@@ -69,7 +70,7 @@ class Router extends HTMLElement implements RouterProps {
       ).assignedElements();
 
       let matched = false;
-      let redirect: RedirectProps | undefined;
+      let redirect: RouteSelector | undefined;
       if (children?.length) {
         for (const child of children) {
           if (isRouteLike(child)) {
@@ -84,7 +85,8 @@ class Router extends HTMLElement implements RouterProps {
 
       if (!matched) {
         if (redirect) {
-          window.history.pushState({}, "", redirect.to);
+          window.history.pushState(this.uid, "", redirect.to);
+          this._handleUrlChange(redirect.to);
         }
       }
     });

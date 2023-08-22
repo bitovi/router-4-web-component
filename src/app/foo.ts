@@ -1,4 +1,7 @@
 class Foo extends HTMLElement {
+  _foo: HTMLElement;
+  _shadowRoot: ShadowRoot;
+
   constructor() {
     super();
 
@@ -9,7 +12,7 @@ class Foo extends HTMLElement {
     this._shadowRoot.append(this._foo);
   }
 
-  static get name() {
+  static get webComponentName() {
     return "app-foo";
   }
 
@@ -26,6 +29,6 @@ class Foo extends HTMLElement {
   }
 }
 
-if (!customElements.get(Foo.name)) {
-  customElements.define(Foo.name, Foo);
+if (!customElements.get(Foo.webComponentName)) {
+  customElements.define(Foo.webComponentName, Foo);
 }
