@@ -1,11 +1,13 @@
 export class Link extends HTMLElement {
+  _shadowRoot: ShadowRoot;
+
   constructor() {
     super();
 
     /**
      * @param {MouseEvent} evt
      */
-    function handleClick(evt) {
+    function handleClick(evt: MouseEvent) {
       evt.preventDefault();
       window.history.pushState(null, "", to);
     }
@@ -15,7 +17,7 @@ export class Link extends HTMLElement {
     /**
      * @type {HTMLAnchorElement}
      */
-    const a = document.createElement("a");
+    const a: HTMLAnchorElement = document.createElement("a");
     a.href = to;
     a.addEventListener("click", handleClick);
     a.appendChild(document.createElement("slot"));
@@ -25,11 +27,11 @@ export class Link extends HTMLElement {
     this._shadowRoot.append(a);
   }
 
-  static get name() {
+  static get webComponentName() {
     return "r4w-link";
   }
 }
 
-if (!customElements.get(Link.name)) {
-  customElements.define(Link.name, Link);
+if (!customElements.get(Link.webComponentName)) {
+  customElements.define(Link.webComponentName, Link);
 }

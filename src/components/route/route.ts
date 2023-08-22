@@ -1,8 +1,15 @@
+import type { RouteActivation, RouteMatch } from "../../types.ts";
+
 /**
  * @implements {RouteMatch}
  * @implements {RouteActivation}
  */
-class Route extends HTMLElement {
+class Route extends HTMLElement implements RouteActivation, RouteMatch {
+  _active: boolean;
+  _module: boolean;
+  _shadowRoot: ShadowRoot;
+  _slot: HTMLSlotElement;
+
   /**
    * @type {RouteMatch}
    */
@@ -22,12 +29,11 @@ class Route extends HTMLElement {
     this._shadowRoot.append(this._slot);
   }
 
-  static get name() {
+  static get webComponentName() {
     return "r4w-route";
   }
 
-  /** @type {Match} */
-  matchPath(path) {
+  matchPath(path: string): boolean {
     return path === this.getAttribute("path");
   }
 
@@ -62,8 +68,8 @@ class Route extends HTMLElement {
   }
 }
 
-if (!customElements.get(Route.name)) {
-  customElements.define(Route.name, Route);
+if (!customElements.get(Route.webComponentName)) {
+  customElements.define(Route.webComponentName, Route);
 }
 
 export { Route };
@@ -72,6 +78,6 @@ export { Route };
  * @param {string} path
  * @returns {string}
  */
-function createImportPath(path) {
+function createImportPath(path: string): string {
   return `${path}.mjs`;
 }

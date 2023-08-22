@@ -1,10 +1,13 @@
-import { Redirect } from "../redirect/redirect.mjs";
-import { Route } from "../route/route.mjs";
+import type { Redirector } from "../redirect/redirect.ts";
+import { Redirect } from "../redirect/redirect.ts";
+import { Route } from "../route/route.ts";
 
 /**
  * The base element for routing. Accepts one child element.
  */
 class Router extends HTMLElement {
+  _shadowRoot: ShadowRoot;
+
   constructor() {
     super();
 
@@ -17,9 +20,10 @@ class Router extends HTMLElement {
     /**
      * @param {string} url Just the path portion of a URL.
      */
-    function handleUrlChange(url) {
+    function handleUrlChange(url: string) {
       /** @type {Route[]} */
-      const children = this._shadowRoot.childNodes[0].assignedElements();
+      const children: Route[] =
+        this._shadowRoot.childNodes[0].assignedElements();
       if (!children.length) {
         return;
       }
@@ -38,7 +42,7 @@ class Router extends HTMLElement {
     setupNavigationHandling(handleUrlChange.bind(this));
   }
 
-  static get name() {
+  static get webComponentName() {
     return "r4w-router";
   }
 
@@ -46,19 +50,19 @@ class Router extends HTMLElement {
     // Determine if there is currently a path available and if so activate it,
     // otherwise if there is a redirect navigate to it.
 
-    /** @type {(Route | Redirect)[]} */
-    const children = this._shadowRoot.childNodes[0].assignedElements();
+    const children = (
+      this._shadowRoot.childNodes[0] as HTMLSlotElement
+    ).assignedElements() as Route[] | Redirect[];
 
     let matched = false;
-    /** @type {Redirect | undefined} */
-    let redirect;
+    let redirect: Redirector | undefined;
     if (children?.length) {
       for (const child of children) {
         if (isRoute(child)) {
-          matched = matched || child.matchPath(child.path);
+          matched = matched || child.matchPath(window.location.pathname);
         } else if (
           !redirect &&
-          child.tagName === Redirect.name.toLocaleUpperCase()
+          child.tagName === Redirect.webComponentName.toLocaleUpperCase()
         ) {
           redirect = child;
         }
@@ -73,22 +77,22 @@ class Router extends HTMLElement {
   }
 }
 
-if (!customElements.get(Router.name)) {
-  customElements.define(Router.name, Router);
+if (!customElements.get(Router.webComponentName)) {
+  customElements.define(Router.webComponentName, Router);
 }
 
 export { Router };
 
 /**
- * @param {OnUrlChange} onUrlChange
+ *
  */
-function setupNavigationHandling(onUrlChange) {
+function setupNavigationHandling(onUrlChange: OnUrlChange) {
   window.addEventListener("popstate", (/** @type {PopStateEvent} */ evt) => {
     onUrlChange(window.location.pathname);
   });
 
   // Create a proxy for `pushState`.
-  if (!window.history.pushState._isProxy) {
+  if (!(window.history.pushState as any)._isProxy) {
     const handler = {
       apply: (target, thisArg, [state, , url]) => {
         const result = target.apply(thisArg, [state, "", url]);
@@ -108,16 +112,10 @@ function setupNavigationHandling(onUrlChange) {
   }
 }
 
-/**
- * @param {HTMLElement} obj
- * @@returns {obj is Route}
- */
-function isRoute(obj) {
-  return obj.tagName === Route.name.toLocaleUpperCase();
+function isRoute(obj: any): obj is Route {
+  return obj.tagName === Route.webComponentName.toLocaleUpperCase();
 }
 
-/**
- * @callback OnUrlChange
- * @param {string} url
- * @returns {void}
- */
+interface OnUrlChange {
+  (url: string): void;
+}
