@@ -1,8 +1,10 @@
-import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
 import type { RouteActivationProps, RouteMatchProps } from "../../types.ts";
+import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import { splitPath } from "../../libs/path/path.ts";
+import { AttributesBase } from "../attributes-base/attributes-base.ts";
 
 class Route
-  extends HTMLElement
+  extends AttributesBase
   implements RouteActivationProps, RouteMatchProps
 {
   private _active: boolean;
@@ -23,20 +25,10 @@ class Route
     this._shadowRoot = this.attachShadow({ mode: "closed" });
   }
 
-  static get observedAttributes(): string[] {
-    return ["path", "src"];
-  }
+  protected static _observedPatterns: string[] = ["path", "src"];
 
   static get webComponentName() {
     return "r4w-route";
-  }
-
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
-    this[`_${name}`] = newValue;
   }
 
   /******************************************************************
@@ -83,6 +75,40 @@ class Route
    * RouteMatch
    *****************************************************************/
   matchPath(path: string): boolean {
+    if (0 <= this._path.indexOf(":")) {
+      // The `path` contains a pattern.
+      const input = splitPath(path);
+      const pattern = splitPath(this._path);
+
+      if (input.parts.length !== pattern.parts.length) {
+        return false;
+      }
+
+      const params: Record<string, string> = {};
+      for (let i = 0; i < input.parts.length; i++) {
+        let matched = false;
+
+        const patternDecoded = decodeURIComponent(pattern.parts[i]);
+        const inputDecoded = decodeURIComponent(input.parts[i]);
+
+        if (patternDecoded.startsWith(":")) {
+          params[patternDecoded.slice(1)] = inputDecoded;
+          matched = true;
+        } else {
+          matched = inputDecoded === patternDecoded;
+        }
+
+        if (!matched) {
+          return false;
+        }
+      }
+
+      console.log("Route.matchPath: params=", params);
+
+      return true;
+    }
+
+    // No pattern, just compare the strings.
     return path === this._path;
   }
 }

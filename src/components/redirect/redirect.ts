@@ -1,15 +1,14 @@
-import { RouteSelector } from "../../types";
+import type { RouteSelector } from "../../types";
+import { AttributesBase } from "../attributes-base/attributes-base.ts";
 
-class Redirect extends HTMLElement implements RouteSelector {
+class Redirect extends AttributesBase implements RouteSelector {
   private _to: string;
 
   constructor() {
     super();
   }
 
-  static get observedAttributes(): string[] {
-    return ["to"];
-  }
+  protected static _observedPatterns: string[] = ["to"];
 
   static get webComponentName() {
     return "r4w-redirect";
@@ -17,14 +16,6 @@ class Redirect extends HTMLElement implements RouteSelector {
 
   get to(): string {
     return this._to;
-  }
-
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
-    this[`_${name}`] = newValue;
   }
 }
 

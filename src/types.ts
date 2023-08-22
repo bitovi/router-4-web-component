@@ -8,6 +8,13 @@ export interface LinkEventDetails {
   to: string;
 }
 
+export interface RouteSelector {
+  /**
+   * Links a implementor that selects a route to the route's `path` attribute.
+   */
+  readonly to: string;
+}
+
 /******************************************************************
  * Route types
  *****************************************************************/
@@ -29,11 +36,4 @@ export interface RouteMatchProps {
 export interface RouterProps {
   /** Each router instance has a unique ID. */
   readonly uid: string;
-}
-
-export interface RouteSelector {
-  /**
-   * Links a implementor that selects a route to the route's `path` attribute.
-   */
-  readonly to: string;
 }

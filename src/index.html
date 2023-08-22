@@ -12,13 +12,17 @@
     <div style="display: block;">
       <h1>Hello world!</h1>
       <div style="display: flex;">
-        <r4w-link style="flex: 1;text-align: center;" to="/app/foo">foo</r4w-link>
+        <r4w-link style="flex: 1;text-align: center;" to="/cart/items/1/details">foo</r4w-link>
         <r4w-link style="flex: 1;text-align: center;" to="/app/bar">bar</r4w-link>
       </div>
     </div>
-    <r4w-route path="/app/foo"><span>foo has a static element</span></r4w-route>
+    <r4w-route path="/cart/items/:item/details">
+      <r4w-params pattern="/cart/items/:item/details">
+        foo has a static element
+      </r4w-params>
+    </r4w-route>
     <r4w-route path="/app/bar" src="/app/bar.ts"><app-bar /></r4w-route>
-    <r4w-redirect to="/app/foo" />
+    <r4w-redirect to="/cart/items/1/details" />
   </r4w-router>
 </body>
 

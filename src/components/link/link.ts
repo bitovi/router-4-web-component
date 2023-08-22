@@ -1,8 +1,9 @@
 import type { LinkEventDetails } from "../../types.ts";
-import { Router } from "../router/router.ts";
 import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import { Router } from "../router/router.ts";
 
-export class Link extends HTMLElement {
+export class Link extends AttributesBase {
   private _shadowRoot: ShadowRoot;
   private _to: string;
 
@@ -44,20 +45,10 @@ export class Link extends HTMLElement {
     this._shadowRoot.append(a);
   }
 
-  static get observedAttributes(): string[] {
-    return ["to"];
-  }
+  protected static _observedPatterns: string[] = ["to"];
 
   static get webComponentName() {
     return "r4w-link";
-  }
-
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
-    this[`_${name}`] = newValue;
   }
 }
 
