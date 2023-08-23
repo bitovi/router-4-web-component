@@ -11,7 +11,7 @@ class Redirect extends HTMLElement implements RedirectProps {
     return ["to"];
   }
 
-  get to(): string | null {
+  get to(): string {
     return this.getAttribute("to");
   }
 }
@@ -23,5 +23,5 @@ if (!customElements.get(Redirect.webComponentName)) {
 export { Redirect };
 
 export interface RedirectProps {
-  to: Readonly<string | null>;
+  readonly to: string;
 }

@@ -1,7 +1,9 @@
+import type { LinkEventDetails } from "../../types.ts";
+import { Router } from "../router/router.ts";
 import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
 
 export class Link extends HTMLElement {
-  _shadowRoot: ShadowRoot;
+  private _shadowRoot: ShadowRoot;
 
   constructor() {
     super();
@@ -11,13 +13,29 @@ export class Link extends HTMLElement {
     function handleClick(evt: MouseEvent) {
       // Don't let the browser navigate, we're going to push state ourselves.
       evt.preventDefault();
-      window.history.pushState(null, "", to);
+
+      let parent = this.parentElement;
+      while (parent && !(parent instanceof Router)) {
+        parent = parent.parentElement;
+      }
+
+      if (!parent) {
+        throw Error(
+          "Could not found a Router ancestor. <r4w-link> must be a child of a <r4w-router> element."
+        );
+      }
+
+      window.dispatchEvent(
+        new CustomEvent<LinkEventDetails>("r4w-link-event", {
+          detail: { routerUid: (parent as Router).uid, to }
+        })
+      );
     }
 
     const a: HTMLAnchorElement = builder.create(
       "a",
       {
-        listeners: { click: handleClick },
+        listeners: { click: handleClick.bind(this) },
         properties: { href: to }
       },
       builder.create("slot")

@@ -3,12 +3,12 @@ import type { RouteActivationProps, RouteMatchProps } from "../../types.ts";
 
 class Route
   extends HTMLElement
-  implements RouteActivationProps, RouteMatchProps
+  implements RouteActivationProps, RouteMatchProps, RouteProps
 {
-  _active: boolean;
-  _module: boolean;
-  _shadowRoot: ShadowRoot;
-  _slot: HTMLSlotElement;
+  private _active: boolean;
+  private _module: boolean;
+  private _shadowRoot: ShadowRoot;
+  private _slot: HTMLSlotElement;
 
   constructor() {
     super();
@@ -24,11 +24,8 @@ class Route
     return "r4w-route";
   }
 
-  /******************************************************************
-   * RouteMatch
-   *****************************************************************/
-  matchPath(path: string): boolean {
-    return path === this.getAttribute("path");
+  get path(): string {
+    return this.getAttribute("path");
   }
 
   /******************************************************************
@@ -63,6 +60,13 @@ class Route
       this._shadowRoot.hasChildNodes() &&
       this._shadowRoot.removeChild(this._slot);
   }
+
+  /******************************************************************
+   * RouteMatch
+   *****************************************************************/
+  matchPath(path: string): boolean {
+    return path === this.getAttribute("path");
+  }
 }
 
 if (!customElements.get(Route.webComponentName)) {
@@ -77,4 +81,8 @@ export { Route };
  */
 function createImportPath(path: string): string {
   return `${path}.mjs`;
+}
+
+interface RouteProps {
+  readonly path: string;
 }

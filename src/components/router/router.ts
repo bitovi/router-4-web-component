@@ -1,16 +1,31 @@
 import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import type {
+  LinkEventDetails,
+  RouteMatchProps,
+  RouteActivationProps,
+  RouterProps
+} from "../../types.ts";
 import type { RedirectProps } from "../redirect/redirect.ts";
 import { Redirect } from "../redirect/redirect.ts";
 import { Route } from "../route/route.ts";
 
 /**
+ * Incremented for each Router instance that's created.
+ */
+let uidCount = 0;
+
+/**
  * The base element for routing.
  */
-class Router extends HTMLElement {
-  _shadowRoot: ShadowRoot;
+class Router extends HTMLElement implements RouterProps {
+  private _shadowRoot: ShadowRoot;
+  private _uid: string | undefined;
 
   constructor() {
     super();
+
+    uidCount = uidCount + 1;
+    this._uid = `r4w-router-${uidCount}`;
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
     this._shadowRoot.append(builder.create("slot"));
@@ -23,52 +38,56 @@ class Router extends HTMLElement {
       }
 
       for (const child of children) {
-        if (child.matchPath) {
+        if (isRouteLike(child)) {
           if (child.matchPath(url)) {
-            child.activate && child.activate();
+            child.activate();
           } else {
-            child.deactivate && child.deactivate();
+            child.deactivate();
           }
         }
       }
     }
 
-    setupNavigationHandling(handleUrlChange.bind(this));
+    setupNavigationHandling.call(this, handleUrlChange.bind(this));
   }
 
   static get webComponentName() {
     return "r4w-router";
   }
 
-  connectedCallback() {
-    // Determine if there is currently a path available and if so activate it,
-    // otherwise if there is a redirect navigate to it.
-    const children = (
-      this._shadowRoot.childNodes[0] as HTMLSlotElement
-    ).assignedElements() as Route[] | Redirect[];
+  get uid(): string {
+    return this._uid;
+  }
 
-    let matched = false;
-    let redirect: RedirectProps | undefined;
-    if (children?.length) {
-      for (const child of children) {
-        if (isRoute(child)) {
-          const childMatch = child.matchPath(window.location.pathname);
-          childMatch && child.activate();
-          matched = matched || childMatch;
-        } else if (
-          !redirect &&
-          child.tagName === Redirect.webComponentName.toLocaleUpperCase()
-        ) {
-          redirect = child;
+  connectedCallback() {
+    // Need to let the DOM finish rendering the children of this router, then
+    // determine if there is currently a path available and if so activate it,
+    // otherwise if there is a redirect navigate to it.
+    requestIdleCallback(() => {
+      const children = (
+        this._shadowRoot.childNodes[0] as HTMLSlotElement
+      ).assignedElements();
+
+      let matched = false;
+      let redirect: RedirectProps | undefined;
+      if (children?.length) {
+        for (const child of children) {
+          if (isRouteLike(child)) {
+            const childMatch = child.matchPath(window.location.pathname);
+            childMatch && child.activate();
+            matched = matched || childMatch;
+          } else if (!redirect && isRedirect(child)) {
+            redirect = child;
+          }
         }
       }
-    }
 
-    if (!matched) {
-      if (redirect) {
-        window.history.pushState({}, "", redirect.to);
+      if (!matched) {
+        if (redirect) {
+          window.history.pushState({}, "", redirect.to);
+        }
       }
-    }
+    });
   }
 }
 
@@ -78,41 +97,36 @@ if (!customElements.get(Router.webComponentName)) {
 
 export { Router };
 
-function setupNavigationHandling(onUrlChange: OnUrlChange) {
-  window.addEventListener("popstate", () => {
-    onUrlChange(window.location.pathname);
+function isRedirect(obj: Element): obj is Redirect {
+  return obj.tagName === Redirect.webComponentName.toLocaleUpperCase();
+}
+
+function isRouteLike(obj: any): obj is RouteMatchProps & RouteActivationProps {
+  return "matchPath" in obj && "activate" in obj && "deactivate" in obj;
+}
+
+function setupNavigationHandling(this: Router, onUrlChange: OnUrlChange) {
+  window.addEventListener("popstate", (evt: PopStateEvent) => {
+    // Ignore popstate events that don't include this instance's `uid`.
+    evt.state === this.uid && onUrlChange(window.location.pathname);
   });
 
-  // Create a proxy for `pushState`.
-  if (!(window.history.pushState as PushStateProxy)._isProxy) {
-    const handler: ProxyHandler<PushStateProxy> = {
-      apply: (target, thisArg, [state, , url]) => {
-        const result = target.apply(thisArg, [state, "", url]);
-        onUrlChange(url);
-        return result;
-      },
-      get: (target, propertyKey, receiver) => {
-        if (propertyKey === "_isProxy") {
-          return true;
-        }
-
-        return Reflect.get(target, propertyKey, receiver);
+  window.addEventListener(
+    "r4w-link-event",
+    ({ detail }: CustomEvent<LinkEventDetails>) => {
+      if (detail.routerUid !== this.uid) {
+        return;
       }
-    };
 
-    window.history.pushState = new Proxy(window.history.pushState, handler);
-  }
+      // We add our `uid` so that later when popstate events occur we know
+      // whether or not this instance of Router needs to handle or ignore the
+      // event.
+      window.history.pushState(this.uid, "", detail.to);
+      onUrlChange(detail.to);
+    }
+  );
 }
-
-function isRoute(obj: HTMLElement): obj is Route {
-  return obj.tagName === Route.webComponentName.toLocaleUpperCase();
-}
-
-type HistoryPushState = typeof window.history.pushState;
 
 interface OnUrlChange {
   (url: string): void;
-}
-interface PushStateProxy extends HistoryPushState {
-  _isProxy: true;
 }
