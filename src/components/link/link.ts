@@ -1,28 +1,28 @@
+import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+
 export class Link extends HTMLElement {
   _shadowRoot: ShadowRoot;
 
   constructor() {
     super();
 
-    /**
-     * @param {MouseEvent} evt
-     */
+    const to = this.getAttribute("to");
+
     function handleClick(evt: MouseEvent) {
+      // Don't let the browser navigate, we're going to push state ourselves.
       evt.preventDefault();
       window.history.pushState(null, "", to);
     }
 
-    const to = this.getAttribute("to");
+    const a: HTMLAnchorElement = builder.create(
+      "a",
+      {
+        listeners: { click: handleClick },
+        properties: { href: to }
+      },
+      builder.create("slot")
+    );
 
-    /**
-     * @type {HTMLAnchorElement}
-     */
-    const a: HTMLAnchorElement = document.createElement("a");
-    a.href = to;
-    a.addEventListener("click", handleClick);
-    a.appendChild(document.createElement("slot"));
-
-    /** @type {ShadowRoot} */
     this._shadowRoot = this.attachShadow({ mode: "closed" });
     this._shadowRoot.append(a);
   }

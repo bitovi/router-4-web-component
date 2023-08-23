@@ -1,4 +1,4 @@
-class Redirect extends HTMLElement implements Redirector {
+class Redirect extends HTMLElement implements RedirectProps {
   constructor() {
     super();
   }
@@ -22,6 +22,6 @@ if (!customElements.get(Redirect.webComponentName)) {
 
 export { Redirect };
 
-export interface Redirector {
+export interface RedirectProps {
   to: Readonly<string | null>;
 }

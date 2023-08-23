@@ -1,20 +1,21 @@
-import type { RouteActivation, RouteMatch } from "../../types.ts";
+import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import type { RouteActivationProps, RouteMatchProps } from "../../types.ts";
 
-class Route extends HTMLElement implements RouteActivation, RouteMatch {
+class Route
+  extends HTMLElement
+  implements RouteActivationProps, RouteMatchProps
+{
   _active: boolean;
   _module: boolean;
   _shadowRoot: ShadowRoot;
   _slot: HTMLSlotElement;
 
-  /**
-   * @type {RouteMatch}
-   */
   constructor() {
     super();
 
     this._active = false;
     this._module = false;
-    this._slot = document.createElement("slot");
+    this._slot = builder.create("slot");
     this._shadowRoot = this.attachShadow({ mode: "closed" });
     this._shadowRoot.append(this._slot);
   }

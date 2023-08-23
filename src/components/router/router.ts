@@ -1,4 +1,5 @@
-import type { Redirector } from "../redirect/redirect.ts";
+import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import type { RedirectProps } from "../redirect/redirect.ts";
 import { Redirect } from "../redirect/redirect.ts";
 import { Route } from "../route/route.ts";
 
@@ -12,7 +13,7 @@ class Router extends HTMLElement {
     super();
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
-    this._shadowRoot.append(document.createElement("slot"));
+    this._shadowRoot.append(builder.create("slot"));
 
     function handleUrlChange(url: string) {
       const children: Route[] =
@@ -47,7 +48,7 @@ class Router extends HTMLElement {
     ).assignedElements() as Route[] | Redirect[];
 
     let matched = false;
-    let redirect: Redirector | undefined;
+    let redirect: RedirectProps | undefined;
     if (children?.length) {
       for (const child of children) {
         if (isRoute(child)) {
