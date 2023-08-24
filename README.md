@@ -16,9 +16,20 @@ Let's change the code in this repo!
 npm install
 ```
 
+### Build
+
+Build the source files (output to `dist` directory).
+
+```sh
+npm run build
+```
+
 ### Dev Server
 
-Does not reload automatically.
+_The server does not reload automatically._
+
+First run the [build](#build) script then run the following command to start the
+server.
 
 ```sh
 npm run start
@@ -37,5 +48,8 @@ The `local-web-server` is started with the following options:
 The server includes a custom middleware component to transpile TypeScript files
 on the fly. See `server/lws-ts-get.mjs`.
 
-The server's configuration file `lws.config.js` has been customized to return
-".mjs" files as "text/javascript"
+The server's configuration file `lws.config.js` has been customized with some
+rewrite file for router files and source map files.
+
+The server reads from the `app` directory. The files in `app` import router
+functionality from the `dist` directory.
