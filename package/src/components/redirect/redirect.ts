@@ -1,5 +1,5 @@
-import type { RouteSelector } from "../../types.ts";
-import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import type { RouteSelector } from "../../types";
+import { AttributesBase } from "../attributes-base/attributes-base";
 
 class Redirect extends AttributesBase implements RouteSelector {
   private _to: string | undefined;

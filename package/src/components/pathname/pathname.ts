@@ -1,6 +1,6 @@
-import type { OnPathnameMatchChange, PathnameProps } from "../../types.ts";
-import { splitPath } from "../../libs/path/path.ts";
-import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import type { OnPathnameMatchChange, PathnameProps } from "../../types";
+import { splitPath } from "../../libs/path/path";
+import { AttributesBase } from "../attributes-base/attributes-base";
 
 /**
  * This element tells you if the pattern set on it matches the current path and

@@ -1,11 +1,11 @@
-import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import { builder } from "../../libs/elementBuilder/elementBuilder";
 import type {
   LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
   RouterProps
-} from "../../types.ts";
-import { Redirect } from "../redirect/redirect.ts";
+} from "../../types";
+import { Redirect } from "../redirect/redirect";
 
 /**
  * Incremented for each Router instance that's created.

@@ -25,7 +25,8 @@ class Foo extends HTMLElement {
   }
 
   disconnectedCallback() {
-    this._foo.removeChild(this._shadowRoot.querySelector("#time"));
+    const time = this._shadowRoot.querySelector("#time");
+    time && this._foo.removeChild(time);
   }
 }
 
