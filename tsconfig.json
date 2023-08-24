@@ -5,7 +5,6 @@
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
     "module": "ES2022",
-    "moduleResolution": "bundler",
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "strict": true,
