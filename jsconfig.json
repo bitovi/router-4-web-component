@@ -1,3 +1,3 @@
 {
-  "include": ["src/**/*.js", "src/**/*.mjs", "src/**/*.ts"]
+  "include": ["app/**/*.ts", "package/**/*.ts", "server/**/*.mjs"]
 }

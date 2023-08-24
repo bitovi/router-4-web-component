@@ -12,7 +12,7 @@ module.exports = {
     "lws-mime",
     "lws-compress",
     "lws-spa",
-    "src/server/lws-ts-get.mjs",
+    "server/lws-ts-get.mjs",
     "lws-static",
     "lws-index"
   ]

@@ -24,9 +24,9 @@ The `local-web-server` is started with the following options:
 
 - `--hostname` host = localhost
 - `-p` port = 3000
-- `-d` server root directory = ./src
+- `-d` server root directory = ./ _(project root directory)_
 - `-n` load resources from disk for every request
-- `--spa` file to return for 404 = index.html
+- `--spa` file to return for 404 = app/src/index.html
 
 The server includes a custom middleware component to transpile TypeScript files
 on the fly. See `src/server/lws-ts-get.mjs`.

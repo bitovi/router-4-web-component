@@ -15,9 +15,12 @@ export default class TsGet {
   middleware(config) {
     return async (ctx, next) => {
       if (ctx.request.path.toUpperCase().endsWith(".TS")) {
+        let requestPath = ctx.request.path;
+        let configDirectory = config.directory ?? "";
+
         // Jump through a bunch of hoops just to get the source file name
         // correct in the source map...
-        let sourceFilename = path.join(config.directory, ctx.request.path);
+        let sourceFilename = path.join(configDirectory, requestPath);
         while (sourceFilename.startsWith(".")) {
           sourceFilename = sourceFilename.slice(1);
         }
@@ -28,7 +31,7 @@ export default class TsGet {
 
         // Read the file contents.
         const file = await readFile(
-          path.join(cwd(), config.directory, ctx.request.path),
+          path.join(cwd(), configDirectory, requestPath),
           { encoding: "utf8" }
         );
 
