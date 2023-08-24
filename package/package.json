@@ -1,5 +1,5 @@
 {
-  "name": "router-for-web-components",
+  "name": "@bitovi/router-for-web-components",
   "version": "0.1.0-alpha",
   "license": "MIT",
   "scripts": {},
@@ -12,5 +12,9 @@
     "web-component"
   ],
   "module": "./src/index.js",
-  "types": ""
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitovi/router-4-web-component"
+  },
+  "types": "./src/index.d.ts"
 }

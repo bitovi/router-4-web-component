@@ -1,5 +1,5 @@
 {
-  "name": "router-for-web-components",
+  "name": "@bitovi/router-for-web-components",
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
