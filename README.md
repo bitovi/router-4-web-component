@@ -29,7 +29,7 @@ The `local-web-server` is started with the following options:
 - `--spa` file to return for 404 = app/src/index.html
 
 The server includes a custom middleware component to transpile TypeScript files
-on the fly. See `src/server/lws-ts-get.mjs`.
+on the fly. See `server/lws-ts-get.mjs`.
 
 The server's configuration file `lws.config.js` has been customized to return
 ".mjs" files as "text/javascript"
