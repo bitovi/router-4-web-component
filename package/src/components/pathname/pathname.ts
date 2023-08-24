@@ -16,7 +16,7 @@ export class Pathname extends AttributesBase implements PathnameProps {
     super();
   }
 
-  protected static _observedPatterns = ["pattern"];
+  protected static override _observedPatterns = ["pattern"];
 
   static get webComponentName() {
     return "r4w-pathname";

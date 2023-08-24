@@ -1,0 +1,16 @@
+{
+  "name": "router-for-web-components",
+  "version": "0.1.0-alpha",
+  "license": "MIT",
+  "scripts": {},
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "keywords": [
+    "router",
+    "routing",
+    "web-component"
+  ],
+  "module": "./src/index.js",
+  "types": ""
+}

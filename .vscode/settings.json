@@ -1,5 +1,4 @@
 {
-  "cSpell.words": [
-    "Redirector"
-  ]
+  "cSpell.words": ["Redirector"],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

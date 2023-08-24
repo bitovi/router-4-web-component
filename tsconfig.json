@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "lib": [
-      "DOM",
-      "ES2022"
-    ],
+    "composite": true,
+    "exactOptionalPropertyTypes": true,
+    "isolatedModules": true,
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "noEmit": true,
-    "strict": true
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "strict": true,
+    "target": "ES2022",
+    "verbatimModuleSyntax": true
   }
 }

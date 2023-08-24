@@ -8,7 +8,7 @@ class Redirect extends AttributesBase implements RouteSelector {
     super();
   }
 
-  protected static _observedPatterns: string[] = ["to"];
+  protected static override _observedPatterns: string[] = ["to"];
 
   static get webComponentName() {
     return "r4w-redirect";

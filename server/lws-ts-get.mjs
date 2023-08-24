@@ -38,11 +38,13 @@ export default class TsGet {
         // Finally transform the TS file to a JS file using `swc` and return it
         // in the response.
         const { code } = await transform(file, sourceFilename, {
-          target: "es2022",
+          module: "es6",
           sourcemap: "inline",
           swc: {
-            module: { strictMode: false, type: "es6" },
-            jsc: { parser: { syntax: "typescript" } }
+            jsc: {
+              parser: { syntax: "typescript" },
+              target: "esnext"
+            }
           }
         });
 

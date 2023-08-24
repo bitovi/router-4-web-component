@@ -33,13 +33,13 @@ class Route
     this._shadowRoot.appendChild(r4wPathname);
   }
 
-  protected static _observedPatterns: string[] = ["path", "src"];
+  protected static override _observedPatterns: string[] = ["path", "src"];
 
   static get webComponentName() {
     return "r4w-route";
   }
 
-  attributeChangedCallback(
+  override attributeChangedCallback(
     name: string,
     oldValue: string,
     newValue: string

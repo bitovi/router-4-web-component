@@ -45,7 +45,7 @@ export class Link extends AttributesBase {
     this._shadowRoot.append(a);
   }
 
-  protected static _observedPatterns: string[] = ["to"];
+  protected static override _observedPatterns: string[] = ["to"];
 
   static get webComponentName() {
     return "r4w-link";

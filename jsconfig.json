@@ -1,3 +1,7 @@
 {
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true
+  },
+
   "include": ["app/**/*.ts", "package/**/*.ts", "server/**/*.mjs"]
 }
