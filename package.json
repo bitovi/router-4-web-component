@@ -12,6 +12,7 @@
     "start": "./node_modules/.bin/ws --hostname 0.0.0.0 -p 3000 -n -d ./ --spa app/index.html"
   },
   "devDependencies": {
+    "@bitovi/eslint-config": "^1.6.0",
     "@swc-node/core": "^1.10.5",
     "@swc/cli": "^0.1.62",
     "@swc/plugin-transform-imports": "^1.5.73",
