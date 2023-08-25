@@ -18,10 +18,13 @@ export interface RouteSelector {
 /******************************************************************
  * Pathname types
  *****************************************************************/
+export interface OnPathnameMatchChange {
+  (data: { match: boolean; params?: Record<string, string> }): void;
+}
+
 export interface PathnameProps {
-  getPathnameData: (
-    pathname: string
-  ) => { match: false } | { match: true; params: Record<string, string> };
+  setPathname: (pathname: string) => Promise<void>;
+  addMatchChangeListener: (onMatchChange: OnPathnameMatchChange) => void;
 }
 
 /******************************************************************
@@ -35,8 +38,9 @@ export interface RouteActivationProps {
 }
 
 export interface RouteMatchProps {
-  /** Returns true if the provided path is handled by the implementor. */
-  matchPath: (path: string) => boolean;
+  setPathname: (pathname: string) => Promise<void>;
+  /** When the pathname changes the onMatch callbacks are invoked. */
+  addMatchListener: (onMatch: (match: boolean) => void) => void;
 }
 
 /******************************************************************

@@ -1,10 +1,5 @@
-import type {
-  PathnameProps,
-  RouteActivationProps,
-  RouteMatchProps
-} from "../../types.ts";
+import type { RouteActivationProps, RouteMatchProps } from "../../types.ts";
 import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
-import { splitPath } from "../../libs/path/path.ts";
 import { AttributesBase } from "../attributes-base/attributes-base.ts";
 import { Pathname } from "../pathname/pathname.ts";
 
@@ -31,7 +26,7 @@ class Route
     // This is the pattern for setting data on an element in the constructor,
     // read from attributes because they are available and set on attributes
     // because they will update the properties
-    const r4wPathname = builder.create(Pathname.webComponentName);
+    const r4wPathname: Pathname = builder.create(Pathname.webComponentName);
     r4wPathname.setAttribute("pattern", this.getAttribute("path") ?? "");
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
@@ -97,12 +92,16 @@ class Route
   /******************************************************************
    * RouteMatch
    *****************************************************************/
-  matchPath(path: string): boolean {
-    const r4wPathname = getR4wPathnameElement(this._shadowRoot);
+  setPathname(pathname: string): Promise<void> {
+    return getR4wPathnameElement(this._shadowRoot).setPathname(pathname);
+  }
 
-    return isPathname(r4wPathname)
-      ? r4wPathname.getPathnameData(path).match
-      : false;
+  addMatchListener(
+    onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
+  ) {
+    getR4wPathnameElement(this._shadowRoot).addMatchChangeListener(data => {
+      onMatch(data.match);
+    });
   }
 }
 
@@ -117,7 +116,7 @@ function appendToShadow(shadowRoot: ShadowRoot, elem: HTMLElement) {
   r4wPathname.appendChild(elem);
 }
 
-function getR4wPathnameElement(shadowRoot: ShadowRoot) {
+function getR4wPathnameElement(shadowRoot: ShadowRoot): Pathname {
   const r4wPathname = shadowRoot.querySelector(Pathname.webComponentName);
 
   if (!r4wPathname) {
@@ -126,11 +125,7 @@ function getR4wPathnameElement(shadowRoot: ShadowRoot) {
     );
   }
 
-  return r4wPathname;
-}
-
-function isPathname(obj: any): obj is PathnameProps {
-  return "getPathnameData" in obj;
+  return r4wPathname as Pathname;
 }
 
 function removeFromShadow(shadowRoot: ShadowRoot, elem: HTMLElement) {

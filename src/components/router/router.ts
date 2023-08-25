@@ -3,8 +3,7 @@ import type {
   LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
-  RouterProps,
-  RouteSelector
+  RouterProps
 } from "../../types.ts";
 import { Redirect } from "../redirect/redirect.ts";
 
@@ -17,28 +16,9 @@ let uidCount = 0;
  * The base element for routing.
  */
 class Router extends HTMLElement implements RouterProps {
-  private _shadowRoot: ShadowRoot;
   private _uid: string;
-
-  private _handleUrlChange(url: string) {
-    const children = (
-      this._shadowRoot.childNodes[0] as HTMLSlotElement
-    ).assignedElements();
-
-    if (!children.length) {
-      return;
-    }
-
-    for (const child of children) {
-      if (isRouteLike(child)) {
-        if (child.matchPath(url)) {
-          child.activate();
-        } else {
-          child.deactivate();
-        }
-      }
-    }
-  }
+  protected _activeRoute: RouteMatchProps | null = null;
+  protected _shadowRoot: ShadowRoot;
 
   constructor() {
     super();
@@ -49,7 +29,7 @@ class Router extends HTMLElement implements RouterProps {
     this._shadowRoot = this.attachShadow({ mode: "closed" });
     this._shadowRoot.append(builder.create("slot"));
 
-    setupNavigationHandling.call(this, this._handleUrlChange.bind(this));
+    setupNavigationHandling.call(this, setPathname.bind(this));
   }
 
   static get webComponentName() {
@@ -61,34 +41,30 @@ class Router extends HTMLElement implements RouterProps {
   }
 
   connectedCallback() {
-    // Need to let the DOM finish rendering the children of this router, then
-    // determine if there is currently a path available and if so activate it,
-    // otherwise if there is a redirect navigate to it.
+    // Need to let the DOM finish rendering the children of this router. Then
+    // add the match listeners to the child Routes - these are invoked when the
+    // match status changes. After that set the initial selected route.
     requestIdleCallback(() => {
       const children = (
         this._shadowRoot.childNodes[0] as HTMLSlotElement
       ).assignedElements();
 
-      let matched = false;
-      let redirect: RouteSelector | undefined;
-      if (children?.length) {
-        for (const child of children) {
-          if (isRouteLike(child)) {
-            const childMatch = child.matchPath(window.location.pathname);
-            childMatch && child.activate();
-            matched = matched || childMatch;
-          } else if (!redirect && isRedirect(child)) {
-            redirect = child;
-          }
+      for (const child of children) {
+        if (isRouteLike(child)) {
+          child.addMatchListener(match => {
+            if (match) {
+              this._activeRoute = child;
+              child.activate();
+            } else {
+              this._activeRoute =
+                this._activeRoute !== child ? this._activeRoute : null;
+              child.deactivate();
+            }
+          });
         }
       }
 
-      if (!matched) {
-        if (redirect?.to) {
-          window.history.pushState(this.uid, "", redirect.to);
-          this._handleUrlChange(redirect.to);
-        }
-      }
+      setPathname.call(this, window.location.pathname);
     });
   }
 }
@@ -104,7 +80,39 @@ function isRedirect(obj: Element): obj is Redirect {
 }
 
 function isRouteLike(obj: any): obj is RouteMatchProps & RouteActivationProps {
-  return "matchPath" in obj && "activate" in obj && "deactivate" in obj;
+  return "addMatchListener" in obj && "activate" in obj && "deactivate" in obj;
+}
+
+async function setPathname(this: Router, pathname: string) {
+  const children = (
+    this._shadowRoot.childNodes[0] as HTMLSlotElement
+  ).assignedElements();
+
+  if (!children.length) {
+    return;
+  }
+
+  // setPathname only resolves once all the pathname change listeners for that
+  // route have been invoked with the new pathname. We wait for everything to
+  // resolve then, if no route is active, and there is a redirect, fire a change
+  // event with the redirect's `to` value.
+  await Promise.all(
+    children
+      .filter(child => isRouteLike(child))
+      .map(route => (route as unknown as RouteMatchProps).setPathname(pathname))
+  );
+
+  if (!this._activeRoute) {
+    const redirect = children.find(child => isRedirect(child)) as Redirect;
+
+    if (redirect?.to) {
+      window.dispatchEvent(
+        new CustomEvent<LinkEventDetails>("r4w-link-event", {
+          detail: { routerUid: this.uid, to: redirect.to }
+        })
+      );
+    }
+  }
 }
 
 function setupNavigationHandling(this: Router, onUrlChange: OnUrlChange) {
