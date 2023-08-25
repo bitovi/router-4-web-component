@@ -1,7 +1,7 @@
-import type { LinkEventDetails } from "../../types";
-import { builder } from "../../libs/elementBuilder/elementBuilder";
-import { AttributesBase } from "../attributes-base/attributes-base";
-import { Router } from "../router/router";
+import type { LinkEventDetails } from "../../types.ts";
+import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import { Router } from "../router/router.ts";
 
 export class Link extends AttributesBase {
   private _shadowRoot: ShadowRoot;

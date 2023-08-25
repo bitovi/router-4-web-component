@@ -1,6 +1,19 @@
 {
   "$schema": "https://json.schemastore.org/swcrc",
   "jsc": {
+    "experimental": {
+      "plugins": [
+        [
+          "@swc/plugin-transform-imports",
+          {
+            "^(.*?)(\\.ts)$": {
+              "skipDefaultConversion": true,
+              "transform": "{{matches.[1]}}.js"
+            }
+          }
+        ]
+      ]
+    },
     "parser": { "syntax": "typescript" },
     "target": "esnext"
   },

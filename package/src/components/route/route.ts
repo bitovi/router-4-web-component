@@ -1,7 +1,7 @@
-import type { RouteActivationProps, RouteMatchProps } from "../../types";
-import { builder } from "../../libs/elementBuilder/elementBuilder";
-import { AttributesBase } from "../attributes-base/attributes-base";
-import { Pathname } from "../pathname/pathname";
+import type { RouteActivationProps, RouteMatchProps } from "../../types.ts";
+import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import { Pathname } from "../pathname/pathname.ts";
 
 class Route
   extends AttributesBase
