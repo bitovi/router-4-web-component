@@ -50,3 +50,16 @@ export interface RouterProps {
   /** Each router instance has a unique ID. */
   readonly uid: string;
 }
+
+/******************************************************************
+ * WebComponent types
+ *****************************************************************/
+export interface WebComponent {
+  attributeChangedCallback?: (
+    name: string,
+    oldValue: string,
+    newValue: string
+  ) => void;
+  connectedCallback?: () => void;
+  disconnectedCallback?: () => void;
+}

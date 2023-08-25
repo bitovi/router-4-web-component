@@ -5,7 +5,7 @@ class Characters extends HTMLElement {
     super();
 
     const section = document.createElement("section");
-    section.textContent = "content TODO";
+    section.textContent = "character content TODO";
 
     /** @type {ShadowRoot} */
     this._shadowRoot = this.attachShadow({ mode: "closed" });

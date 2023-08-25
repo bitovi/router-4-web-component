@@ -1,25 +1,44 @@
-import type { OnPathnameMatchChange, PathnameProps } from "../../types.ts";
+import type {
+  OnPathnameMatchChange,
+  PathnameProps,
+  WebComponent
+} from "../../types.ts";
 import { splitPath } from "../../libs/path/path.ts";
+// import { Slotted } from "../slotted/slotted.ts";
 import { AttributesBase } from "../attributes-base/attributes-base.ts";
 
 /**
  * This element tells you if the pattern set on it matches the current path and
  * if it has any params from the path.
  */
-export class Pathname extends AttributesBase implements PathnameProps {
-  _lastMatch: boolean | null = null;
-  _listeners: OnPathnameMatchChange[] = [];
-  _pathname: string = "";
-  _pattern: string | undefined;
+export class Pathname
+  extends AttributesBase
+  implements PathnameProps, WebComponent
+{
+  private _init = false;
+  private _lastMatch: boolean | null = null;
+  private _listeners: OnPathnameMatchChange[] = [];
+  private _pathname: string = "";
+  protected _pattern: string | undefined;
 
   constructor() {
     super();
   }
 
-  protected static override _observedPatterns = ["pattern"];
+  static get observedAttributes(): string[] {
+    return ["pattern"];
+  }
 
   static get webComponentName() {
     return "r4w-pathname";
+  }
+
+  connectedCallback() {
+    if (this._init) {
+      return;
+    }
+
+    this._init = true;
   }
 
   setPathname(pathname: string): Promise<void> {

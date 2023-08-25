@@ -44,7 +44,9 @@ class Router extends HTMLElement implements RouterProps {
     // Need to let the DOM finish rendering the children of this router. Then
     // add the match listeners to the child Routes - these are invoked when the
     // match status changes. After that set the initial selected route.
-    requestIdleCallback(() => {
+    let id: number | undefined;
+    id = requestIdleCallback(() => {
+      id && cancelIdleCallback(id);
       const children = (
         this._shadowRoot.childNodes[0] as HTMLSlotElement
       ).assignedElements();
