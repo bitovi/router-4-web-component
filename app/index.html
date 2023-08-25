@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <base href="/" />
+  <title>R4W test app</title>
+  <script src="/app/index.ts" type="module"></script>
+</head>
+
+<body>
+  <r4w-router>
+    <div style="display: block;">
+      <h1>Hello world!</h1>
+      <div style="display: flex;">
+        <r4w-link style="flex: 1;text-align: center;" to="/characters">characters</r4w-link>
+        <!-- <r4w-link style="flex: 1;text-align: center;" to="/app/src/bar">bar</r4w-link> -->
+      </div>
+    </div>
+    <r4w-route path="/characters" src="/app/pages/characters/characters.ts">
+      <r4w-params pattern="/characters">
+        <app-characters />
+      </r4w-params>
+    </r4w-route>
+    <!-- <r4w-route path="/app/src/bar" src="/app/src/bar.ts"><app-bar /></r4w-route> -->
+    <r4w-redirect to="/characters" />
+  </r4w-router>
+</body>
+
+</html>

@@ -9,7 +9,7 @@
     "build:types": "./node_modules/.bin/tsc  --project ./package/tsconfig.types.json",
     "clean": "rm -rf ./dist",
     "postbuild": "rm ./dist/tsconfig.types.tsbuildinfo",
-    "start": "./node_modules/.bin/ws --hostname 0.0.0.0 -p 3000 -n -d ./ --spa app/src/index.html"
+    "start": "./node_modules/.bin/ws --hostname 0.0.0.0 -p 3000 -n -d ./ --spa app/index.html"
   },
   "devDependencies": {
     "@swc-node/core": "^1.10.5",
