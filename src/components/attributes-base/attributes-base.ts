@@ -27,6 +27,6 @@ export abstract class AttributesBase extends HTMLElement {
     // console.log(
     //   `AttributesBase.attributeChangedCallback: name='${name}', newValue='${newValue}'`
     // );
-    this[`_${name}`] = newValue;
+    Object.defineProperty(this, `_${name}`, { value: newValue });
   }
 }

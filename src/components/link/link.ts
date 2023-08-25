@@ -5,12 +5,12 @@ import { Router } from "../router/router.ts";
 
 export class Link extends AttributesBase {
   private _shadowRoot: ShadowRoot;
-  private _to: string;
+  private _to: string | undefined;
 
   constructor() {
     super();
 
-    function handleClick(evt: MouseEvent) {
+    function handleClick(this: Link, evt: MouseEvent) {
       // Don't let the browser navigate, we're going to push state ourselves.
       evt.preventDefault();
 
@@ -27,7 +27,7 @@ export class Link extends AttributesBase {
 
       window.dispatchEvent(
         new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          detail: { routerUid: (parent as Router).uid, to: this._to }
+          detail: { routerUid: (parent as Router).uid, to: this._to ?? "" }
         })
       );
     }
@@ -36,7 +36,7 @@ export class Link extends AttributesBase {
       "a",
       {
         listeners: { click: handleClick.bind(this) },
-        properties: { href: this._to }
+        properties: { href: this._to ?? "" }
       },
       builder.create("slot")
     );

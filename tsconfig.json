@@ -1,3 +1,13 @@
 {
-  "compilerOptions": {"allowImportingTsExtensions": true, "lib": ["DOM", "ES2022"], "module":"ES2022", "moduleResolution": "bundler", "noEmit": true}
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "lib": [
+      "DOM",
+      "ES2022"
+    ],
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "strict": true
+  }
 }

@@ -12,7 +12,16 @@ export interface RouteSelector {
   /**
    * Links a implementor that selects a route to the route's `path` attribute.
    */
-  readonly to: string;
+  readonly to: string | undefined;
+}
+
+/******************************************************************
+ * Pathname types
+ *****************************************************************/
+export interface PathnameProps {
+  getPathnameData: (
+    pathname: string
+  ) => { match: false } | { match: true; params: Record<string, string> };
 }
 
 /******************************************************************

@@ -7,7 +7,7 @@ export const builder: Readonly<Builder> = Object.freeze<Builder>({
     let options: CreateOptions | undefined;
     if (args.length) {
       if (!(args[0] instanceof HTMLElement)) {
-        options = args[0];
+        options = args[0] as CreateOptions;
         children = args.slice(1) as HTMLElement[];
       } else {
         children = args as HTMLElement[];
@@ -18,13 +18,18 @@ export const builder: Readonly<Builder> = Object.freeze<Builder>({
 
     if (options?.properties) {
       for (const [key, value] of Object.entries(options?.properties)) {
-        elem[key] = value;
+        (elem as Record<string, unknown>)[key] = value;
       }
     }
 
     if (options?.listeners) {
-      for (const [key, value] of Object.entries(options?.listeners)) {
-        elem.addEventListener(key, value);
+      const keys = Object.keys(options.listeners);
+      for (const key of keys) {
+        const eventName = key as keyof HTMLElementEventMap;
+        const handler = options.listeners[eventName];
+        if (handler) {
+          elem.addEventListener(eventName, handler as (evt: Event) => void);
+        }
       }
     }
 
@@ -48,6 +53,10 @@ interface Builder {
 
 interface CreateOptions {
   creationOptions?: ElementCreationOptions;
-  listeners?: Partial<Record<keyof HTMLElementEventMap, EventListener>>;
+  listeners?: Partial<{
+    [Property in keyof HTMLElementEventMap]: (
+      evt: HTMLElementEventMap[Property]
+    ) => any;
+  }>;
   properties?: Record<string, unknown>;
 }

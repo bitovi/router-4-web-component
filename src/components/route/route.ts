@@ -1,7 +1,12 @@
-import type { RouteActivationProps, RouteMatchProps } from "../../types.ts";
+import type {
+  PathnameProps,
+  RouteActivationProps,
+  RouteMatchProps
+} from "../../types.ts";
 import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
 import { splitPath } from "../../libs/path/path.ts";
 import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import { Pathname } from "../pathname/pathname.ts";
 
 class Route
   extends AttributesBase
@@ -10,7 +15,7 @@ class Route
   private _active: boolean;
   private _module: boolean;
   /** `path` attribute */
-  private _path: string;
+  private _path: string | undefined;
   private _shadowRoot: ShadowRoot;
   private _slot: HTMLSlotElement;
   /** `src` attribute */
@@ -22,13 +27,33 @@ class Route
     this._active = false;
     this._module = false;
     this._slot = builder.create("slot");
+
+    // This is the pattern for setting data on an element in the constructor,
+    // read from attributes because they are available and set on attributes
+    // because they will update the properties
+    const r4wPathname = builder.create(Pathname.webComponentName);
+    r4wPathname.setAttribute("pattern", this.getAttribute("path") ?? "");
+
     this._shadowRoot = this.attachShadow({ mode: "closed" });
+    this._shadowRoot.appendChild(r4wPathname);
   }
 
   protected static _observedPatterns: string[] = ["path", "src"];
 
   static get webComponentName() {
     return "r4w-route";
+  }
+
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    super.attributeChangedCallback(name, oldValue, newValue);
+    if (name === "path") {
+      const r4wPathname = getR4wPathnameElement(this._shadowRoot);
+      r4wPathname.setAttribute("pattern", newValue);
+    }
   }
 
   /******************************************************************
@@ -52,10 +77,10 @@ class Route
               this._module = true;
             })
       ).then(() => {
-        this._active && this._shadowRoot.append(this._slot);
+        this._active && appendToShadow(this._shadowRoot, this._slot);
       });
     } else {
-      this._shadowRoot.append(this._slot);
+      appendToShadow(this._shadowRoot, this._slot);
     }
   }
 
@@ -66,50 +91,18 @@ class Route
 
     this._active = false;
 
-    this._slot &&
-      this._shadowRoot.hasChildNodes() &&
-      this._shadowRoot.removeChild(this._slot);
+    this._slot && removeFromShadow(this._shadowRoot, this._slot);
   }
 
   /******************************************************************
    * RouteMatch
    *****************************************************************/
   matchPath(path: string): boolean {
-    if (0 <= this._path.indexOf(":")) {
-      // The `path` contains a pattern.
-      const input = splitPath(path);
-      const pattern = splitPath(this._path);
+    const r4wPathname = getR4wPathnameElement(this._shadowRoot);
 
-      if (input.parts.length !== pattern.parts.length) {
-        return false;
-      }
-
-      const params: Record<string, string> = {};
-      for (let i = 0; i < input.parts.length; i++) {
-        let matched = false;
-
-        const patternDecoded = decodeURIComponent(pattern.parts[i]);
-        const inputDecoded = decodeURIComponent(input.parts[i]);
-
-        if (patternDecoded.startsWith(":")) {
-          params[patternDecoded.slice(1)] = inputDecoded;
-          matched = true;
-        } else {
-          matched = inputDecoded === patternDecoded;
-        }
-
-        if (!matched) {
-          return false;
-        }
-      }
-
-      console.log("Route.matchPath: params=", params);
-
-      return true;
-    }
-
-    // No pattern, just compare the strings.
-    return path === this._path;
+    return isPathname(r4wPathname)
+      ? r4wPathname.getPathnameData(path).match
+      : false;
   }
 }
 
@@ -118,3 +111,29 @@ if (!customElements.get(Route.webComponentName)) {
 }
 
 export { Route };
+
+function appendToShadow(shadowRoot: ShadowRoot, elem: HTMLElement) {
+  const r4wPathname = getR4wPathnameElement(shadowRoot);
+  r4wPathname.appendChild(elem);
+}
+
+function getR4wPathnameElement(shadowRoot: ShadowRoot) {
+  const r4wPathname = shadowRoot.querySelector(Pathname.webComponentName);
+
+  if (!r4wPathname) {
+    throw Error(
+      `Failed to find the '${Pathname.webComponentName}' in the shadow root.`
+    );
+  }
+
+  return r4wPathname;
+}
+
+function isPathname(obj: any): obj is PathnameProps {
+  return "getPathnameData" in obj;
+}
+
+function removeFromShadow(shadowRoot: ShadowRoot, elem: HTMLElement) {
+  const r4wPathname = getR4wPathnameElement(shadowRoot);
+  r4wPathname.hasChildNodes() && r4wPathname.removeChild(elem);
+}

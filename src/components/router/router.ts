@@ -18,7 +18,7 @@ let uidCount = 0;
  */
 class Router extends HTMLElement implements RouterProps {
   private _shadowRoot: ShadowRoot;
-  private _uid: string | undefined;
+  private _uid: string;
 
   private _handleUrlChange(url: string) {
     const children = (
@@ -84,7 +84,7 @@ class Router extends HTMLElement implements RouterProps {
       }
 
       if (!matched) {
-        if (redirect) {
+        if (redirect?.to) {
           window.history.pushState(this.uid, "", redirect.to);
           this._handleUrlChange(redirect.to);
         }
@@ -113,20 +113,18 @@ function setupNavigationHandling(this: Router, onUrlChange: OnUrlChange) {
     evt.state === this.uid && onUrlChange(window.location.pathname);
   });
 
-  window.addEventListener(
-    "r4w-link-event",
-    ({ detail }: CustomEvent<LinkEventDetails>) => {
-      if (detail.routerUid !== this.uid) {
-        return;
-      }
-
-      // We add our `uid` so that later when popstate events occur we know
-      // whether or not this instance of Router needs to handle or ignore the
-      // event.
-      window.history.pushState(this.uid, "", detail.to);
-      onUrlChange(detail.to);
+  window.addEventListener("r4w-link-event", evt => {
+    const { detail } = evt as CustomEvent<LinkEventDetails>;
+    if (detail.routerUid !== this.uid) {
+      return;
     }
-  );
+
+    // We add our `uid` so that later when popstate events occur we know
+    // whether or not this instance of Router needs to handle or ignore the
+    // event.
+    window.history.pushState(this.uid, "", detail.to);
+    onUrlChange(detail.to);
+  });
 }
 
 interface OnUrlChange {
