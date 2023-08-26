@@ -19,9 +19,12 @@ export class Route
 {
   private _active: boolean;
   private _connected = false;
+  private _loader: Loader | undefined;
   /** `path` attribute */
   private _path: string | undefined;
+  private _pathname: Pathname | undefined;
   private _shadowRoot: ShadowRoot;
+  private _slot: HTMLSlotElement | undefined;
   /** `src` attribute */
   private _src: string | undefined;
 
@@ -63,27 +66,27 @@ export class Route
 
     this._connected;
 
-    const slot = create("slot", {
+    this._slot = create("slot", {
       attributes: { style: "display:none;" }
     });
 
-    const loader = create(
+    this._loader = create(
       Loader.webComponentName,
       {
         attributes: { src: this._src }
       },
-      slot
-    );
+      this._slot
+    ) as Loader;
 
-    const pathname = create(
+    this._pathname = create(
       Pathname.webComponentName,
       {
         attributes: { pattern: this._path }
       },
-      loader
-    );
+      this._loader
+    ) as Pathname;
 
-    this._shadowRoot.appendChild(pathname);
+    this._shadowRoot.appendChild(this._pathname);
   }
 
   /******************************************************************
@@ -97,13 +100,11 @@ export class Route
     this._active = true;
 
     // Our slot contains the element to be presented when the route is active.
-    const slot = this._shadowRoot.querySelector("slot");
-    slot?.setAttribute("style", "");
+    this._slot?.setAttribute("style", "");
 
     // When the loader is activated, and it hasn't already downloaded the
     // module, it downloads the module.
-    const loader = this._shadowRoot.querySelector(Loader.webComponentName);
-    isRouteActivationProps(loader) && loader.activate();
+    this._loader?.activate();
   }
 
   deactivate() {
@@ -116,37 +117,23 @@ export class Route
     // Remove the slot content from the display. We could in the future allow
     // client to "release" the slot and module to free up memory then fetch and
     // attach them again when needed.
-    const slot = this._shadowRoot.querySelector("slot");
-    slot?.setAttribute("style", "display:none;");
+    this._slot?.setAttribute("style", "display:none;");
   }
 
   /******************************************************************
    * RouteMatch
    *****************************************************************/
   setPathname(pathname: string): Promise<void> {
-    const elem = this._shadowRoot.querySelector(Pathname.webComponentName);
-    return Promise.resolve(
-      isPathnameProps(elem) ? elem.setPathname(pathname) : undefined
-    );
+    return Promise.resolve(this._pathname?.setPathname(pathname));
   }
 
   addMatchListener(
     onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
   ) {
-    const elem = this._shadowRoot.querySelector(Pathname.webComponentName);
-    isPathnameProps(elem) &&
-      elem.addMatchChangeListener(data => onMatch(data.match));
+    this._pathname?.addMatchChangeListener(data => onMatch(data.match));
   }
 }
 
 if (!customElements.get(Route.webComponentName)) {
   customElements.define(Route.webComponentName, Route);
-}
-
-function isPathnameProps(obj: any): obj is PathnameProps {
-  return obj && "setPathname" in obj && "addMatchChangeListener" in obj;
-}
-
-function isRouteActivationProps(obj: any): obj is RouteActivationProps {
-  return obj && "activate" in obj && "deactivate" in obj;
 }
