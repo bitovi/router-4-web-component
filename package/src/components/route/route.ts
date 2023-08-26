@@ -1,12 +1,19 @@
 import type {
-  PathnameProps,
+  ElementUidProps,
+  ParamsChangeEventDetails,
   RouteActivationProps,
   RouteMatchProps,
   WebComponent
 } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
+import { findParentRouter } from "../../libs/r4w/r4w.ts";
 import { Pathname } from "../pathname/pathname.ts";
 import { Loader } from "../loader/loader.ts";
+
+/**
+ * Incremented for each Route instance that's created.
+ */
+let uidCount = 0;
 
 /**
  * Attributes:
@@ -15,10 +22,15 @@ import { Loader } from "../loader/loader.ts";
  */
 export class Route
   extends HTMLElement
-  implements RouteActivationProps, RouteMatchProps, WebComponent
+  implements
+    ElementUidProps,
+    RouteActivationProps,
+    RouteMatchProps,
+    WebComponent
 {
   private _active: boolean;
   private _connected = false;
+  private _lastParams: Record<string, string> | undefined;
   private _loader: Loader | undefined;
   /** `path` attribute */
   private _path: string | undefined;
@@ -27,9 +39,13 @@ export class Route
   private _slot: HTMLSlotElement | undefined;
   /** `src` attribute */
   private _src: string | undefined;
+  private _uid: string;
 
   constructor() {
     super();
+
+    uidCount = uidCount + 1;
+    this._uid = `r4w-route-${uidCount}`;
 
     this._active = false;
     this._shadowRoot = this.attachShadow({ mode: "closed" });
@@ -66,8 +82,26 @@ export class Route
 
     this._connected;
 
+    const router = findParentRouter(this.parentElement);
+
+    if (!router) {
+      throw Error(
+        "Could not found a Router ancestor. <r4w-route> must be a child of an <r4w-router> element."
+      );
+    }
+
     this._slot = create("slot", {
-      attributes: { style: "display:none;" }
+      attributes: { style: "display:none;" },
+      listeners: {
+        slotchange: () => {
+          this._slot?.assignedElements().forEach(e => {
+            // These are used by the `Params` class to determine if an event is
+            // from its own route.
+            e.setAttribute(this.uid, "");
+            e.setAttribute(router.uid, "");
+          });
+        }
+      }
     });
 
     this._loader = create(
@@ -90,9 +124,16 @@ export class Route
   }
 
   /******************************************************************
+   * ElementUidProps
+   *****************************************************************/
+  get uid(): string {
+    return this._uid;
+  }
+
+  /******************************************************************
    * RouteActivation
    *****************************************************************/
-  activate() {
+  async activate() {
     if (this._active) {
       return;
     }
@@ -104,7 +145,28 @@ export class Route
 
     // When the loader is activated, and it hasn't already downloaded the
     // module, it downloads the module.
-    this._loader?.activate();
+    await this._loader?.activate();
+
+    // Have the params changed? If so fire off an event.
+    const router = findParentRouter(this.parentElement);
+
+    if (!router) {
+      throw Error(
+        "Could not found a Router ancestor. <r4w-route> must be a child of an <r4w-router> element."
+      );
+    }
+
+    const evt = new CustomEvent<ParamsChangeEventDetails>("r4w-params-change", {
+      bubbles: true,
+      composed: true,
+      detail: {
+        params: this._lastParams ?? {},
+        routerUid: router.uid,
+        routeUid: this.uid
+      }
+    });
+
+    window.dispatchEvent(evt);
   }
 
   deactivate() {
@@ -130,7 +192,13 @@ export class Route
   addMatchListener(
     onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
   ) {
-    this._pathname?.addMatchChangeListener(data => onMatch(data.match));
+    this._pathname?.addMatchChangeListener(data => {
+      // TODO: don't save these, change the Pathname interface so that we can
+      // invoke a method at any time to get the params.
+      this._lastParams = data.params;
+
+      onMatch(data.match);
+    });
   }
 }
 

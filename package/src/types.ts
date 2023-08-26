@@ -12,6 +12,8 @@ export interface ParamsChangeEventDetails {
   params: Record<string, string>;
   /** The `uid` of the route that sourced this event. */
   routeUid: string;
+  /** The `uid` of the router that sourced this event. */
+  routerUid: string;
 }
 
 /******************************************************************
@@ -44,8 +46,9 @@ export interface PathnameProps {
  * Route types
  *****************************************************************/
 export interface RouteActivationProps {
-  /** This Route's path is being activated. */
-  activate: () => void;
+  /** This Route's path is being activated. Won't resolve until activation -
+   * including downloading a module - has completed. */
+  activate: () => Promise<void>;
   /** This Route's path is being deactivated. */
   deactivate: () => void;
 }
@@ -65,7 +68,7 @@ export interface RouteMatchProps {
  * UID types
  *****************************************************************/
 export interface ElementUidProps {
-  /** Each router instance has a unique ID. */
+  /** Each implementing instance has a unique ID. */
   readonly uid: string;
 }
 

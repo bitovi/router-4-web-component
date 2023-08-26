@@ -7,7 +7,7 @@ A router for web components.
 Use Skypack and import this module into a source file where you need to use the router.
 
 ```ts
-import from "https://cdn.skypack.dev/router-4-web-component";
+import from "https://cdn.skypack.dev/@bitovi-router-4-web-component";
 ```
 
 Then you can use the router in your HTML.
@@ -21,6 +21,45 @@ Then you can use the router in your HTML.
 ```
 
 ### API
+
+#### Params
+
+This abstract class is used as a base for web components that want to get params
+information from a route's path. An instance of this class MUST be an element
+that is the immediate child of `<r4w-route>`.
+
+Create a web component.
+
+```ts
+import { Params } from "https://cdn.skypack.dev/@bitovi-router-4-web-component";
+
+export class MyWebComponent extends Params {
+  protected override onParamsChange(params: Record<string, string>): void {
+    // The params information in the `params` object depends on the tokens
+    // included in the value of an `<r4w-route>` `path` attrbute.
+    console.log("onParamsChange: params=", params);
+  }
+}
+
+if (!customElements.get("my-web-component")) {
+  customElements.define("my-web-component", MyWebComponent);
+}
+```
+
+Use the web component.
+
+```html
+<r4w-router>
+  <r4w-link path="/items/42">The meaning of...</r4w-link>
+  <r4w-route path="/items/:item">
+    <my-web-component />
+  </r4w-route>
+</r4w-router>
+```
+
+When this code is executed the text "onParamsChange: params= { item: 42 }" will be logged.
+
+---
 
 #### `<r4w-link>`
 
@@ -39,19 +78,18 @@ Same descendants as an `<a>` tag.
 
 ---
 
-#### `<r4w-router>`
+#### `<r4w-redirect>`
 
-Activates child `<r4w-route>` elements when a descendant `<r4w-link>` element
-is clicked or an `<rw4-redirect>` takes effect.
+Must be an immediate child of `<r4w-router>`. Will be used to update browser
+history if none of the `<r4w-route>` elements match the current URL.
 
 ##### Attributes
 
-None
+- `to` - Must match the path of a sibling `<r4w-route>` element.
 
 ##### Descendants
 
-Any element. The `<r4w-route>` and `<r4w-redirect>` elements must be direct
-children of this element.
+None.
 
 ---
 
@@ -77,18 +115,19 @@ Any element.
 
 ---
 
-#### `<r4w-redirect>`
+#### `<r4w-router>`
 
-Must be an immediate child of `<r4w-router>`. Will be used to update browser
-history if none of the `<r4w-route>` elements match the current URL.
+Activates child `<r4w-route>` elements when a descendant `<r4w-link>` element
+is clicked or an `<rw4-redirect>` takes effect.
 
 ##### Attributes
 
-- `to` - Must match the path of a sibling `<r4w-route>` element.
+None
 
 ##### Descendants
 
-None.
+Any element. The `<r4w-route>` and `<r4w-redirect>` elements must be direct
+children of this element.
 
 ---
 

@@ -3,7 +3,7 @@ import type {
   LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
-  RouterProps
+  ElementUidProps
 } from "../../types.ts";
 import { Redirect } from "../redirect/redirect.ts";
 
@@ -15,7 +15,7 @@ let uidCount = 0;
 /**
  * The base element for routing.
  */
-class Router extends HTMLElement implements RouterProps {
+class Router extends HTMLElement implements ElementUidProps {
   private _uid: string;
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
@@ -56,6 +56,8 @@ class Router extends HTMLElement implements RouterProps {
           child.addMatchListener(match => {
             if (match) {
               this._activeRoute = child;
+              // Do not `await` activate, just keep going so all the routes are
+              // updated in the same tick.
               child.activate();
             } else {
               this._activeRoute =

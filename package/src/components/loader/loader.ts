@@ -29,7 +29,7 @@ export class Loader
     }
   }
 
-  activate() {
+  async activate() {
     if (this._module || !this._src) {
       return;
     }
@@ -37,7 +37,7 @@ export class Loader
     const src = this._src;
 
     this._module = true;
-    import(src);
+    return import(src);
   }
 
   deactivate() {
