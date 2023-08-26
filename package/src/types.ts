@@ -1,15 +1,6 @@
 /******************************************************************
  * Event types
  *****************************************************************/
-export interface OnParamsChange {
-  params: Record<string, string>;
-  /** The `uid` of the router that sourced this event. */
-  routerUid: string;
-}
-
-/******************************************************************
- * Link types
- *****************************************************************/
 export interface LinkEventDetails {
   /** The `uid` of the router that should handle this event. */
   routerUid: string;
@@ -17,6 +8,15 @@ export interface LinkEventDetails {
   to: string;
 }
 
+export interface ParamsChangeEventDetails {
+  params: Record<string, string>;
+  /** The `uid` of the route that sourced this event. */
+  routeUid: string;
+}
+
+/******************************************************************
+ * Link types
+ *****************************************************************/
 export interface RouteSelector {
   /**
    * Links a implementor that selects a route to the route's `path` attribute.
@@ -62,9 +62,9 @@ export interface RouteMatchProps {
 }
 
 /******************************************************************
- * Router types
+ * UID types
  *****************************************************************/
-export interface RouterProps {
+export interface ElementUidProps {
   /** Each router instance has a unique ID. */
   readonly uid: string;
 }

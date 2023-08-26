@@ -1,6 +1,6 @@
-import { Param } from "../../../dist/src/index";
+import { Params } from "../../../dist/src/index.js";
 
-class Planets extends Param {
+class Planets extends Params {
   private _shadowRoot: ShadowRoot;
 
   constructor() {
