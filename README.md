@@ -18,11 +18,21 @@ npm install
 
 ### Build
 
-Build the source files (output to `dist` directory).
+Build the source files (output to "dist" directory).
 
 ```sh
 npm run build
 ```
+
+### Scripts
+
+- `build` - generate all run-time and publish-time files.
+- `build:copy` - copy files to "dist" required for publishing.
+- `build:source` - transpile source TypeScript to JavaScript.
+- `build:types` - generate ".d.ts" files in "dist" from TypeScript source.
+- `clean` - delete everything in "dist."
+- `postbuild` - delete temp files that `tsc` creates.
+- `start` - start the development server.
 
 ### Dev Server
 
