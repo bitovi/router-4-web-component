@@ -1,38 +1,47 @@
-import { builder } from "../../libs/elementBuilder/elementBuilder.js";
-import { AttributesBase } from "../attributes-base/attributes-base.js";
+import type { RouteActivationProps, WebComponent } from "../../types.js";
 
-export class Loader extends AttributesBase {
-  private _shadowRoot: ShadowRoot;
+export class Loader
+  extends HTMLElement
+  implements RouteActivationProps, WebComponent
+{
+  private _module = false;
   private _src: string | undefined;
 
   constructor() {
     super();
-
-    const fallback = builder.create("slot", {
-      properties: { name: "fallback" }
-    });
-    const child = builder.create("slot", { properties: { name: "child" } });
-
-    this._shadowRoot = this.attachShadow({ mode: "closed" });
-    this._shadowRoot.append(fallback, child);
   }
 
-  protected static override _observedPatterns: string[] = ["to"];
+  static get observedAttributes(): string[] {
+    return ["src"];
+  }
 
   static get webComponentName() {
-    return "r4w-fallback";
+    return "r4w-loader";
   }
 
-  connectedCallback() {
-    if (!this._src) {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    if (name === "src") {
+      this._src = newValue;
+    }
+  }
+
+  activate() {
+    if (this._module || !this._src) {
       return;
     }
 
     const src = this._src;
 
-    setTimeout(() => {
-      import(src);
-    }, 3000);
+    this._module = true;
+    import(src);
+  }
+
+  deactivate() {
+    // no-op
   }
 }
 

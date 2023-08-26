@@ -23,8 +23,12 @@ export interface OnPathnameMatchChange {
 }
 
 export interface PathnameProps {
-  setPathname: (pathname: string) => Promise<void>;
+  /**
+   * Subscribers will be informed when there has been a change in the matching
+   * of a pathname to a pattern.
+   */
   addMatchChangeListener: (onMatchChange: OnPathnameMatchChange) => void;
+  setPathname: RouteMatchProps["setPathname"];
 }
 
 /******************************************************************
@@ -38,9 +42,14 @@ export interface RouteActivationProps {
 }
 
 export interface RouteMatchProps {
-  setPathname: (pathname: string) => Promise<void>;
   /** When the pathname changes the onMatch callbacks are invoked. */
   addMatchListener: (onMatch: (match: boolean) => void) => void;
+  /**
+   * Set a pathname value, if the match status of the pathname and pattern
+   * changes then the subscribers to onMatchChange will be asynchronously
+   * informed.
+   */
+  setPathname: (pathname: string) => Promise<void>;
 }
 
 /******************************************************************

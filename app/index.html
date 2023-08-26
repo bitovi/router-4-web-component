@@ -13,14 +13,14 @@
       <h1>Hello world!</h1>
       <div style="display: flex;">
         <r4w-link style="flex: 1;text-align: center;" to="/characters">characters</r4w-link>
-        <r4w-link style="flex: 1;text-align: center;" to="/planets">planets</r4w-link>
+        <r4w-link style="flex: 1;text-align: center;" to="/planets"><span>planets</span></r4w-link>
       </div>
     </div>
     <r4w-route path="/characters" src="/app/pages/characters/characters.ts">
-      <app-characters slot="content">loading characters...</app-characters>
+      <app-characters>loading characters...</app-characters>
     </r4w-route>
     <r4w-route path="/planets" src="/app/pages/planets/planets.ts">
-      <app-planets slot="content">loading planets...</app-planets>
+      <app-planets>loading planets...</app-planets>
     </r4w-route>
     <r4w-redirect to="/characters" />
   </r4w-router>

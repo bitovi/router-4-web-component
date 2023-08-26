@@ -1,4 +1,4 @@
-import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
+import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import type {
   LinkEventDetails,
   RouteMatchProps,
@@ -27,7 +27,7 @@ class Router extends HTMLElement implements RouterProps {
     this._uid = `r4w-router-${uidCount}`;
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
-    this._shadowRoot.append(builder.create("slot"));
+    this._shadowRoot.append(create("slot"));
 
     setupNavigationHandling.call(this, setPathname.bind(this));
   }

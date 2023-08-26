@@ -4,21 +4,21 @@ import type {
   WebComponent
 } from "../../types.ts";
 import { splitPath } from "../../libs/path/path.ts";
-// import { Slotted } from "../slotted/slotted.ts";
-import { AttributesBase } from "../attributes-base/attributes-base.ts";
 
 /**
  * This element tells you if the pattern set on it matches the current path and
  * if it has any params from the path.
+ *
+ * Attributes:
+ *   - pattern {string} pattern that will be compared to a pathname to see if they match.
  */
 export class Pathname
-  extends AttributesBase
+  extends HTMLElement
   implements PathnameProps, WebComponent
 {
-  private _init = false;
   private _lastMatch: boolean | null = null;
   private _listeners: OnPathnameMatchChange[] = [];
-  private _pathname: string = "";
+  private _lastPathname: string = "";
   protected _pattern: string | undefined;
 
   constructor() {
@@ -33,26 +33,35 @@ export class Pathname
     return "r4w-pathname";
   }
 
-  connectedCallback() {
-    if (this._init) {
-      return;
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    if (name === "pattern") {
+      this._pattern = newValue;
     }
+  }
 
-    this._init = true;
+  /******************************************************************
+   * PathnameProps
+   *****************************************************************/
+  addMatchChangeListener(onMatchChange: OnPathnameMatchChange) {
+    this._listeners.push(onMatchChange);
   }
 
   setPathname(pathname: string): Promise<void> {
     return new Promise(resolve => {
-      if (pathname === this._pathname) {
+      if (pathname === this._lastPathname) {
         resolve();
         return;
       }
 
-      this._pathname = pathname;
+      this._lastPathname = pathname;
 
       // Let the stack unwind, and asynchronously invoke listeners.
       setTimeout(() => {
-        const data = getPathnameData(this._pathname, this._pattern);
+        const data = this._getPathnameData(this._lastPathname, this._pattern);
 
         if (this._lastMatch === null || this._lastMatch !== data.match)
           for (const listener of this._listeners) {
@@ -66,57 +75,53 @@ export class Pathname
     });
   }
 
-  addMatchChangeListener(onMatchChange: OnPathnameMatchChange) {
-    this._listeners.push(onMatchChange);
+  protected _getPathnameData(
+    pathname: string,
+    pattern?: string
+  ): Parameters<OnPathnameMatchChange>[0] {
+    if (!pattern) {
+      return { match: false };
+    }
+
+    if (pattern.indexOf(":") < 0) {
+      const match = pattern === pathname;
+      return match ? { match: true, params: {} } : { match: false };
+    }
+
+    const pathnameData = splitPath(pathname);
+    const patternData = splitPath(pattern);
+
+    if (pathnameData.parts.length !== patternData.parts.length) {
+      return { match: false };
+    }
+
+    if (pathnameData.absolute !== patternData.absolute) {
+      return { match: false };
+    }
+
+    const params: Record<string, string> = {};
+    for (let i = 0; i < patternData.parts.length; i++) {
+      let matched = false;
+
+      const pathnameDecoded = decodeURIComponent(pathnameData.parts[i]);
+      const patternDecoded = decodeURIComponent(patternData.parts[i]);
+
+      if (patternDecoded.startsWith(":")) {
+        params[patternDecoded.slice(1)] = pathnameDecoded;
+        matched = true;
+      } else {
+        matched = pathnameDecoded === patternDecoded;
+      }
+
+      if (!matched) {
+        return { match: false };
+      }
+    }
+
+    return { match: true, params };
   }
 }
 
 if (!customElements.get(Pathname.webComponentName)) {
   customElements.define(Pathname.webComponentName, Pathname);
-}
-
-function getPathnameData(
-  pathname: string,
-  pattern?: string
-): Parameters<OnPathnameMatchChange>[0] {
-  if (!pattern) {
-    return { match: false };
-  }
-
-  if (pattern.indexOf(":") < 0) {
-    const match = pattern === pathname;
-    return match ? { match: true, params: {} } : { match: false };
-  }
-
-  const pathnameData = splitPath(pathname);
-  const patternData = splitPath(pattern);
-
-  if (pathnameData.parts.length !== patternData.parts.length) {
-    return { match: false };
-  }
-
-  if (pathnameData.absolute !== patternData.absolute) {
-    return { match: false };
-  }
-
-  const params: Record<string, string> = {};
-  for (let i = 0; i < patternData.parts.length; i++) {
-    let matched = false;
-
-    const pathnameDecoded = decodeURIComponent(pathnameData.parts[i]);
-    const patternDecoded = decodeURIComponent(patternData.parts[i]);
-
-    if (patternDecoded.startsWith(":")) {
-      params[patternDecoded.slice(1)] = pathnameDecoded;
-      matched = true;
-    } else {
-      matched = pathnameDecoded === patternDecoded;
-    }
-
-    if (!matched) {
-      return { match: false };
-    }
-  }
-
-  return { match: true, params };
 }

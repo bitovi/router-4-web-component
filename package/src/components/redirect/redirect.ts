@@ -1,7 +1,13 @@
-import type { RouteSelector } from "../../types.ts";
-import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import type { RouteSelector, WebComponent } from "../../types.ts";
 
-class Redirect extends AttributesBase implements RouteSelector {
+/**
+ * Attributes:
+ *   - to {string} Matches the `path` of a sibling route.
+ */
+export class Redirect
+  extends HTMLElement
+  implements RouteSelector, WebComponent
+{
   private _to: string | undefined;
 
   constructor() {
@@ -16,6 +22,19 @@ class Redirect extends AttributesBase implements RouteSelector {
     return "r4w-redirect";
   }
 
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    if (name === "to") {
+      this._to = newValue;
+    }
+  }
+
+  /******************************************************************
+   * RouteSelector
+   *****************************************************************/
   get to(): string | undefined {
     return this._to;
   }
@@ -24,5 +43,3 @@ class Redirect extends AttributesBase implements RouteSelector {
 if (!customElements.get(Redirect.webComponentName)) {
   customElements.define(Redirect.webComponentName, Redirect);
 }
-
-export { Redirect };

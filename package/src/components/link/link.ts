@@ -1,15 +1,38 @@
-import type { LinkEventDetails } from "../../types.ts";
-import { builder } from "../../libs/elementBuilder/elementBuilder.ts";
-import { AttributesBase } from "../attributes-base/attributes-base.ts";
+import type { LinkEventDetails, WebComponent } from "../../types.ts";
+import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import { Router } from "../router/router.ts";
 
-export class Link extends AttributesBase {
-  private _shadowRoot: ShadowRoot;
+/**
+ * Attributes:
+ *   - to {string} Matches the path attribute of one route.
+ */
+export class Link extends HTMLElement implements WebComponent {
   private _to: string | undefined;
 
   constructor() {
     super();
+    this.attachShadow({ mode: "open" });
+  }
 
+  static get observedAttributes(): string[] {
+    return ["to"];
+  }
+
+  static get webComponentName() {
+    return "r4w-link";
+  }
+
+  attributeChangedCallback(
+    name: string,
+    oldValue: string,
+    newValue: string
+  ): void {
+    if (name === "to") {
+      this._to = newValue;
+    }
+  }
+
+  connectedCallback() {
     function handleClick(this: Link, evt: MouseEvent) {
       // Don't let the browser navigate, we're going to push state ourselves.
       evt.preventDefault();
@@ -32,25 +55,16 @@ export class Link extends AttributesBase {
       );
     }
 
-    const a: HTMLAnchorElement = builder.create(
+    const a = create(
       "a",
       {
         listeners: { click: handleClick.bind(this) },
         properties: { href: this._to ?? "" }
       },
-      builder.create("slot")
+      create("slot")
     );
 
-    this._shadowRoot = this.attachShadow({ mode: "closed" });
-    this._shadowRoot.append(a);
-  }
-
-  static get observedAttributes(): string[] {
-    return ["to"];
-  }
-
-  static get webComponentName() {
-    return "r4w-link";
+    this.shadowRoot?.appendChild(a);
   }
 }
 
