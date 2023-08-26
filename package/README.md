@@ -14,7 +14,9 @@ Then you can use the router in your HTML.
 
 ```html
 <r4w-router>
-  <r4w-route path="/foo"><my-web-component />
+  <r4w-route path="/foo" src="/foo.js">
+    <my-web-component />
+  </r4w-route>
 </r4w-router>
 ```
 
