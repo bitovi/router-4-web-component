@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "npm run build:source && npm run build:copy && npm run build:types",
-    "build:copy": "cp ./package/README.md ./dist/ && cp ./package/package.json ./dist/",
+    "build:copy": "cp ./package/README.md ./dist/ && cp ./package/package.json ./dist/ && cp LICENSE ./dist/",
     "build:source": "./node_modules/@swc/cli/bin/swc.js ./package --config-file .swcrc true -d ./dist --source-root ./package/src",
     "build:types": "./node_modules/.bin/tsc  --project ./package/tsconfig.types.json",
     "clean": "rm -rf ./dist",
