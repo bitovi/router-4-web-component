@@ -1,4 +1,4 @@
-import type { ParamsChangeEventDetails } from "../../types.js";
+import type { ParamsChangeEventDetails } from "../../types.ts";
 
 /**
  * This abstract class is used as a base for web components that want to get

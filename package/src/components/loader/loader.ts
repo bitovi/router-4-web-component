@@ -1,4 +1,5 @@
-import type { RouteActivationProps, WebComponent } from "../../types.js";
+import type { RouteActivationProps, WebComponent } from "../../types.ts";
+import { documentUrl } from "../../libs/url/url.ts";
 
 export class Loader
   extends HTMLElement
@@ -34,7 +35,7 @@ export class Loader
       return;
     }
 
-    const src = this._src;
+    const src = documentUrl(this._src);
 
     this._module = true;
     return import(src);

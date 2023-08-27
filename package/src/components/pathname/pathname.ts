@@ -3,7 +3,7 @@ import type {
   PathnameProps,
   WebComponent
 } from "../../types.ts";
-import { splitPath } from "../../libs/path/path.ts";
+import { splitPath } from "../../libs/url/url.ts";
 
 /**
  * This element tells you if the pattern set on it matches the current path and
