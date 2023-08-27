@@ -31,7 +31,7 @@ that is the immediate child of `<r4w-route>`.
 Create a web component.
 
 ```ts
-import { Params } from "https://cdn.skypack.dev/@bitovi-router-4-web-component";
+import { Params } from "https://cdn.skypack.dev/@bitovi/router-4-web-component";
 
 export class MyWebComponent extends Params {
   protected override onParamsChange(params: Record<string, string>): void {
