@@ -1,9 +1,9 @@
 {
-  "name": "@bitovi/router-for-web-components",
+  "name": "@bitovi/router-4-web-component",
   "description": "A router for Web Components.",
   "homepage": "https://www.bitovi.com/services/frontend-development-consulting",
   "author": "Bitovi",
-  "version": "0.1.0-alpha2",
+  "version": "0.1.0-alpha3",
   "license": "MIT",
   "scripts": {},
   "exports": {
