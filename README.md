@@ -1,4 +1,4 @@
-# router-4-web-component
+# @bitovi/router-for-web-components
 
 A router for web components.
 

@@ -1,4 +1,4 @@
-# router-4-web-component
+# @bitovi/router-for-web-components
 
 A router for web components.
 
@@ -7,7 +7,7 @@ A router for web components.
 Use Skypack and import this module into a source file where you need to use the router.
 
 ```ts
-import from "https://cdn.skypack.dev/@bitovi-router-4-web-component";
+import from "https://cdn.skypack.dev/@bitovi/router-for-web-components";
 ```
 
 Then you can use the router in your HTML.
