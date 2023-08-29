@@ -44,7 +44,7 @@ export class Link extends HTMLElement implements WebComponent {
 
       if (!parent) {
         throw Error(
-          "Could not found a Router ancestor. <r4w-link> must be a child of a <r4w-router> element."
+          "Could not found a Router ancestor. <r4w-link> must be a child of an <r4w-router> element."
         );
       }
 

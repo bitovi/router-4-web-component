@@ -1,4 +1,13 @@
 /******************************************************************
+ * Event types
+ *****************************************************************/
+export interface OnParamsChange {
+  params: Record<string, string>;
+  /** The `uid` of the router that sourced this event. */
+  routerUid: string;
+}
+
+/******************************************************************
  * Link types
  *****************************************************************/
 export interface LinkEventDetails {

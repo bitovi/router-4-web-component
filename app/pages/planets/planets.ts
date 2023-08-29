@@ -1,26 +1,27 @@
-class Planets extends HTMLElement {
+import { Param } from "../../../dist/src/index";
+
+class Planets extends Param {
   private _shadowRoot: ShadowRoot;
 
   constructor() {
     super();
-
-    const section = document.createElement("p");
-    section.textContent = "planet content TODO";
-
     this._shadowRoot = this.attachShadow({ mode: "closed" });
-    this._shadowRoot.append(section);
+  }
+
+  protected override onParamsChange(params: Record<string, string>): void {
+    console.log("Planets.onParamsChange: params=", params);
   }
 
   static get webComponentName(): string {
     return "app-planets";
   }
 
-  // connectedCallback() {
-  //   const section = document.createElement("p");
-  //   section.textContent = "planet content TODO";
+  connectedCallback() {
+    const section = document.createElement("p");
+    section.textContent = "planet content TODO";
 
-  //   this._shadowRoot.append(section);
-  // }
+    this._shadowRoot.append(section);
+  }
 }
 
 if (!customElements.get(Planets.webComponentName)) {

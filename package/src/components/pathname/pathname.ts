@@ -1,8 +1,10 @@
 import type {
+  OnParamsChange,
   OnPathnameMatchChange,
   PathnameProps,
   WebComponent
 } from "../../types.ts";
+import { findParentRouter } from "../../libs/r4w/r4w.ts";
 import { splitPath } from "../../libs/path/path.ts";
 
 /**
@@ -17,6 +19,7 @@ export class Pathname
   implements PathnameProps, WebComponent
 {
   private _lastMatch: boolean | null = null;
+  private _lastParams: Record<string, string> | undefined;
   private _listeners: OnPathnameMatchChange[] = [];
   private _lastPathname: string = "";
   protected _pattern: string | undefined;
@@ -69,6 +72,23 @@ export class Pathname
           }
 
         this._lastMatch = data.match;
+
+        // Have the params changed? If so fire off an event.
+        const nextParams = data.params ?? {};
+        if (paramsChanged(nextParams, this._lastParams)) {
+          const router = findParentRouter(this.parentElement);
+          if (router) {
+            const evt = new CustomEvent<OnParamsChange>("r4w-params-change", {
+              detail: {
+                params: nextParams,
+                routerUid: router.uid
+              }
+            });
+            window.dispatchEvent(evt);
+          }
+        }
+
+        this._lastParams = data.params;
 
         resolve();
       }, 0);
@@ -124,4 +144,31 @@ export class Pathname
 
 if (!customElements.get(Pathname.webComponentName)) {
   customElements.define(Pathname.webComponentName, Pathname);
+}
+
+function paramsChanged(
+  next: Record<string, string>,
+  current?: Record<string, string>
+): boolean {
+  if (!current) {
+    return true;
+  }
+
+  const nextKeys = Object.keys(next);
+  const currentKeys = Object.keys(current);
+
+  if (nextKeys.length !== currentKeys.length) {
+    return true;
+  }
+
+  for (let i = 0; i < currentKeys.length; i++) {
+    const nextValue = next[nextKeys[i]];
+    const currentValue = current[currentKeys[i]];
+
+    if (nextValue !== currentValue) {
+      return true;
+    }
+  }
+
+  return false;
 }
