@@ -1,46 +1,22 @@
-import type {
-  OnPathnameMatchChange,
-  PathnameProps,
-  WebComponent
-} from "../../types.ts";
+import type { OnPathnameMatchChange, PathnameProps } from "../../types.ts";
 import { splitPath } from "../../libs/url/url.ts";
 
 /**
  * This element tells you if the pattern set on it matches the current path and
  * if it has any params from the path.
- *
- * Attributes:
- *   - pattern {string} pattern that will be compared to a pathname to see if they match.
  */
-export class Pathname
-  extends HTMLElement
-  implements PathnameProps, WebComponent
-{
+export class Pathname implements PathnameProps {
   private _lastMatch: boolean | null = null;
   private _listeners: OnPathnameMatchChange[] = [];
   private _lastPathname: string = "";
   protected _pattern: string | undefined;
 
-  constructor() {
-    super();
+  get pattern(): string | undefined {
+    return this._pattern;
   }
 
-  static get observedAttributes(): string[] {
-    return ["pattern"];
-  }
-
-  static get webComponentName() {
-    return "r4w-pathname";
-  }
-
-  attributeChangedCallback(
-    name: string,
-    oldValue: string,
-    newValue: string
-  ): void {
-    if (name === "pattern") {
-      this._pattern = newValue;
-    }
+  set pattern(pattern: string) {
+    this._pattern = pattern;
   }
 
   /******************************************************************
@@ -120,10 +96,6 @@ export class Pathname
 
     return { match: true, params };
   }
-}
-
-if (!customElements.get(Pathname.webComponentName)) {
-  customElements.define(Pathname.webComponentName, Pathname);
 }
 
 /**

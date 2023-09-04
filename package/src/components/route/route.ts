@@ -5,10 +5,9 @@ import type {
   RouteMatchProps,
   WebComponent
 } from "../../types.ts";
-import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import { findParentRouter } from "../../libs/r4w/r4w.ts";
-import { Pathname } from "../pathname/pathname.ts";
-import { Loader } from "../loader/loader.ts";
+import { Pathname } from "../../classes/pathname/pathname.ts";
+import { Loader } from "../../classes/loader/loader.ts";
 
 /**
  * Incremented for each Route instance that's created.
@@ -29,16 +28,11 @@ export class Route
     WebComponent
 {
   private _active: boolean;
+  private _children: Element[] = [];
   private _connected = false;
   private _lastParams: Record<string, string> | undefined;
-  private _loader: Loader | undefined;
-  /** `path` attribute */
-  private _path: string | undefined;
-  private _pathname: Pathname | undefined;
-  private _shadowRoot: ShadowRoot;
-  private _slot: HTMLSlotElement | undefined;
-  /** `src` attribute */
-  private _src: string | undefined;
+  private _loader: Loader;
+  private _pathname: Pathname;
   private _uid: string;
 
   constructor() {
@@ -48,7 +42,8 @@ export class Route
     this._uid = `r4w-route-${uidCount}`;
 
     this._active = false;
-    this._shadowRoot = this.attachShadow({ mode: "closed" });
+    this._loader = new Loader();
+    this._pathname = new Pathname();
   }
 
   static get observedAttributes(): string[] {
@@ -66,10 +61,10 @@ export class Route
   ): void {
     switch (name) {
       case "path": {
-        this._path = newValue;
+        this._pathname.pattern = newValue;
       }
       case "src": {
-        this._src = newValue;
+        this._loader.moduleName = newValue;
         break;
       }
     }
@@ -90,37 +85,14 @@ export class Route
       );
     }
 
-    this._slot = create("slot", {
-      attributes: { style: "display:none;" },
-      listeners: {
-        slotchange: () => {
-          this._slot?.assignedElements().forEach(e => {
-            // These are used by the `Params` class to determine if an event is
-            // from its own route.
-            e.setAttribute(this.uid, "");
-            e.setAttribute(router.uid, "");
-          });
-        }
-      }
+    Array.from(this.children).forEach(element => {
+      element.setAttribute(this.uid, "");
+      element.setAttribute(router.uid, "");
+
+      this._children.push(element);
+
+      element.remove();
     });
-
-    this._loader = create(
-      Loader.webComponentName,
-      {
-        attributes: { src: this._src }
-      },
-      this._slot
-    ) as Loader;
-
-    this._pathname = create(
-      Pathname.webComponentName,
-      {
-        attributes: { pattern: this._path }
-      },
-      this._loader
-    ) as Pathname;
-
-    this._shadowRoot.appendChild(this._pathname);
   }
 
   /******************************************************************
@@ -140,12 +112,14 @@ export class Route
 
     this._active = true;
 
-    // Our slot contains the element to be presented when the route is active.
-    this._slot?.setAttribute("style", "");
+    // `_children` contains the elements to be presented when the route is
+    // active.
+    this.append(...this._children);
+    this._children.length = 0;
 
     // When the loader is activated, and it hasn't already downloaded the
     // module, it downloads the module.
-    await this._loader?.activate();
+    await this._loader.activate();
 
     // Have the params changed? If so fire off an event.
     const router = findParentRouter(this.parentElement);
@@ -176,10 +150,15 @@ export class Route
 
     this._active = false;
 
-    // Remove the slot content from the display. We could in the future allow
-    // client to "release" the slot and module to free up memory then fetch and
-    // attach them again when needed.
-    this._slot?.setAttribute("style", "display:none;");
+    // Remove the route children from the display. We could in the future allow
+    // the client to "release" the slot and module to free up memory then fetch
+    // and attach them again when needed.
+    Array.from(this.children).forEach(element => {
+      this._children.push(element);
+      element.remove();
+    });
+
+    this._loader.deactivate();
   }
 
   /******************************************************************

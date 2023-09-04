@@ -16,6 +16,7 @@ let uidCount = 0;
  * The base element for routing.
  */
 class Router extends HTMLElement implements ElementUidProps {
+  private _connected = false;
   private _uid: string;
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
@@ -27,7 +28,6 @@ class Router extends HTMLElement implements ElementUidProps {
     this._uid = `r4w-router-${uidCount}`;
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
-    this._shadowRoot.append(create("slot"));
 
     setupNavigationHandling.call(this, setPathname.bind(this));
   }
@@ -41,6 +41,14 @@ class Router extends HTMLElement implements ElementUidProps {
   }
 
   connectedCallback() {
+    if (this._connected) {
+      return;
+    }
+
+    this._connected = true;
+
+    this._shadowRoot.append(create("slot"));
+
     // Need to let the DOM finish rendering the children of this router. Then
     // add the match listeners to the child Routes - these are invoked when the
     // match status changes. After that set the initial selected route.
