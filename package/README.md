@@ -22,11 +22,11 @@ Then you can use the router in your HTML.
 
 ### API
 
-#### Params
+#### class `Params`
 
 This abstract class is used as a base for web components that want to get params
-information from a route's path. An instance of this class MUST be an element
-that is the immediate child of `<r4w-route>`.
+information from a route's path. An instance of this class can only be an
+element that is the immediate child of `<r4w-route>`.
 
 Create a web component.
 
@@ -61,7 +61,7 @@ When this code is executed the text "onParamsChange: params= { item: 42 }" will 
 
 ---
 
-#### `<r4w-link>`
+#### element `<r4w-link>`
 
 Must be a **descendant** of an `<rw4-router>` element. When the element is
 clicked browser history is updated and a matching route that is a child of the
@@ -78,7 +78,7 @@ Same descendants as an `<a>` tag.
 
 ---
 
-#### `<r4w-redirect>`
+#### element `<r4w-redirect>`
 
 Must be an immediate child of `<r4w-router>`. Will be used to update browser
 history if none of the `<r4w-route>` elements match the current URL.
@@ -93,7 +93,7 @@ None.
 
 ---
 
-#### `<r4w-route>`
+#### element `<r4w-route>`
 
 Must be an immediate child of `<r4w-router>`. Child elements will be added to the DOM when
 the route becomes active, and will be removed when it is deactivated. Usually
@@ -116,7 +116,7 @@ children of this element.
 
 ---
 
-#### `<r4w-router>`
+#### element `<r4w-router>`
 
 Activates child `<r4w-route>` elements when a descendant `<r4w-link>` element
 is clicked or an `<rw4-redirect>` takes effect.

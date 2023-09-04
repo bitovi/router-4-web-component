@@ -1,6 +1,7 @@
 import { Params } from "../../../dist/src/index.js";
 
 class Planets extends Params {
+  private _connected = false;
   private _shadowRoot: ShadowRoot;
 
   constructor() {
@@ -17,6 +18,12 @@ class Planets extends Params {
   }
 
   connectedCallback() {
+    if (this._connected) {
+      return;
+    }
+
+    this._connected = true;
+
     const section = document.createElement("p");
     section.textContent = "planet content TODO";
 
