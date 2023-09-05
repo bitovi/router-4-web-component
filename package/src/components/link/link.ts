@@ -38,19 +38,26 @@ export class Link extends HTMLElement implements WebComponent {
       evt.preventDefault();
 
       let parent = this.parentElement;
-      while (parent && !(parent instanceof Router)) {
-        parent = parent.parentElement;
+      let routerUid: string | undefined;
+      while (parent) {
+        const result = getUids(parent);
+        if (!result) {
+          parent = parent.parentElement;
+        } else {
+          routerUid = result.routerUid ?? undefined;
+          break;
+        }
       }
 
-      if (!parent) {
+      if (!parent || !routerUid) {
         throw Error(
-          "Could not found a Router ancestor. <r4w-link> must be a child of an <r4w-router> element."
+          "Could not find a Router ancestor. <r4w-link> must be a child of an <r4w-router> element."
         );
       }
 
       window.dispatchEvent(
         new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          detail: { routerUid: (parent as Router).uid, to: this._to ?? "" }
+          detail: { routerUid, to: this._to ?? "" }
         })
       );
     }
@@ -70,4 +77,23 @@ export class Link extends HTMLElement implements WebComponent {
 
 if (!customElements.get(Link.webComponentName)) {
   customElements.define(Link.webComponentName, Link);
+}
+
+function getUids(elem: HTMLElement): { routerUid: string } | void {
+  if (!elem) {
+    return;
+  }
+
+  if (elem.hasAttribute("routeruid")) {
+    const routerUid = elem.getAttribute("routeruid");
+    if (!routerUid) {
+      return;
+    }
+
+    return { routerUid };
+  }
+
+  if (elem instanceof Router) {
+    return { routerUid: (elem as Router).uid };
+  }
 }

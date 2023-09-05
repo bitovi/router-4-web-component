@@ -18,8 +18,13 @@ export abstract class Params extends HTMLElement {
 
       // When an event arrives we check and see if the event's source `routeUid`
       // matches an attribute on this instance.
-      if (this.hasAttribute(routerUid) && this.hasAttribute(routeUid)) {
-        this.onParamsChange(params);
+      if (this.hasAttribute("routeruid") && this.hasAttribute("routeuid")) {
+        if (
+          this.getAttribute("routeruid") === routerUid &&
+          this.getAttribute("routeuid") === routeUid
+        ) {
+          this.onParamsChange(params);
+        }
       }
     });
   }

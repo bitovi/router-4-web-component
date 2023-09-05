@@ -81,13 +81,13 @@ export class Route
 
     if (!router) {
       throw Error(
-        "Could not found a Router ancestor. <r4w-route> must be a child of an <r4w-router> element."
+        "Could not find a Router ancestor. <r4w-route> must be a child of an <r4w-router> element."
       );
     }
 
     Array.from(this.children).forEach(element => {
-      element.setAttribute(this.uid, "");
-      element.setAttribute(router.uid, "");
+      element.setAttribute("routeuid", this.uid);
+      element.setAttribute("routeruid", router.uid);
 
       this._children.push(element);
 
