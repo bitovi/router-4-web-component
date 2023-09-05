@@ -1,4 +1,4 @@
-import { Params } from "../../../dist/src/index.js";
+import { Params } from "https://cdn.skypack.dev/@bitovi/router-4-web-component";
 
 class Planets extends Params {
   private _connected = false;
