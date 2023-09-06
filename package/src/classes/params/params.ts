@@ -1,4 +1,5 @@
-import type { ParamsChangeEventDetails } from "../../types.ts";
+import type { RouteUidRequestEventDetails } from "../../types.ts";
+import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 
 /**
  * This abstract class is used as a base for web components that want to get
@@ -8,24 +9,41 @@ import type { ParamsChangeEventDetails } from "../../types.ts";
  * `uid` property.
  */
 export abstract class Params extends HTMLElement {
+  private _routeUid: string | undefined;
+  private _routerUid: string | undefined;
+
   constructor() {
     super();
 
-    window.addEventListener("r4w-params-change", evt => {
+    this.getRouteUids();
+
+    addEventListenerFactory("r4w-params-change")(evt => {
       const {
         detail: { params, routeUid, routerUid }
-      } = evt as CustomEvent<ParamsChangeEventDetails>;
+      } = evt;
 
-      // When an event arrives we check and see if the event's source `routeUid`
-      // matches an attribute on this instance.
-      if (this.hasAttribute("routeruid") && this.hasAttribute("routeuid")) {
-        if (
-          this.getAttribute("routeruid") === routerUid &&
-          this.getAttribute("routeuid") === routeUid
-        ) {
-          this.onParamsChange(params);
-        }
+      if (this._routeUid === routeUid && this._routerUid === routerUid) {
+        this.onParamsChange(params);
       }
+    });
+  }
+
+  private async getRouteUids() {
+    return new Promise<void>(resolve => {
+      this.dispatchEvent(
+        new CustomEvent<RouteUidRequestEventDetails>("r4w-route-uid-request", {
+          bubbles: true,
+          composed: true,
+          detail: {
+            callback: (routeUid, routerUid) => {
+              this._routeUid = routeUid;
+              this._routerUid = routerUid;
+            }
+          }
+        })
+      );
+
+      resolve();
     });
   }
 

@@ -37,27 +37,11 @@ export class Link extends HTMLElement implements WebComponent {
       // Don't let the browser navigate, we're going to push state ourselves.
       evt.preventDefault();
 
-      let parent = this.parentElement;
-      let routerUid: string | undefined;
-      while (parent) {
-        const result = getUids(parent);
-        if (!result) {
-          parent = parent.parentElement;
-        } else {
-          routerUid = result.routerUid ?? undefined;
-          break;
-        }
-      }
-
-      if (!parent || !routerUid) {
-        throw Error(
-          "Could not find a Router ancestor. <r4w-link> must be a child of an <r4w-router> element."
-        );
-      }
-
-      window.dispatchEvent(
+      this.dispatchEvent(
         new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          detail: { routerUid, to: this._to ?? "" }
+          bubbles: true,
+          composed: true,
+          detail: { to: this._to ?? "" }
         })
       );
     }

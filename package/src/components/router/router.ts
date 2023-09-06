@@ -1,10 +1,11 @@
-import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import type {
   LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
   ElementUidProps
 } from "../../types.ts";
+import { create } from "../../libs/elementBuilder/elementBuilder.ts";
+import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { Redirect } from "../redirect/redirect.ts";
 
 /**
@@ -15,7 +16,7 @@ let uidCount = 0;
 /**
  * The base element for routing.
  */
-class Router extends HTMLElement implements ElementUidProps {
+export class Router extends HTMLElement implements ElementUidProps {
   private _connected = false;
   private _uid: string;
   protected _activeRoute: RouteMatchProps | null = null;
@@ -85,8 +86,6 @@ if (!customElements.get(Router.webComponentName)) {
   customElements.define(Router.webComponentName, Router);
 }
 
-export { Router };
-
 function isRedirect(obj: Element): obj is Redirect {
   return obj.tagName === Redirect.webComponentName.toLocaleUpperCase();
 }
@@ -118,9 +117,11 @@ async function setPathname(this: Router, pathname: string) {
     const redirect = children.find(child => isRedirect(child)) as Redirect;
 
     if (redirect?.to) {
-      window.dispatchEvent(
+      this.dispatchEvent(
         new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          detail: { routerUid: this.uid, to: redirect.to }
+          bubbles: true,
+          composed: true,
+          detail: { to: redirect.to }
         })
       );
     }
@@ -133,11 +134,12 @@ function setupNavigationHandling(this: Router, onUrlChange: OnUrlChange) {
     evt.state === this.uid && onUrlChange(window.location.pathname);
   });
 
-  window.addEventListener("r4w-link-event", evt => {
-    const { detail } = evt as CustomEvent<LinkEventDetails>;
-    if (detail.routerUid !== this.uid) {
-      return;
-    }
+  addEventListenerFactory(
+    "r4w-link-event",
+    this
+  )(evt => {
+    evt.stopPropagation();
+    const { detail } = evt;
 
     // We add our `uid` so that later when popstate events occur we know
     // whether or not this instance of Router needs to handle or ignore the

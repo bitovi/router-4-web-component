@@ -5,7 +5,10 @@ import type {
   RouteMatchProps,
   WebComponent
 } from "../../types.ts";
-import { findParentRouter } from "../../libs/r4w/r4w.ts";
+import {
+  addEventListenerFactory,
+  findParentRouter
+} from "../../libs/r4w/r4w.ts";
 import { Pathname } from "../../classes/pathname/pathname.ts";
 import { Loader } from "../../classes/loader/loader.ts";
 
@@ -77,21 +80,23 @@ export class Route
 
     this._connected;
 
-    const router = findParentRouter(this.parentElement);
-
-    if (!router) {
-      throw Error(
-        "Could not find a Router ancestor. <r4w-route> must be a child of an <r4w-router> element."
-      );
-    }
-
     Array.from(this.children).forEach(element => {
-      element.setAttribute("routeuid", this.uid);
-      element.setAttribute("routeruid", router.uid);
-
       this._children.push(element);
-
       element.remove();
+    });
+
+    addEventListenerFactory(
+      "r4w-route-uid-request",
+      this
+    )(evt => {
+      evt.stopPropagation();
+      const {
+        detail: { callback }
+      } = evt;
+
+      const router = findParentRouter(this.parentElement);
+
+      router && callback(this.uid, router.uid);
     });
   }
 
