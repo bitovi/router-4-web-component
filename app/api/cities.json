@@ -1,0 +1,6 @@
+{
+  "data": {
+    "AZ": [{ "name": "Tucson" }, { "name": "Flagstaff" }],
+    "NY": [{ "name": "Buffalo" }, { "name": "Rochester" }]
+  }
+}
