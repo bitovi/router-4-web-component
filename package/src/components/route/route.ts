@@ -5,10 +5,7 @@ import type {
   RouteMatchProps,
   WebComponent
 } from "../../types.ts";
-import {
-  addEventListenerFactory,
-  findParentRouter
-} from "../../libs/r4w/r4w.ts";
+import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { Pathname } from "../../classes/pathname/pathname.ts";
 import { Loader } from "../../classes/loader/loader.ts";
 
@@ -94,9 +91,11 @@ export class Route
         detail: { callback }
       } = evt;
 
-      const router = findParentRouter(this.parentElement);
+      const router = this.parentElement;
 
-      router && callback(this.uid, router.uid);
+      if (isElementUidProps(router)) {
+        callback(this.uid, router.uid);
+      }
     });
   }
 
@@ -127,25 +126,24 @@ export class Route
     await this._loader.activate();
 
     // Have the params changed? If so fire off an event.
-    const router = findParentRouter(this.parentElement);
+    const router = this.parentElement;
 
-    if (!router) {
-      throw Error(
-        "Could not found a Router ancestor. <r4w-route> must be a child of an <r4w-router> element."
+    if (isElementUidProps(router)) {
+      const evt = new CustomEvent<ParamsChangeEventDetails>(
+        "r4w-params-change",
+        {
+          bubbles: true,
+          composed: true,
+          detail: {
+            params: this._lastParams ?? {},
+            routerUid: router.uid,
+            routeUid: this.uid
+          }
+        }
       );
+
+      window.dispatchEvent(evt);
     }
-
-    const evt = new CustomEvent<ParamsChangeEventDetails>("r4w-params-change", {
-      bubbles: true,
-      composed: true,
-      detail: {
-        params: this._lastParams ?? {},
-        routerUid: router.uid,
-        routeUid: this.uid
-      }
-    });
-
-    window.dispatchEvent(evt);
   }
 
   deactivate() {
@@ -188,4 +186,8 @@ export class Route
 
 if (!customElements.get(Route.webComponentName)) {
   customElements.define(Route.webComponentName, Route);
+}
+
+function isElementUidProps(obj: any): obj is ElementUidProps {
+  return obj && "uid" in obj;
 }

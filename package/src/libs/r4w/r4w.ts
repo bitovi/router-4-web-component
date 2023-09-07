@@ -1,6 +1,4 @@
 import type { R4WEventMap } from "../../types.ts";
-import { Router } from "../../components/router/router.ts";
-import { Route } from "../../components/route/route.ts";
 
 /**
  * A type-safe way to set an event listener for r4w custom events.
@@ -11,7 +9,7 @@ import { Route } from "../../components/route/route.ts";
  */
 export function addEventListenerFactory<K extends keyof R4WEventMap>(
   type: K,
-  element: Window | Element = window
+  element: Window | Element
 ) {
   const addR4WEventListener = element.addEventListener as <
     K extends keyof R4WEventMap
@@ -27,28 +25,4 @@ export function addEventListenerFactory<K extends keyof R4WEventMap>(
   ) => {
     return addR4WEventListener(type, listener, options);
   };
-}
-
-export function findParentRoute(
-  parentElement: HTMLElement | null
-): Route | null {
-  let parent = parentElement;
-
-  while (parent && !(parent instanceof Route)) {
-    parent = parent.parentElement;
-  }
-
-  return parent;
-}
-
-export function findParentRouter(
-  parentElement: HTMLElement | null
-): Router | null {
-  let parent = parentElement;
-
-  while (parent && !(parent instanceof Router)) {
-    parent = parent.parentElement;
-  }
-
-  return parent;
 }

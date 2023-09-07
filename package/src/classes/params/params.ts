@@ -17,7 +17,10 @@ export abstract class Params extends HTMLElement {
 
     this.getRouteUids();
 
-    addEventListenerFactory("r4w-params-change")(evt => {
+    addEventListenerFactory(
+      "r4w-params-change",
+      window
+    )(evt => {
       const {
         detail: { params, routeUid, routerUid }
       } = evt;
