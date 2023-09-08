@@ -1,3 +1,5 @@
+import { Dropdown } from "../../components/dropdown/dropdown.ts";
+
 export class Restaurants extends HTMLElement {
   private _connected = false;
   private _regionsLock: Promise<void> | undefined;
@@ -84,6 +86,10 @@ export class Restaurants extends HTMLElement {
     city.addEventListener("change", () =>
       console.log("Restaurants.connectedCallback: city change.")
     );
+
+    const d = document.createElement("app-dropdown") as Dropdown;
+    d.items = [{ text: "TEXT", value: "VALUE" }];
+    this.append(d);
 
     return div;
   }
