@@ -5,6 +5,7 @@ export class Restaurants extends HTMLElement {
   private _regionsLock: Promise<void> | undefined;
   protected _cities: { [region: string]: [{ name: string }] } | undefined;
   protected _regions: { name: string; short: string }[] | undefined;
+  protected _selectedRegion: string | undefined;
   protected _shadowRoot: ShadowRoot;
 
   constructor() {
@@ -64,32 +65,27 @@ export class Restaurants extends HTMLElement {
     <form class="form">
       <div class="form-group">
         <label>State</label>
-        <select id="region">
-          <option value="">Choose a state</option>
-        </select>
+        <${Dropdown.webComponentName} id="region" />
       </div>
       <div class="form-group">
         <label>City</label>
-        <select id="city">
-          <option value="">Choose a city</option>
-        </select>
+        <${Dropdown.webComponentName} id="city" />
       </div>
     </form>
   </div>`;
 
     const region = div.querySelector("#region") as HTMLSelectElement;
+    const city = div.querySelector("#city") as HTMLSelectElement;
+
     region.addEventListener("change", evt => {
+      this._selectedRegion = (evt.target as HTMLSelectElement).value;
+      city.disabled = false;
       this.populateCitiesList((evt.target as HTMLSelectElement).value, div);
     });
 
-    const city = div.querySelector("#city") as HTMLSelectElement;
     city.addEventListener("change", () =>
       console.log("Restaurants.connectedCallback: city change.")
     );
-
-    const d = document.createElement("app-dropdown") as Dropdown;
-    d.items = [{ text: "TEXT", value: "VALUE" }];
-    this.append(d);
 
     return div;
   }
@@ -101,21 +97,19 @@ export class Restaurants extends HTMLElement {
       return;
     }
 
-    const select = content.querySelector("#city") as HTMLSelectElement;
+    const select = content.querySelector("#city") as Dropdown;
     if (!select) {
       return;
     }
 
-    select.innerHTML = "";
-
-    select.append(
-      ...cities.map(({ name }) => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        return opt;
-      })
-    );
+    select.items = [
+      { key: "default", text: "Choose a city", value: "", selected: true },
+      ...cities.map(({ name }) => ({
+        key: name,
+        text: name,
+        value: name
+      }))
+    ];
   }
 
   protected async populateRegionsList(content: HTMLElement) {
@@ -125,19 +119,19 @@ export class Restaurants extends HTMLElement {
       return;
     }
 
-    const region = content.querySelector("#region") as HTMLSelectElement;
+    const region = content.querySelector("#region") as Dropdown;
     if (!region) {
       return;
     }
 
-    region.append(
-      ...this._regions.map(({ name, short }) => {
-        const opt = document.createElement("option");
-        opt.value = short;
-        opt.textContent = name;
-        return opt;
-      })
-    );
+    region.items = [
+      { key: "default", text: "Choose a state", value: "", selected: true },
+      ...this._regions.map(({ name, short }) => ({
+        key: short,
+        text: name,
+        value: short
+      }))
+    ];
   }
 
   private getCities(region: string): Promise<{ name: string }[] | undefined> {

@@ -41,21 +41,7 @@ export default class TsGet {
           module: "es6",
           sourcemap: "inline",
           swc: {
-            isModule: true,
             jsc: {
-              experimental: {
-                plugins: [
-                  [
-                    "@swc/plugin-transform-imports",
-                    {
-                      "^(.*?)(\\.ts)$": {
-                        "skipDefaultConversion": true,
-                        "transform": "{{matches.[1]}}.js"
-                      }
-                    }
-                  ]
-                ]
-              },
               parser: { syntax: "typescript" },
               target: "esnext"
             }

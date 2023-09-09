@@ -1,44 +1,86 @@
-export class Dropdown extends HTMLElement implements DropdownProps {
-  private _connected = false;
-  private _items: DropdownProps["items"] | undefined;
+import { Basecomp } from "../basecomp/basecomp.ts";
+
+let uid = 0;
+
+export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
+  #items: DropdownProps["items"] | undefined;
+  #uid: string;
 
   constructor() {
     super();
+
+    uid = uid + 1;
+    this.#uid = `${Dropdown.webComponentName}-${uid}`;
   }
 
   static get webComponentName() {
     return "app-dropdown";
   }
 
-  connectedCallback() {
-    debugger;
-    if (this._connected) {
-      return;
-    }
-
-    this._connected = true;
-
-    this.update();
-  }
-
   /****************************************************************************
    * DropdownProps
    ****************************************************************************/
   get items(): DropdownProps["items"] {
-    return this._items;
+    return this.#items;
   }
 
-  set items(listItems: DropdownProps["items"]) {
-    debugger;
-    this.setState("_items", listItems);
+  set items(nextItems: DropdownProps["items"]) {
+    this.setState(
+      "#items",
+      this.#items,
+      nextItems,
+      next => (this.#items = next)
+    );
   }
 
-  protected setState(property: string, value: unknown) {
-    Object.defineProperty(this, property, { value });
+  override componentConnected(): void {
+    const select = document.createElement("select");
+
+    if (this.items) {
+      select.append(...this.items.map(this.createOption));
+    }
+
+    this.append(select);
   }
 
-  protected update() {
-    this.append(document.createElement("select"));
+  override update() {
+    if (!this.firstElementChild) {
+      return;
+    }
+
+    if (!this.#items?.length) {
+      this.innerHTML = "";
+      return;
+    }
+
+    const options = this.#items
+      .map(item => this.createOption(item).outerHTML)
+      .join("");
+
+    this.firstElementChild.innerHTML = `<select>${options}</select>`;
+  }
+
+  protected createOption({
+    key,
+    text,
+    value,
+    selected
+  }: DropdownItem): HTMLOptionElement {
+    const opt = document.createElement("option");
+
+    opt.id = this.#createId(key);
+    opt.textContent = text;
+    opt.value = value;
+
+    if (selected) {
+      opt.selected = true;
+    }
+
+    return opt;
+  }
+
+  #createId(key: number | string): string {
+    return `${this.#uid}-${key}`;
   }
 }
 
@@ -47,5 +89,12 @@ if (!customElements.get(Dropdown.webComponentName)) {
 }
 
 interface DropdownProps {
-  items: { text: string; value: string }[] | undefined;
+  items: DropdownItem[] | undefined;
+}
+
+interface DropdownItem {
+  key: number | string;
+  selected?: boolean;
+  text: string;
+  value: string;
 }
