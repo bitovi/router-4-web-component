@@ -17,8 +17,8 @@ let uidCount = 0;
  * The base element for routing.
  */
 export class Router extends HTMLElement implements ElementUidProps {
-  private _connected = false;
-  private _uid: string;
+  #connected = false;
+  #uid: string;
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
 
@@ -26,7 +26,7 @@ export class Router extends HTMLElement implements ElementUidProps {
     super();
 
     uidCount = uidCount + 1;
-    this._uid = `r4w-router-${uidCount}`;
+    this.#uid = `r4w-router-${uidCount}`;
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
 
@@ -38,15 +38,15 @@ export class Router extends HTMLElement implements ElementUidProps {
   }
 
   get uid(): string {
-    return this._uid;
+    return this.#uid;
   }
 
   connectedCallback() {
-    if (this._connected) {
+    if (this.#connected) {
       return;
     }
 
-    this._connected = true;
+    this.#connected = true;
 
     this._shadowRoot.append(create("slot"));
 
