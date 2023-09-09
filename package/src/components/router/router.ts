@@ -68,6 +68,13 @@ export class Router extends HTMLElement implements ElementUidProps {
               // Do not `await` activate, just keep going so all the routes are
               // updated in the same tick.
               child.activate();
+
+              // On initial page load if the path is empty or "/" and a route
+              // handles that path the browser will display the page without a
+              // navigation event, in such a case we need to set the state
+              // associated with the path to this router's UID.
+              !window.history.state &&
+                window.history.replaceState(this.uid, "");
             } else {
               this._activeRoute =
                 this._activeRoute !== child ? this._activeRoute : null;
@@ -96,10 +103,10 @@ function isRouteLike(obj: any): obj is RouteMatchProps & RouteActivationProps {
 
 async function setPathname(this: Router, pathname: string) {
   const children = (
-    this._shadowRoot.childNodes[0] as HTMLSlotElement
+    this._shadowRoot.firstElementChild as HTMLSlotElement
   ).assignedElements();
 
-  if (!children.length) {
+  if (!children?.length) {
     return;
   }
 
