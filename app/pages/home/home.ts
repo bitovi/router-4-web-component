@@ -1,24 +1,19 @@
-export class Home extends HTMLElement {
-  private _connected = false;
-  protected _shadowRoot: ShadowRoot;
+import { Basecomp } from "../../components/basecomp/basecomp.ts";
+
+export class Home extends Basecomp(HTMLElement) {
+  #shadowRoot: ShadowRoot;
 
   constructor() {
     super();
 
-    this._shadowRoot = this.attachShadow({ mode: "closed" });
+    this.#shadowRoot = this.attachShadow({ mode: "closed" });
   }
 
   static get webComponentName() {
     return "app-home";
   }
 
-  connectedCallback() {
-    if (this._connected) {
-      return;
-    }
-
-    this._connected = true;
-
+  override componentConnected(): void {
     const link = document.createElement("link");
     link.href = "/app/place-my-order-assets.css";
     link.rel = "stylesheet";
@@ -31,7 +26,7 @@ export class Home extends HTMLElement {
     <p><r4w-link class="btn" role="button" to="/restaurants">Choose a Restaurant</r4w-link></p>
   </div>`;
 
-    this._shadowRoot.append(link, div);
+    this.#shadowRoot.append(link, div);
   }
 }
 

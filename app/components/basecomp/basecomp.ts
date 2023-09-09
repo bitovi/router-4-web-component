@@ -8,8 +8,8 @@ export function Basecomp<T extends Constructor>(baseType: T) {
    * A base class to manage the lifecycle and updating of a web component.
    */
   return class Basecomp extends baseType {
+    #changedProperties: string[] = [];
     #connected = false;
-    #stateChanged = false;
 
     constructor(...args: any[]) {
       super(...args);
@@ -56,7 +56,9 @@ export function Basecomp<T extends Constructor>(baseType: T) {
 
       setter(next, property);
 
-      this.#stateChanged = true;
+      if (!this.#changedProperties.includes(property)) {
+        this.#changedProperties.push(property);
+      }
 
       this.#queueUpdate();
     }
@@ -65,7 +67,7 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * Invoked when state is changed. This is the time to make changes to the DOM.
      * @protected
      */
-    update(): void {}
+    update(changedProperties: string[]): void {}
 
     /**
      * Do NOT override!, Prefer override of `componentConnected`.
@@ -85,18 +87,18 @@ export function Basecomp<T extends Constructor>(baseType: T) {
     }
 
     #queueUpdate() {
-      if (!this.#stateChanged) {
+      if (!this.#changedProperties.length) {
         return;
       }
 
       window.queueMicrotask(() => {
-        if (!this.#stateChanged) {
+        if (!this.#changedProperties.length) {
           return;
         }
 
-        this.update();
+        this.update([...this.#changedProperties]);
 
-        this.#stateChanged = false;
+        this.#changedProperties.length = 0;
       });
     }
   };
