@@ -40,6 +40,7 @@ export class Route
 
     uidCount = uidCount + 1;
     this._uid = `r4w-route-${uidCount}`;
+    this.setAttribute(this._uid, "");
 
     this._active = false;
     this._loader = new Loader();
@@ -86,7 +87,9 @@ export class Route
       "r4w-route-uid-request",
       this
     )(evt => {
-      evt.stopPropagation();
+      // There are probably sibling elements that are routes, we don't want them
+      // to get this event so use `stopImmediatePropagation`.
+      evt.stopImmediatePropagation();
       const {
         detail: { callback }
       } = evt;
