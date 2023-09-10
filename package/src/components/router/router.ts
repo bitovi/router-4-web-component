@@ -55,14 +55,35 @@ export class Router extends HTMLElement implements ElementUidProps {
       "r4w-router-uid-request",
       this
     )(evt => {
+      // We don't want upstream routers to get this event so `stopPropagation`.
       // There might be sibling elements that are routers, we don't want them to
       // get this event so use `stopImmediatePropagation`.
       evt.stopImmediatePropagation();
       const {
-        detail: { callback }
+        detail: { callback },
+        target
       } = evt;
 
-      callback(this.#uid);
+      // Unfortunately among sibling elements listeners are invoked in the order
+      // they are registered, NOT first in the element that is the ancestor of
+      // the event dispatcher then the other siblings. So we have to query our
+      // children to see if the target is among them, if so we claim the event
+      // for this route.
+      if (target instanceof HTMLElement) {
+        const match = [...this.querySelectorAll(target.localName)].find(
+          e => e === target
+        );
+
+        if (!match) {
+          return;
+        }
+
+        // There are probably sibling elements that are routes, we don't want
+        // them to get this event so use `stopImmediatePropagation`.
+        evt.stopImmediatePropagation();
+
+        callback(this.#uid);
+      }
     });
 
     // Need to let the DOM finish rendering the children of this router. Then

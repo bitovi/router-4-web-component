@@ -14,7 +14,9 @@ export class Params extends HTMLElement {
 
   constructor() {
     super();
+  }
 
+  connectedCallback() {
     this.getRouteUids();
 
     addEventListenerFactory(
