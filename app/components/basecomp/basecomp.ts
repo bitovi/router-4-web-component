@@ -13,6 +13,7 @@ export function Basecomp<T extends Constructor>(baseType: T) {
   return class Basecomp extends baseType {
     #changedProperties: string[] = [];
     #connected = false;
+    #init = false;
 
     constructor(...args: any[]) {
       super(...args);
@@ -23,7 +24,15 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @abstract
      * @protected
      */
-    componentConnected(): void {}
+    componentConnect(): void {}
+
+    /**
+     * Override to make changes only the very first time the component is
+     * connected.
+     * @abstract
+     * @protected
+     */
+    componentInitialConnect(): void {}
 
     /**
      * Invoked by `setState` to determine if state has changed; defaults to a
@@ -73,7 +82,8 @@ export function Basecomp<T extends Constructor>(baseType: T) {
     update(changedProperties: string[]): void {}
 
     /**
-     * Do NOT override!, Prefer override of `componentConnected`.
+     * Do NOT override!, Prefer override of `componentInitialConnect` or
+     * `componentConnect`.
      * @private
      */
     connectedCallback() {
@@ -90,7 +100,12 @@ export function Basecomp<T extends Constructor>(baseType: T) {
 
       this.#connected = true;
 
-      this.componentConnected();
+      if (!this.#init) {
+        this.#init = true;
+        this.componentInitialConnect();
+      }
+
+      this.componentConnect();
 
       this.#queueUpdate();
     }

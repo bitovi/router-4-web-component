@@ -14,7 +14,7 @@ export class RestaurantOrder extends BasecompParams {
     return "app-restaurant-order";
   }
 
-  override componentConnected(): void {
+  override componentInitialConnect(): void {
     const html = `<link href="/app/assets/place-my-order-assets.css" rel="stylesheet"></link>
 <div class="order-history"><h1>place order for '${this.#slug}'</h1></div>`;
 

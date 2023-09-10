@@ -13,7 +13,7 @@ export class Home extends Basecomp(HTMLElement) {
     return "app-home";
   }
 
-  override componentConnected(): void {
+  override componentInitialConnect(): void {
     const link = document.createElement("link");
     link.href = "/app/assets/place-my-order-assets.css";
     link.rel = "stylesheet";

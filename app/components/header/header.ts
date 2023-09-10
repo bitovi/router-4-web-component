@@ -13,7 +13,7 @@ export class Header extends BasecompPathnameChanged {
     return "app-header";
   }
 
-  override componentConnected(): void {
+  override componentInitialConnect(): void {
     const { match: matchRoot } = Pathname.getPathnameData(
       window.location.pathname,
       "/"

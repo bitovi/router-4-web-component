@@ -13,7 +13,7 @@ export class OrderHistory extends Basecomp(HTMLElement) {
     return "app-order-history";
   }
 
-  override componentConnected(): void {
+  override componentInitialConnect(): void {
     const html = `<link href="/app/assets/place-my-order-assets.css" rel="stylesheet"></link>
 <div class="order-history"><h1>order history</h1></div>`;
 

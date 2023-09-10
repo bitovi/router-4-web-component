@@ -61,7 +61,7 @@ export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
     );
   }
 
-  override componentConnected(): void {
+  override componentInitialConnect(): void {
     const select = document.createElement("select");
     select.append(...this.#getItemsList().map(this.createOption.bind(this)));
     select.disabled = this.disabled;
