@@ -2,7 +2,8 @@ import type {
   LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
-  ElementUidProps
+  ElementUidProps,
+  PathnameChangeEventDetails
 } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
@@ -49,6 +50,20 @@ export class Router extends HTMLElement implements ElementUidProps {
     this.#connected = true;
 
     this._shadowRoot.append(create("slot"));
+
+    addEventListenerFactory(
+      "r4w-router-uid-request",
+      this
+    )(evt => {
+      // There might be sibling elements that are routers, we don't want them to
+      // get this event so use `stopImmediatePropagation`.
+      evt.stopImmediatePropagation();
+      const {
+        detail: { callback }
+      } = evt;
+
+      callback(this.#uid);
+    });
 
     // Need to let the DOM finish rendering the children of this router. Then
     // add the match listeners to the child Routes - these are invoked when the
@@ -118,6 +133,13 @@ async function setPathname(this: Router, pathname: string) {
     children
       .filter(child => isRouteLike(child))
       .map(route => (route as unknown as RouteMatchProps).setPathname(pathname))
+  );
+
+  // May want this to fire only when there is an `_activeRoute`...
+  window.dispatchEvent(
+    new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
+      detail: { pathname, routerUid: this.uid }
+    })
   );
 
   if (!this._activeRoute) {

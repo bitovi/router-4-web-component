@@ -24,9 +24,9 @@ Then you can use the router in your HTML.
 
 #### class `Params`
 
-This abstract class is used as a base for web components that want to get params
-information from a route's path. An instance of this class can only be an
-element that is the immediate child of `<r4w-route>`.
+This class is used as a base for web components that want to get params
+information from a route's path. Must be a descendant of an `<r4w-route>`
+element.
 
 Create a web component.
 
@@ -34,7 +34,7 @@ Create a web component.
 import { Params } from "https://cdn.skypack.dev/@bitovi/router-4-web-component";
 
 export class MyWebComponent extends Params {
-  protected override onParamsChange(params: Record<string, string>): void {
+  override onParamsChange(params: Record<string, string>): void {
     // The params information in the `params` object depends on the tokens
     // included in the value of an `<r4w-route>` `path` attrbute.
     console.log("onParamsChange: params=", params);
@@ -57,7 +57,43 @@ Use the web component.
 </r4w-router>
 ```
 
-When this code is executed the text "onParamsChange: params= { item: 42 }" will be logged.
+When this code is executed the text "onParamsChange: params= { item: 42 }" will
+be logged.
+
+#### class `PathnameChanged`
+
+This class is used as a base for web components that want to be informed when
+the browser's path changes. Must be a descendant of an `<r4w-router>` element.
+
+Create a web component.
+
+```ts
+import { PathnameChanged } from "https://cdn.skypack.dev/@bitovi/router-4-web-component";
+
+export class MyWebComponent extends PathnameChanged {
+  override onPathnameChange(pathname: string): void {
+    console.log("onPathnameChange: pathname=", pathname);
+  }
+}
+
+if (!customElements.get("my-web-component")) {
+  customElements.define("my-web-component", MyWebComponent);
+}
+```
+
+Use the web component.
+
+```html
+<r4w-router>
+  <r4w-link to="/items/42">The meaning of...</r4w-link>
+  <r4w-route path="/items/:item">
+    <my-web-component />
+  </r4w-route>
+</r4w-router>
+```
+
+When this code is executed the text "onPathnameChange: pathname= /items/42" will
+be logged.
 
 ---
 
@@ -111,8 +147,7 @@ DOM.
 
 ##### Descendants
 
-Any element. Web components that extend [Params](#params) must be direct
-children of this element.
+Any element.
 
 ---
 

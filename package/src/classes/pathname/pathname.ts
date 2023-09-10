@@ -11,47 +11,13 @@ export class Pathname implements PathnameProps {
   private _lastPathname: string = "";
   protected _pattern: string | undefined;
 
-  get pattern(): string | undefined {
-    return this._pattern;
-  }
-
-  set pattern(pattern: string) {
-    this._pattern = pattern;
-  }
-
-  /******************************************************************
-   * PathnameProps
-   *****************************************************************/
-  addMatchChangeListener(onMatchChange: OnPathnameMatchChange) {
-    this._listeners.push(onMatchChange);
-  }
-
-  setPathname(pathname: string): Promise<void> {
-    return new Promise(resolve => {
-      if (pathname === this._lastPathname) {
-        resolve();
-        return;
-      }
-
-      this._lastPathname = pathname;
-
-      // Let the stack unwind, and asynchronously invoke listeners.
-      setTimeout(() => {
-        const data = this._getPathnameData(this._lastPathname, this._pattern);
-
-        if (this._lastMatch === null || this._lastMatch !== data.match)
-          for (const listener of this._listeners) {
-            listener(data);
-          }
-
-        this._lastMatch = data.match;
-
-        resolve();
-      }, 0);
-    });
-  }
-
-  protected _getPathnameData(
+  /**
+   * Returns data about a path: does it match the provided pathname pattern, any
+   * params extracted from the pathname.
+   * @param pathname A pathname - usually the current browser path.
+   * @param pattern A route pattern - usually the `path` from an `<r4w-route>`.
+   */
+  static getPathnameData(
     pathname: string,
     pattern?: string
   ): Parameters<OnPathnameMatchChange>[0] {
@@ -95,6 +61,49 @@ export class Pathname implements PathnameProps {
     }
 
     return { match: true, params };
+  }
+
+  get pattern(): string | undefined {
+    return this._pattern;
+  }
+
+  set pattern(pattern: string) {
+    this._pattern = pattern;
+  }
+
+  /******************************************************************
+   * PathnameProps
+   *****************************************************************/
+  addMatchChangeListener(onMatchChange: OnPathnameMatchChange) {
+    this._listeners.push(onMatchChange);
+  }
+
+  setPathname(pathname: string): Promise<void> {
+    return new Promise(resolve => {
+      if (pathname === this._lastPathname) {
+        resolve();
+        return;
+      }
+
+      this._lastPathname = pathname;
+
+      // Let the stack unwind, and asynchronously invoke listeners.
+      setTimeout(() => {
+        const data = Pathname.getPathnameData(
+          this._lastPathname,
+          this._pattern
+        );
+
+        if (this._lastMatch === null || this._lastMatch !== data.match)
+          for (const listener of this._listeners) {
+            listener(data);
+          }
+
+        this._lastMatch = data.match;
+
+        resolve();
+      }, 0);
+    });
   }
 }
 
