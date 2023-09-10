@@ -63,3 +63,15 @@ rewrite file for router files and source map files.
 
 The server reads from the `app` directory. The files in `app` import router
 functionality from the `dist` directory.
+
+## Learned
+
+### Classes
+
+- Private field syntax (prefixing a class member with "#"): for example `#data`
+  or `#getData()`
+
+#### Mixins
+
+- To invoke a base class use `super`; you may have to add magic comments to
+  ignore TS errors `// ts-ignore`

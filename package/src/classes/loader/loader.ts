@@ -1,32 +1,32 @@
-import type { RouteActivationProps, WebComponent } from "../../types.ts";
+import type { RouteActivationProps } from "../../types.ts";
 import { documentUrl } from "../../libs/url/url.ts";
 
 /**
  * Loads a module when the Loader is activated.
  */
 export class Loader implements RouteActivationProps {
-  private _module = false;
-  private _moduleName: string | undefined;
+  #module = false;
+  #moduleName: string | undefined;
 
   get moduleName(): string | undefined {
-    return this._moduleName;
+    return this.#moduleName;
   }
 
   set moduleName(src: string) {
-    this._moduleName = src;
+    this.#moduleName = src;
   }
 
   /******************************************************************
    * RouteActivation
    *****************************************************************/
   async activate() {
-    if (this._module || !this._moduleName) {
+    if (this.#module || !this.#moduleName) {
       return;
     }
 
-    const src = documentUrl(this._moduleName);
+    const src = documentUrl(this.#moduleName);
 
-    this._module = true;
+    this.#module = true;
     return import(src);
   }
 

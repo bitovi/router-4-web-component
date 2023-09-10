@@ -1,4 +1,13 @@
 {
-  "cSpell.words": ["bitovi", "Redirector", "Skypack", "slotchange"],
+  "cSpell.words": [
+    "Basecomp",
+    "bitovi",
+    "Redirector",
+    "routeruid",
+    "routeuid",
+    "Skypack",
+    "slotchange",
+    "Uids"
+  ],
   "typescript.tsdk": "node_modules/typescript/lib"
 }

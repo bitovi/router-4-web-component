@@ -9,7 +9,7 @@
     "build:types": "./node_modules/.bin/tsc  --project ./package/tsconfig.types.json",
     "clean": "rm -rf ./dist",
     "postbuild": "rm ./dist/tsconfig.types.tsbuildinfo",
-    "start": "./node_modules/.bin/ws --hostname 0.0.0.0 -p 3000 -n -d ./ --spa app/index.html"
+    "start": "./node_modules/.bin/ws --hostname 0.0.0.0 -p 3000 -n -d ./ --spa app/index.html --log.format tiny"
   },
   "devDependencies": {
     "@bitovi/eslint-config": "^1.6.0",

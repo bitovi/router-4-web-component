@@ -2,11 +2,15 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "composite": true,
+    "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
     "module": "ES2022",
     "noImplicitOverride": true,
     "noImplicitReturns": true,
+    "paths": {
+      "@bitovi/router-4-web-component": ["./package/src/index"]
+    },
     "strict": true,
     "target": "ES2022",
     "verbatimModuleSyntax": true

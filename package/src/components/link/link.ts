@@ -1,13 +1,13 @@
 import type { LinkEventDetails, WebComponent } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
-import { Router } from "../router/router.ts";
 
 /**
  * Attributes:
  *   - to {string} Matches the path attribute of one route.
  */
 export class Link extends HTMLElement implements WebComponent {
-  private _to: string | undefined;
+  #init = false;
+  #to: string | undefined;
 
   constructor() {
     super();
@@ -28,43 +28,38 @@ export class Link extends HTMLElement implements WebComponent {
     newValue: string
   ): void {
     if (name === "to") {
-      this._to = newValue;
+      this.#to = newValue;
     }
   }
 
   connectedCallback() {
-    function handleClick(this: Link, evt: MouseEvent) {
-      // Don't let the browser navigate, we're going to push state ourselves.
-      evt.preventDefault();
+    if (!this.#init) {
+      this.#init = true;
 
-      let parent = this.parentElement;
-      while (parent && !(parent instanceof Router)) {
-        parent = parent.parentElement;
-      }
-
-      if (!parent) {
-        throw Error(
-          "Could not found a Router ancestor. <r4w-link> must be a child of an <r4w-router> element."
-        );
-      }
-
-      window.dispatchEvent(
-        new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          detail: { routerUid: (parent as Router).uid, to: this._to ?? "" }
-        })
+      const a = create(
+        "a",
+        {
+          listeners: { click: this.#handleClick.bind(this) },
+          properties: { href: this.#to ?? "" }
+        },
+        create("slot")
       );
+
+      this.shadowRoot?.appendChild(a);
     }
+  }
 
-    const a = create(
-      "a",
-      {
-        listeners: { click: handleClick.bind(this) },
-        properties: { href: this._to ?? "" }
-      },
-      create("slot")
+  #handleClick(evt: MouseEvent) {
+    // Don't let the browser navigate, we're going to push state ourselves.
+    evt.preventDefault();
+
+    this.dispatchEvent(
+      new CustomEvent<LinkEventDetails>("r4w-link-event", {
+        bubbles: true,
+        composed: true,
+        detail: { to: this.#to ?? "" }
+      })
     );
-
-    this.shadowRoot?.appendChild(a);
   }
 }
 

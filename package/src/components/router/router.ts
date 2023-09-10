@@ -1,10 +1,13 @@
-import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import type {
   LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
-  ElementUidProps
+  ElementUidProps,
+  PathnameChangeEventDetails,
+  RouterUidRequestEventDetails
 } from "../../types.ts";
+import { create } from "../../libs/elementBuilder/elementBuilder.ts";
+import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { Redirect } from "../redirect/redirect.ts";
 
 /**
@@ -15,9 +18,10 @@ let uidCount = 0;
 /**
  * The base element for routing.
  */
-class Router extends HTMLElement implements ElementUidProps {
-  private _connected = false;
-  private _uid: string;
+export class Router extends HTMLElement implements ElementUidProps {
+  #connected = false;
+  #handleRouterUidRequestEventBound: ((evt: Event) => void) | undefined;
+  #uid: string;
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
 
@@ -25,11 +29,11 @@ class Router extends HTMLElement implements ElementUidProps {
     super();
 
     uidCount = uidCount + 1;
-    this._uid = `r4w-router-${uidCount}`;
+    this.#uid = `r4w-router-${uidCount}`;
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
 
-    setupNavigationHandling.call(this, setPathname.bind(this));
+    this.#setupNavigationHandling(this.#setPathname.bind(this));
   }
 
   static get webComponentName() {
@@ -37,17 +41,25 @@ class Router extends HTMLElement implements ElementUidProps {
   }
 
   get uid(): string {
-    return this._uid;
+    return this.#uid;
   }
 
   connectedCallback() {
-    if (this._connected) {
+    if (this.#connected) {
       return;
     }
 
-    this._connected = true;
+    this.#connected = true;
 
     this._shadowRoot.append(create("slot"));
+
+    this.#handleRouterUidRequestEventBound =
+      this.#handleRouterUidRequestEvent.bind(this);
+
+    addEventListenerFactory(
+      "r4w-router-uid-request",
+      this
+    )(this.#handleRouterUidRequestEventBound);
 
     // Need to let the DOM finish rendering the children of this router. Then
     // add the match listeners to the child Routes - these are invoked when the
@@ -67,6 +79,13 @@ class Router extends HTMLElement implements ElementUidProps {
               // Do not `await` activate, just keep going so all the routes are
               // updated in the same tick.
               child.activate();
+
+              // On initial page load if the path is empty or "/" and a route
+              // handles that path the browser will display the page without a
+              // navigation event, in such a case we need to set the state
+              // associated with the path to this router's UID.
+              !window.history.state &&
+                window.history.replaceState(this.uid, "");
             } else {
               this._activeRoute =
                 this._activeRoute !== child ? this._activeRoute : null;
@@ -76,7 +95,118 @@ class Router extends HTMLElement implements ElementUidProps {
         }
       }
 
-      setPathname.call(this, window.location.pathname);
+      this.#setPathname(window.location.pathname);
+    });
+  }
+
+  disconnectedCallback() {
+    this.#handleRouterUidRequestEventBound &&
+      this.removeEventListener(
+        "r4w-router-uid-request",
+        this.#handleRouterUidRequestEventBound
+      );
+
+    this.#handleRouterUidRequestEventBound = undefined;
+  }
+
+  #handleRouterUidRequestEvent(evt: Event): void {
+    if (!isRouterUidRequestEventDetails(evt)) {
+      return;
+    }
+
+    // We don't want upstream routers to get this event so `stopPropagation`.
+    // There might be sibling elements that are routers, we don't want them to
+    // get this event so use `stopImmediatePropagation`.
+    evt.stopImmediatePropagation();
+
+    const {
+      detail: { callback },
+      target
+    } = evt;
+
+    // Unfortunately among sibling elements listeners are invoked in the order
+    // they are registered, NOT first in the element that is the ancestor of
+    // the event dispatcher then the other siblings. So we have to query our
+    // children to see if the target is among them, if so we claim the event
+    // for this route.
+    if (target instanceof HTMLElement) {
+      const match = [...this.querySelectorAll(target.localName)].find(
+        e => e === target
+      );
+
+      if (!match) {
+        return;
+      }
+
+      // There are probably sibling elements that are routes, we don't want
+      // them to get this event so use `stopImmediatePropagation`.
+      evt.stopImmediatePropagation();
+
+      callback(this.#uid);
+    }
+  }
+
+  async #setPathname(pathname: string) {
+    const children = (
+      this._shadowRoot.firstElementChild as HTMLSlotElement
+    ).assignedElements();
+
+    if (!children?.length) {
+      return;
+    }
+
+    // setPathname only resolves once all the pathname change listeners for that
+    // route have been invoked with the new pathname. We wait for everything to
+    // resolve then, if no route is active, and there is a redirect, fire a change
+    // event with the redirect's `to` value.
+    await Promise.all(
+      children
+        .filter(child => isRouteLike(child))
+        .map(route =>
+          (route as unknown as RouteMatchProps).setPathname(pathname)
+        )
+    );
+
+    // May want this to fire only when there is an `_activeRoute`...
+    window.dispatchEvent(
+      new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
+        detail: { pathname, routerUid: this.uid }
+      })
+    );
+
+    if (!this._activeRoute) {
+      const redirect = children.find(child => isRedirect(child)) as Redirect;
+
+      if (redirect?.to) {
+        this.dispatchEvent(
+          new CustomEvent<LinkEventDetails>("r4w-link-event", {
+            bubbles: true,
+            composed: true,
+            detail: { to: redirect.to }
+          })
+        );
+      }
+    }
+  }
+
+  #setupNavigationHandling(onUrlChange: OnUrlChange) {
+    window.addEventListener("popstate", (evt: PopStateEvent) => {
+      // Ignore popstate events that don't include this instance's `uid`.
+      evt.state === this.uid && onUrlChange(window.location.pathname);
+    });
+
+    addEventListenerFactory(
+      "r4w-link-event",
+      this
+    )(evt => {
+      evt.stopPropagation();
+      const { detail } = evt;
+
+      // We add our `uid` so that later when popstate events occur we know
+      // whether or not this instance of Router needs to handle or ignore the
+      // event.
+      window.history.pushState(this.uid, "", detail.to);
+      onUrlChange(detail.to);
     });
   }
 }
@@ -84,8 +214,6 @@ class Router extends HTMLElement implements ElementUidProps {
 if (!customElements.get(Router.webComponentName)) {
   customElements.define(Router.webComponentName, Router);
 }
-
-export { Router };
 
 function isRedirect(obj: Element): obj is Redirect {
   return obj.tagName === Redirect.webComponentName.toLocaleUpperCase();
@@ -95,56 +223,10 @@ function isRouteLike(obj: any): obj is RouteMatchProps & RouteActivationProps {
   return "addMatchListener" in obj && "activate" in obj && "deactivate" in obj;
 }
 
-async function setPathname(this: Router, pathname: string) {
-  const children = (
-    this._shadowRoot.childNodes[0] as HTMLSlotElement
-  ).assignedElements();
-
-  if (!children.length) {
-    return;
-  }
-
-  // setPathname only resolves once all the pathname change listeners for that
-  // route have been invoked with the new pathname. We wait for everything to
-  // resolve then, if no route is active, and there is a redirect, fire a change
-  // event with the redirect's `to` value.
-  await Promise.all(
-    children
-      .filter(child => isRouteLike(child))
-      .map(route => (route as unknown as RouteMatchProps).setPathname(pathname))
-  );
-
-  if (!this._activeRoute) {
-    const redirect = children.find(child => isRedirect(child)) as Redirect;
-
-    if (redirect?.to) {
-      window.dispatchEvent(
-        new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          detail: { routerUid: this.uid, to: redirect.to }
-        })
-      );
-    }
-  }
-}
-
-function setupNavigationHandling(this: Router, onUrlChange: OnUrlChange) {
-  window.addEventListener("popstate", (evt: PopStateEvent) => {
-    // Ignore popstate events that don't include this instance's `uid`.
-    evt.state === this.uid && onUrlChange(window.location.pathname);
-  });
-
-  window.addEventListener("r4w-link-event", evt => {
-    const { detail } = evt as CustomEvent<LinkEventDetails>;
-    if (detail.routerUid !== this.uid) {
-      return;
-    }
-
-    // We add our `uid` so that later when popstate events occur we know
-    // whether or not this instance of Router needs to handle or ignore the
-    // event.
-    window.history.pushState(this.uid, "", detail.to);
-    onUrlChange(detail.to);
-  });
+function isRouterUidRequestEventDetails(
+  evt: any
+): evt is CustomEvent<RouterUidRequestEventDetails> {
+  return evt && "detail" in evt && "callback" in evt.detail;
 }
 
 interface OnUrlChange {

@@ -1,9 +1,18 @@
 /******************************************************************
  * Event types
  *****************************************************************/
+/**
+ * Map event types (names) to the details property of a custom event.
+ */
+export interface R4WEventMap {
+  "r4w-link-event": CustomEvent<LinkEventDetails>;
+  "r4w-params-change": CustomEvent<ParamsChangeEventDetails>;
+  "r4w-pathname-change": CustomEvent<PathnameChangeEventDetails>;
+  "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
+  "r4w-router-uid-request": CustomEvent<RouterUidRequestEventDetails>;
+}
+
 export interface LinkEventDetails {
-  /** The `uid` of the router that should handle this event. */
-  routerUid: string;
   /** Matches a `path` attribute of a Route to activate. */
   to: string;
 }
@@ -14,6 +23,26 @@ export interface ParamsChangeEventDetails {
   routeUid: string;
   /** The `uid` of the router that sourced this event. */
   routerUid: string;
+}
+
+export interface PathnameChangeEventDetails {
+  pathname: string;
+  /** The `uid` of the router that sourced this event. */
+  routerUid: string;
+}
+
+export interface RouteUidRequestEventDetails {
+  /** Invoked by the Route that contains the element that dispatched this event.
+   * Returns the information for the Route and Router that contain the element.
+   * */
+  callback: (routeUid: string, routerUid: string) => void;
+}
+
+export interface RouterUidRequestEventDetails {
+  /** Invoked by the Router that contains the element that dispatched this
+   * event. Returns the information for the Router that contain the element.
+   * */
+  callback: (routerUid: string) => void;
 }
 
 /******************************************************************

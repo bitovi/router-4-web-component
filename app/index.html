@@ -11,25 +11,30 @@
   <!--
     Use Skypack to show off how cool this is!
   -->
-  <!-- <script src="https://cdn.skypack.dev/@bitovi/router-4-web-component@alpha3" type="module"></script> -->
+  <!-- <script src="https://cdn.skypack.dev/@bitovi/router-4-web-component@alpha4" type="module"></script> -->
+  <link href="/app/assets/place-my-order-assets.css" rel="stylesheet">
+  </script>
 </head>
 
 <body>
   <r4w-router>
-    <div style="display: block;">
-      <h1>Hello world!</h1>
-      <div style="display: flex;">
-        <r4w-link style="flex: 1;text-align: center;" to="/characters">characters</r4w-link>
-        <r4w-link style="flex: 1;text-align: center;" to="/planets/1"><span>planets</span></r4w-link>
-      </div>
-    </div>
-    <r4w-route path="/characters" src="/app/pages/characters/characters.ts">
-      <app-characters>loading characters...</app-characters>
+    <app-header></app-header>
+    <r4w-route path="/" src="/app/pages/home/home.ts">
+      <app-home />
     </r4w-route>
-    <r4w-route path="/planets/:index" src="/app/pages/planets/planets.ts">
-      <app-planets>loading planets...</app-planets>
+    <r4w-route path="/restaurants" src="/app/pages/restaurants/restaurants.ts">
+      <app-restaurants />
     </r4w-route>
-    <r4w-redirect to="/characters" />
+    <r4w-route path="/restaurants/:slug" src="/app/pages/restaurant-detail/restaurant-detail.ts">
+      <app-restaurant-detail />
+    </r4w-route>
+    <r4w-route path="/restaurants/:slug/order" src="/app/pages/restaurant-order/restaurant-order.ts">
+      <app-restaurant-order />
+    </r4w-route>
+    <r4w-route path="/order-history" src="/app/pages/order-history/order-history.ts">
+      <app-order-history />
+    </r4w-route>
+    <r4w-redirect to="/" />
   </r4w-router>
 </body>
 
