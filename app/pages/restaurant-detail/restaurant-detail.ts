@@ -117,7 +117,7 @@ export class RestaurantDetail extends BasecompParams {
 
     const image = `<img alt="The owner of ${restaurant.name}." src="${restaurant.resources.owner}" />`;
     const description = `<p class="description">${image}Description for ${restaurant.name}</p>`;
-    const link = `<p class="order-link"><r4w-link class="btn" to="${restaurant.slug}/order">Order from ${restaurant.name}</r4w-link></p>`;
+    const link = `<p class="order-link"><r4w-link class="btn" to="/restaurants/${restaurant.slug}/order">Order from ${restaurant.name}</r4w-link></p>`;
     const content = `<div class="restaurant-content"><h3>The best food this side of the Mississippi</h3>${description}${link}</div>`;
 
     this.#shadowRoot.innerHTML = style + restaurantHeader + content;
