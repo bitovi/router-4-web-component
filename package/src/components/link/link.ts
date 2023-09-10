@@ -18,7 +18,7 @@ export class Link extends HTMLElement implements WebComponent {
     return ["to"];
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "r4w-link";
   }
 
@@ -32,7 +32,7 @@ export class Link extends HTMLElement implements WebComponent {
     }
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (!this.#init) {
       this.#init = true;
 

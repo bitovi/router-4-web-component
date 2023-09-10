@@ -74,7 +74,7 @@ export class Pathname implements PathnameProps {
   /******************************************************************
    * PathnameProps
    *****************************************************************/
-  addMatchChangeListener(onMatchChange: OnPathnameMatchChange) {
+  addMatchChangeListener(onMatchChange: OnPathnameMatchChange): void {
     this.#listeners.push(onMatchChange);
   }
 

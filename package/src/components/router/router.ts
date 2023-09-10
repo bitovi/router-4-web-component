@@ -36,7 +36,7 @@ export class Router extends HTMLElement implements ElementUidProps {
     this.#setupNavigationHandling(this.#setPathname.bind(this));
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "r4w-router";
   }
 
@@ -44,7 +44,7 @@ export class Router extends HTMLElement implements ElementUidProps {
     return this.#uid;
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (this.#connected) {
       return;
     }
@@ -64,8 +64,7 @@ export class Router extends HTMLElement implements ElementUidProps {
     // Need to let the DOM finish rendering the children of this router. Then
     // add the match listeners to the child Routes - these are invoked when the
     // match status changes. After that set the initial selected route.
-    let id: number | undefined;
-    id = requestIdleCallback(() => {
+    const id = requestIdleCallback(() => {
       id && cancelIdleCallback(id);
       const children = (
         this._shadowRoot.childNodes[0] as HTMLSlotElement
@@ -99,7 +98,7 @@ export class Router extends HTMLElement implements ElementUidProps {
     });
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.#handleRouterUidRequestEventBound &&
       this.removeEventListener(
         "r4w-router-uid-request",
@@ -219,11 +218,13 @@ function isRedirect(obj: Element): obj is Redirect {
   return obj.tagName === Redirect.webComponentName.toLocaleUpperCase();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isRouteLike(obj: any): obj is RouteMatchProps & RouteActivationProps {
   return "addMatchListener" in obj && "activate" in obj && "deactivate" in obj;
 }
 
 function isRouterUidRequestEventDetails(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   evt: any
 ): evt is CustomEvent<RouterUidRequestEventDetails> {
   return evt && "detail" in evt && "callback" in evt.detail;

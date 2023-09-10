@@ -18,7 +18,7 @@ export class Redirect
     return ["to"];
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "r4w-redirect";
   }
 

@@ -28,12 +28,14 @@ export class Params extends HTMLElement {
    * @param params A collection of tokens and values.
    * @protected
    */
-  protected _onParamsChange(params: Record<string, string>): void {}
+  protected _onParamsChange(params: Record<string, string>): void {
+    // Default implementation does nothing.
+  }
 
   /**
    * @private
    */
-  connectedCallback() {
+  connectedCallback(): void {
     this.#getRouteUids();
 
     this.#handleParamsChangeBound = this.#handleParamsChange.bind(this);
@@ -47,7 +49,7 @@ export class Params extends HTMLElement {
   /**
    * @private
    */
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.#handleParamsChangeBound &&
       window.removeEventListener(
         "r4w-params-change",
@@ -92,6 +94,7 @@ export class Params extends HTMLElement {
 }
 
 function isParamsChangeEventDetails(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   evt: any
 ): evt is CustomEvent<ParamsChangeEventDetails> {
   return (

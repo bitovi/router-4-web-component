@@ -19,7 +19,7 @@ export class Loader implements RouteActivationProps {
   /******************************************************************
    * RouteActivation
    *****************************************************************/
-  async activate() {
+  async activate(): Promise<void> {
     if (this.#module || !this.#moduleName) {
       return;
     }
@@ -30,7 +30,7 @@ export class Loader implements RouteActivationProps {
     return import(src);
   }
 
-  deactivate() {
+  deactivate(): void {
     // no-op
   }
 }

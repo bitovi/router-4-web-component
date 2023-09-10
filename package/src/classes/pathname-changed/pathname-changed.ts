@@ -23,7 +23,7 @@ export class PathnameChanged extends HTMLElement implements WebComponent {
     this.#getRouteUids();
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (this.#connected) {
       return;
     }
@@ -38,7 +38,7 @@ export class PathnameChanged extends HTMLElement implements WebComponent {
     )(this.#handlePathnameChangeBound);
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.#handlePathnameChangeBound &&
       window.removeEventListener(
         "r4w-pathname-change",
@@ -96,6 +96,7 @@ export class PathnameChanged extends HTMLElement implements WebComponent {
 }
 
 function isPathnameChangeEventDetails(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   obj: any
 ): obj is CustomEvent<PathnameChangeEventDetails> {
   return (

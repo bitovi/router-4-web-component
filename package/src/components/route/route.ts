@@ -53,7 +53,7 @@ export class Route
     return ["path", "src"];
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "r4w-route";
   }
 
@@ -74,7 +74,7 @@ export class Route
     }
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     if (this.#connected) {
       return;
     }
@@ -95,7 +95,7 @@ export class Route
     )(this.#handleRouteUidRequestEventBound);
   }
 
-  disconnectedCallback() {
+  disconnectedCallback(): void {
     this.#handleRouteUidRequestEventBound &&
       this.removeEventListener(
         "r4w-route-uid-request",
@@ -113,9 +113,9 @@ export class Route
   }
 
   /******************************************************************
-   * RouteActivation
+   * RouteActivationProps
    *****************************************************************/
-  async activate() {
+  async activate(): Promise<void> {
     if (this.#active) {
       return;
     }
@@ -152,7 +152,7 @@ export class Route
     }
   }
 
-  deactivate() {
+  deactivate(): void {
     if (!this.#active) {
       return;
     }
@@ -171,7 +171,7 @@ export class Route
   }
 
   /******************************************************************
-   * RouteMatch
+   * RouteMatchProps
    *****************************************************************/
   setPathname(pathname: string): Promise<void> {
     return Promise.resolve(this.#pathname?.setPathname(pathname));
@@ -179,12 +179,9 @@ export class Route
 
   addMatchListener(
     onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
-  ) {
+  ): void {
     this.#pathname?.addMatchChangeListener(data => {
-      // TODO: don't save these, change the Pathname interface so that we can
-      // invoke a method at any time to get the params.
       this.#lastParams = data.params;
-
       onMatch(data.match);
     });
   }
@@ -231,11 +228,13 @@ if (!customElements.get(Route.webComponentName)) {
   customElements.define(Route.webComponentName, Route);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isElementUidProps(obj: any): obj is ElementUidProps {
   return obj && "uid" in obj;
 }
 
 function isRouteUidRequestEventDetails(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   evt: any
 ): evt is CustomEvent<RouteUidRequestEventDetails> {
   return evt && "detail" in evt && "callback" in evt.detail;

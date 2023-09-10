@@ -75,7 +75,7 @@ interface CreateOptions {
   listeners?: Partial<{
     [Property in keyof HTMLElementEventMap]: (
       evt: HTMLElementEventMap[Property]
-    ) => any;
+    ) => void;
   }>;
   properties?: Record<string, unknown>;
 }
