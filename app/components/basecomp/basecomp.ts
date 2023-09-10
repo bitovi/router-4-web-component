@@ -2,6 +2,7 @@ import {
   Params,
   PathnameChanged
 } from "https://esm.sh/@bitovi/router-4-web-component";
+// import { Params, PathnameChanged } from "../../../dist/src/index.js";
 import type { Constructor } from "../../types/types.ts";
 
 /**
@@ -9,6 +10,7 @@ import type { Constructor } from "../../types/types.ts";
  * @param baseType A class or interface that Basecomp instance extends.
  * @returns A constructor for Basecomp.
  */
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function Basecomp<T extends Constructor>(baseType: T) {
   /**
    * A base class to manage the lifecycle and updating of a web component.
@@ -18,6 +20,7 @@ export function Basecomp<T extends Constructor>(baseType: T) {
     #connected = false;
     #init = false;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
@@ -27,7 +30,9 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @abstract
      * @protected
      */
-    componentConnect(): void {}
+    componentConnect(): void {
+      // No default implementation.
+    }
 
     /**
      * Override to make changes only the very first time the component is
@@ -35,7 +40,9 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @abstract
      * @protected
      */
-    componentInitialConnect(): void {}
+    componentInitialConnect(): void {
+      // No default implementation.
+    }
 
     /**
      * Invoked by `setState` to determine if state has changed; defaults to a
@@ -82,7 +89,9 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * Invoked when state is changed. This is the time to make changes to the DOM.
      * @protected
      */
-    update(changedProperties: string[]): void {}
+    update(changedProperties: string[]): void {
+      // No default implementation.
+    }
 
     /**
      * Do NOT override!, Prefer override of `componentInitialConnect` or

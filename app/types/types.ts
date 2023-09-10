@@ -1,6 +1,7 @@
 /**
  * Extend multiple classes using mixins.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Constructor<T = HTMLElement> = new (...args: any[]) => T;
 
 export interface RestaurantData {

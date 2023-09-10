@@ -15,7 +15,7 @@ export class RestaurantDetail extends BasecompParams {
     this.#getRestaurants();
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "app-restaurant-detail";
   }
 

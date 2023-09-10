@@ -15,7 +15,7 @@ export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
     this.#uid = `${Dropdown.webComponentName}-${uid}`;
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "app-dropdown";
   }
 
@@ -69,7 +69,7 @@ export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
     this.append(select);
   }
 
-  override update(changedProperties: string[]) {
+  override update(changedProperties: string[]): void {
     if (!this.firstElementChild) {
       return;
     }
@@ -138,6 +138,7 @@ if (!customElements.get(Dropdown.webComponentName)) {
   customElements.define(Dropdown.webComponentName, Dropdown);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isSelectElement(obj: any): obj is HTMLSelectElement {
   return obj && "disabled" in obj && "value" in obj;
 }

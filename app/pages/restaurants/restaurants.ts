@@ -6,7 +6,7 @@ export class Restaurants extends Basecomp(HTMLElement) {
   #regionsLock: Promise<void> | undefined;
   #restaurantsLock: Promise<void> | undefined;
   protected _cities: { [region: string]: [{ name: string }] } | undefined;
-  protected _regions: { name: string; short: string }[] | undefined;
+  protected _regions: Array<{ name: string; short: string }> | undefined;
   protected _restaurants: RestaurantData | undefined;
   protected _selectedCity: string | undefined;
   protected _selectedRegion: string | undefined;
@@ -20,7 +20,7 @@ export class Restaurants extends Basecomp(HTMLElement) {
     this.#getRegions();
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "app-restaurants";
   }
 
@@ -117,7 +117,10 @@ export class Restaurants extends Basecomp(HTMLElement) {
     }
   }
 
-  protected async populateCitiesList(region: string, content: Element | null) {
+  protected async populateCitiesList(
+    region: string,
+    content: Element | null
+  ): Promise<void> {
     if (!content) {
       return;
     }
@@ -138,7 +141,7 @@ export class Restaurants extends Basecomp(HTMLElement) {
     }));
   }
 
-  protected async populateRegionsList(content: Element | null) {
+  protected async populateRegionsList(content: Element | null): Promise<void> {
     if (!content) {
       return;
     }
@@ -159,7 +162,10 @@ export class Restaurants extends Basecomp(HTMLElement) {
     }));
   }
 
-  protected async populateRestaurantsTable(region: string, city: string) {
+  protected async populateRestaurantsTable(
+    region: string,
+    city: string
+  ): Promise<void> {
     if (!this._restaurants) {
       return;
     }
@@ -235,12 +241,12 @@ export class Restaurants extends Basecomp(HTMLElement) {
     );
   }
 
-  #getCities(region: string): Promise<{ name: string }[] | undefined> {
+  #getCities(region: string): Promise<Array<{ name: string }> | undefined> {
     if (this._cities) {
       return Promise.resolve(this._cities[region]);
     }
 
-    return new Promise<{ name: string }[] | undefined>(resolve => {
+    return new Promise<Array<{ name: string }> | undefined>(resolve => {
       this.#apiFetch("app/api/cities.json", response =>
         response.json().then(body => {
           this.setState(
@@ -309,6 +315,7 @@ if (!customElements.get(Restaurants.webComponentName)) {
   customElements.define(Restaurants.webComponentName, Restaurants);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isDropdown(obj: any): obj is Dropdown {
   return obj && "items" in obj && "defaultItem" in obj;
 }

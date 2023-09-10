@@ -10,7 +10,7 @@ export class RestaurantOrder extends BasecompParams {
     this.#shadowRoot = this.attachShadow({ mode: "closed" });
   }
 
-  static get webComponentName() {
+  static get webComponentName(): string {
     return "app-restaurant-order";
   }
 
