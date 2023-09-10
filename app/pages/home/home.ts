@@ -15,7 +15,7 @@ export class Home extends Basecomp(HTMLElement) {
 
   override componentConnected(): void {
     const link = document.createElement("link");
-    link.href = "/app/place-my-order-assets.css";
+    link.href = "/app/assets/place-my-order-assets.css";
     link.rel = "stylesheet";
 
     const div = document.createElement("div");

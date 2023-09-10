@@ -9,7 +9,7 @@
             "street": "Street 1",
             "zip": "11111"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/1-thumbnail.jpg" },
           "name": "Flagstaff Diner",
           "slug": "001"
         },
@@ -20,7 +20,7 @@
             "street": "Road 1",
             "zip": "22222"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/2-thumbnail.jpg" },
           "name": "Flagstaff Pizza",
           "slug": "002"
         }
@@ -33,7 +33,7 @@
             "street": "Street 1",
             "zip": "33333"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/3-thumbnail.jpg" },
           "name": "Tucson Diner",
           "slug": "003"
         },
@@ -44,7 +44,7 @@
             "street": "Road 1",
             "zip": "44444"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/4-thumbnail.jpg" },
           "name": "Tucson Pizza",
           "slug": "004"
         }
@@ -59,7 +59,7 @@
             "street": "First Avenue",
             "zip": "55555"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/1-thumbnail.jpg" },
           "name": "Buffalo Diner",
           "slug": "005"
         },
@@ -70,7 +70,7 @@
             "street": "Blvd. 5",
             "zip": "55555"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/2-thumbnail.jpg" },
           "name": "Buffalo Pizza",
           "slug": "006"
         }
@@ -83,7 +83,7 @@
             "street": "Winton Road",
             "zip": "66666"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/3-thumbnail.jpg" },
           "name": "Rochester Diner",
           "slug": "007"
         },
@@ -94,7 +94,7 @@
             "street": "Jefferson Ave.",
             "zip": "66666"
           },
-          "resources": { "thumbnail": "" },
+          "resources": { "thumbnail": "app/assets/4-thumbnail.jpg" },
           "name": "Rochester Pizza",
           "slug": "008"
         }
