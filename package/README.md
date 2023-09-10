@@ -28,6 +28,10 @@ This class is used as a base for web components that want to get params
 information from a route's path. Must be a descendant of an `<r4w-route>`
 element.
 
+Can be used in a [mixin
+definition](https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/)
+of a web component.
+
 Create a web component.
 
 ```ts
@@ -64,6 +68,10 @@ be logged.
 
 This class is used as a base for web components that want to be informed when
 the browser's path changes. Must be a descendant of an `<r4w-router>` element.
+
+Can be used in a [mixin
+definition](https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/)
+of a web component.
 
 Create a web component.
 

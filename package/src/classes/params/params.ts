@@ -10,6 +10,9 @@ import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
  * element that is the immediate child of `<r4w-route>`. That's because the
  * route is going to set an attribute on this instance whose name is the route's
  * `uid` property.
+ *
+ * Can be used as a mixin definition.
+ * https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/
  */
 export class Params extends HTMLElement {
   #handleParamsChangeBound: ((evt: Event) => void) | undefined;

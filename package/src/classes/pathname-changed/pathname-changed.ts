@@ -8,6 +8,9 @@ import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 /**
  * This abstract class is used as a base for web components that want to be
  * informed of pathname changes.
+ *
+ * Can be used as a mixin definition.
+ * https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/
  */
 export class PathnameChanged extends HTMLElement implements WebComponent {
   #connected = false;
