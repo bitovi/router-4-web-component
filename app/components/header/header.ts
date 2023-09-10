@@ -1,6 +1,6 @@
 import { BasecompPathnameChanged } from "../../components/basecomp/basecomp.ts";
-import type { Link } from "../../../dist/src/index.js";
-import { Pathname } from "../../../dist/src/index.js";
+import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
+import { Pathname } from "https://esm.sh/@bitovi/router-4-web-component";
 
 export class Header extends BasecompPathnameChanged {
   #currentPathname: string | undefined;

@@ -4,10 +4,11 @@ A router for web components.
 
 ## Install
 
-Use Skypack and import this module into a source file where you need to use the router.
+Use "esm.sh" and import this module into a source file where you need to use the
+router.
 
 ```ts
-import from "https://cdn.skypack.dev/@bitovi/router-4-web-component";
+import from "https://esm.sh/@bitovi/router-4-web-component";
 ```
 
 Then you can use the router in your HTML.
@@ -35,7 +36,7 @@ of a web component.
 Create a web component.
 
 ```ts
-import { Params } from "https://cdn.skypack.dev/@bitovi/router-4-web-component";
+import { Params } from "https://esm.sh/@bitovi/router-4-web-component";
 
 export class MyWebComponent extends Params {
   override onParamsChange(params: Record<string, string>): void {
@@ -76,7 +77,7 @@ of a web component.
 Create a web component.
 
 ```ts
-import { PathnameChanged } from "https://cdn.skypack.dev/@bitovi/router-4-web-component";
+import { PathnameChanged } from "https://esm.sh/@bitovi/router-4-web-component";
 
 export class MyWebComponent extends PathnameChanged {
   override onPathnameChange(pathname: string): void {

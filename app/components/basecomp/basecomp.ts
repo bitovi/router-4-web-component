@@ -1,4 +1,7 @@
-import { Params, PathnameChanged } from "../../../dist/src/index.js";
+import {
+  Params,
+  PathnameChanged
+} from "https://esm.sh/@bitovi/router-4-web-component";
 import type { Constructor } from "../../types/types.ts";
 
 /**

@@ -65,6 +65,7 @@ export class Route
     switch (name) {
       case "path": {
         this.#pathname.pattern = newValue;
+        break;
       }
       case "src": {
         this.#loader.moduleName = newValue;
