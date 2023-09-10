@@ -58,9 +58,6 @@ The `local-web-server` is started with the following options:
 The server includes a custom middleware component to transpile TypeScript files
 on the fly. See `server/lws-ts-get.mjs`.
 
-The server's configuration file `lws.config.js` has been customized with some
-rewrite file for router files and source map files.
-
 The server reads from the `app` directory. The files in `app` import router
 functionality from the `dist` directory.
 
