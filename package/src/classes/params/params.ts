@@ -8,7 +8,7 @@ import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
  * route is going to set an attribute on this instance whose name is the route's
  * `uid` property.
  */
-export abstract class Params extends HTMLElement {
+export class Params extends HTMLElement {
   private _routeUid: string | undefined;
   private _routerUid: string | undefined;
 
@@ -54,5 +54,5 @@ export abstract class Params extends HTMLElement {
    * This will be invoked when the params change.
    * @param params A collection of tokens and values.
    */
-  protected abstract onParamsChange(params: Record<string, string>): void;
+  protected onParamsChange(params: Record<string, string>): void {}
 }
