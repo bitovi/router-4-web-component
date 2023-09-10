@@ -1,3 +1,4 @@
+import type { RestaurantData } from "../../types/types.ts";
 import { Basecomp } from "../../components/basecomp/basecomp.ts";
 import { Dropdown } from "../../components/dropdown/dropdown.ts";
 
@@ -314,24 +315,4 @@ function isDropdown(obj: any): obj is Dropdown {
 
 function isValidCity(city: string | undefined): city is string {
   return !!city && city !== "default";
-}
-
-interface RestaurantData {
-  [region: string]: {
-    [city: string]: RestaurantItem[];
-  };
-}
-
-interface RestaurantItem {
-  address: {
-    city: string;
-    state: string;
-    street: string;
-    zip: string;
-  };
-  resources: {
-    thumbnail: string;
-  };
-  name: string;
-  slug: string;
 }

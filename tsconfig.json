@@ -9,7 +9,7 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "paths": {
-      "@bitovi/router-4-web-component": ["./package/src/index.ts"]
+      "@bitovi/router-4-web-component": ["./package/src/index"]
     },
     "strict": true,
     "target": "ES2022",

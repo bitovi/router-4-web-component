@@ -18,6 +18,9 @@
 
 <body>
   <r4w-router>
+    <r4w-route path="/restaurants/:slug" src="/app/pages/restaurant-detail/restaurant-detail.ts">
+      <app-restaurant-detail />
+    </r4w-route>
     <r4w-route path="/restaurants" src="/app/pages/restaurants/restaurants.ts">
       <app-restaurants />
     </r4w-route>

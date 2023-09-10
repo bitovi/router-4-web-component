@@ -1,3 +1,6 @@
+import { Params } from "../../../dist/src/index.js";
+import type { Constructor } from "../../types/types.ts";
+
 /**
  * Mixin to create a Basecomp constructor for a specific type.
  * @param baseType A class or interface that Basecomp instance extends.
@@ -105,4 +108,4 @@ export function Basecomp<T extends Constructor>(baseType: T) {
   };
 }
 
-type Constructor<T = HTMLElement> = new (...args: any[]) => T;
+export const BasecompParams = Basecomp(Params);
