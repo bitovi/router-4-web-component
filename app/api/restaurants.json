@@ -1,0 +1,104 @@
+{
+  "data": {
+    "AZ": {
+      "Flagstaff": [
+        {
+          "address": {
+            "city": "Flagstaff",
+            "state": "Arizona",
+            "street": "Street 1",
+            "zip": "11111"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Flagstaff Diner",
+          "slug": "001"
+        },
+        {
+          "address": {
+            "city": "Flagstaff",
+            "state": "Arizona",
+            "street": "Road 1",
+            "zip": "22222"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Flagstaff Pizza",
+          "slug": "002"
+        }
+      ],
+      "Tucson": [
+        {
+          "address": {
+            "city": "Tucson",
+            "state": "Arizona",
+            "street": "Street 1",
+            "zip": "33333"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Tucson Diner",
+          "slug": "003"
+        },
+        {
+          "address": {
+            "city": "Tucson",
+            "state": "Arizona",
+            "street": "Road 1",
+            "zip": "44444"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Tucson Pizza",
+          "slug": "004"
+        }
+      ]
+    },
+    "NY": {
+      "Buffalo": [
+        {
+          "address": {
+            "city": "Buffalo",
+            "state": "New York",
+            "street": "First Avenue",
+            "zip": "55555"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Buffalo Diner",
+          "slug": "005"
+        },
+        {
+          "address": {
+            "city": "Buffalo",
+            "state": "New York",
+            "street": "Blvd. 5",
+            "zip": "55555"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Buffalo Pizza",
+          "slug": "006"
+        }
+      ],
+      "Rochester": [
+        {
+          "address": {
+            "city": "Rochester",
+            "state": "New York",
+            "street": "Winton Road",
+            "zip": "66666"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Rochester Diner",
+          "slug": "007"
+        },
+        {
+          "address": {
+            "city": "Rochester",
+            "state": "New York",
+            "street": "Jefferson Ave.",
+            "zip": "66666"
+          },
+          "resources": { "thumbnail": "" },
+          "name": "Rochester Pizza",
+          "slug": "008"
+        }
+      ]
+    }
+  }
+}

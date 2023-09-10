@@ -92,13 +92,14 @@ export function Basecomp<T extends Constructor>(baseType: T) {
       }
 
       window.queueMicrotask(() => {
-        if (!this.#changedProperties.length) {
-          return;
+        // While this callback is executing more state changes might occur, so
+        // keep iterating until state settles. Yup, you could create an infinite
+        // loop here.
+        while (this.#changedProperties.length) {
+          const changed = [...this.#changedProperties];
+          this.#changedProperties.length = 0;
+          this.update(changed);
         }
-
-        this.update([...this.#changedProperties]);
-
-        this.#changedProperties.length = 0;
       });
     }
   };

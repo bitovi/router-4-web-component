@@ -3,6 +3,8 @@ import { Basecomp } from "../basecomp/basecomp.ts";
 let uid = 0;
 
 export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
+  #defaultItem: DropdownItem | undefined;
+  #disabled = false;
   #items: DropdownProps["items"] | undefined;
   #uid: string;
 
@@ -20,6 +22,32 @@ export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
   /****************************************************************************
    * DropdownProps
    ****************************************************************************/
+  get defaultItem(): DropdownItem | undefined {
+    return this.#defaultItem;
+  }
+
+  set defaultItem(item: DropdownItem) {
+    this.setState(
+      "#defaultItem",
+      this.#defaultItem,
+      item,
+      next => (this.#defaultItem = next)
+    );
+  }
+
+  get disabled(): boolean {
+    return this.#disabled;
+  }
+
+  set disabled(disabled: boolean) {
+    this.setState(
+      "#disabled",
+      this.#disabled,
+      disabled,
+      next => (this.#disabled = next)
+    );
+  }
+
   get items(): DropdownProps["items"] {
     return this.#items;
   }
@@ -35,29 +63,38 @@ export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
 
   override componentConnected(): void {
     const select = document.createElement("select");
-
-    if (this.items) {
-      select.append(...this.items.map(this.createOption));
-    }
+    select.append(...this.#getItemsList().map(this.createOption.bind(this)));
+    select.disabled = this.disabled;
 
     this.append(select);
   }
 
-  override update() {
+  override update(changedProperties: string[]) {
     if (!this.firstElementChild) {
       return;
     }
 
-    if (!this.#items?.length) {
-      this.innerHTML = "";
-      return;
+    if (
+      changedProperties.includes("#items") ||
+      changedProperties.includes("#defaultItem")
+    ) {
+      const items = this.#getItemsList();
+      let options: string | undefined;
+      if (items.length) {
+        options = items.map(item => this.createOption(item).outerHTML).join("");
+      } else {
+        options = "";
+      }
+
+      this.firstElementChild.innerHTML = `<select>${options}</select>`;
     }
 
-    const options = this.#items
-      .map(item => this.createOption(item).outerHTML)
-      .join("");
-
-    this.firstElementChild.innerHTML = `<select>${options}</select>`;
+    if (changedProperties.includes("#disabled")) {
+      const { firstElementChild } = this;
+      if (isSelectElement(firstElementChild)) {
+        firstElementChild.disabled = this.#disabled;
+      }
+    }
   }
 
   protected createOption({
@@ -82,13 +119,32 @@ export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
   #createId(key: number | string): string {
     return `${this.#uid}-${key}`;
   }
+
+  #getItemsList(): DropdownItem[] {
+    const items: DropdownItem[] = [];
+    if (this.#defaultItem) {
+      items.push(this.#defaultItem);
+    }
+
+    if (this.#items?.length) {
+      items.push(...this.#items);
+    }
+
+    return items;
+  }
 }
 
 if (!customElements.get(Dropdown.webComponentName)) {
   customElements.define(Dropdown.webComponentName, Dropdown);
 }
 
+function isSelectElement(obj: any): obj is HTMLSelectElement {
+  return obj && "disabled" in obj && "value" in obj;
+}
+
 interface DropdownProps {
+  defaultItem?: DropdownItem | undefined;
+  disabled: HTMLSelectElement["disabled"];
   items: DropdownItem[] | undefined;
 }
 

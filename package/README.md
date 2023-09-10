@@ -50,7 +50,7 @@ Use the web component.
 
 ```html
 <r4w-router>
-  <r4w-link path="/items/42">The meaning of...</r4w-link>
+  <r4w-link to="/items/42">The meaning of...</r4w-link>
   <r4w-route path="/items/:item">
     <my-web-component />
   </r4w-route>
