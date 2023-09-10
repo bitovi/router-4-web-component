@@ -1,4 +1,4 @@
-import { Params } from "../../../dist/src/index.js";
+import { Params, PathnameChanged } from "../../../dist/src/index.js";
 import type { Constructor } from "../../types/types.ts";
 
 /**
@@ -75,9 +75,15 @@ export function Basecomp<T extends Constructor>(baseType: T) {
     /**
      * Do NOT override!, Prefer override of `componentConnected`.
      * @private
-     * @returns
      */
     connectedCallback() {
+      // If you need to specifically invoke a Mixin's functions - and it seems
+      // like you should - you will need to tell TS that you know what you are
+      // doing and ignore the error.
+      //
+      // @ts-ignore
+      super.connectedCallback && super.connectedCallback();
+
       if (this.#connected) {
         return;
       }
@@ -87,6 +93,16 @@ export function Basecomp<T extends Constructor>(baseType: T) {
       this.componentConnected();
 
       this.#queueUpdate();
+    }
+
+    /**
+     * @private
+     */
+    disconnectedCallback() {
+      // @ts-ignore
+      super.disconnectedCallback && super.disconnectedCallback();
+
+      this.#connected = false;
     }
 
     #queueUpdate() {
@@ -109,3 +125,4 @@ export function Basecomp<T extends Constructor>(baseType: T) {
 }
 
 export const BasecompParams = Basecomp(Params);
+export const BasecompPathnameChanged = Basecomp(PathnameChanged);
