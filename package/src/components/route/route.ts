@@ -3,6 +3,7 @@ import type {
   ParamsChangeEventDetails,
   RouteActivationProps,
   RouteMatchProps,
+  RouteUidRequestEventDetails,
   WebComponent
 } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
@@ -27,24 +28,25 @@ export class Route
     RouteMatchProps,
     WebComponent
 {
-  private _active: boolean;
-  private _children: Element[] = [];
-  private _connected = false;
-  private _lastParams: Record<string, string> | undefined;
-  private _loader: Loader;
-  private _pathname: Pathname;
-  private _uid: string;
+  #active: boolean;
+  #children: Element[] = [];
+  #connected = false;
+  #handleRouteUidRequestEventBound: ((evt: Event) => void) | undefined;
+  #lastParams: Record<string, string> | undefined;
+  #loader: Loader;
+  #pathname: Pathname;
+  #uid: string;
 
   constructor() {
     super();
 
     uidCount = uidCount + 1;
-    this._uid = `r4w-route-${uidCount}`;
-    this.setAttribute(this._uid, "");
+    this.#uid = `r4w-route-${uidCount}`;
+    this.setAttribute(this.#uid, "");
 
-    this._active = false;
-    this._loader = new Loader();
-    this._pathname = new Pathname();
+    this.#active = false;
+    this.#loader = new Loader();
+    this.#pathname = new Pathname();
   }
 
   static get observedAttributes(): string[] {
@@ -62,89 +64,71 @@ export class Route
   ): void {
     switch (name) {
       case "path": {
-        this._pathname.pattern = newValue;
+        this.#pathname.pattern = newValue;
       }
       case "src": {
-        this._loader.moduleName = newValue;
+        this.#loader.moduleName = newValue;
         break;
       }
     }
   }
 
   connectedCallback() {
-    if (this._connected) {
+    if (this.#connected) {
       return;
     }
 
-    this._connected;
+    this.#connected = true;
 
     Array.from(this.children).forEach(element => {
-      this._children.push(element);
+      this.#children.push(element);
       element.remove();
     });
+
+    this.#handleRouteUidRequestEventBound =
+      this.#handleRouteUidRequestEvent.bind(this);
 
     addEventListenerFactory(
       "r4w-route-uid-request",
       this
-    )(evt => {
-      const {
-        detail: { callback },
-        target
-      } = evt;
+    )(this.#handleRouteUidRequestEventBound);
+  }
 
-      // Unfortunately among sibling elements listeners are invoked in the order
-      // they are registered, NOT first in the element that is the ancestor of
-      // the event dispatcher then the other siblings. So we have to query our
-      // children to see if the target is among them, if so we claim the event
-      // for this route.
-      if (target instanceof HTMLElement) {
-        const match = [...this.querySelectorAll(target.localName)].find(
-          e => e === target
-        );
+  disconnectedCallback() {
+    this.#handleRouteUidRequestEventBound &&
+      this.removeEventListener(
+        "r4w-route-uid-request",
+        this.#handleRouteUidRequestEventBound
+      );
 
-        if (!match) {
-          return;
-        }
-
-        // We don't want upstream routes to get this event so `stopPropagation`.
-        // There are probably sibling elements that are routes, we don't want
-        // them to get this event so use `stopImmediatePropagation`.
-        evt.stopImmediatePropagation();
-
-        const router = this.parentElement;
-
-        if (isElementUidProps(router)) {
-          callback(this.uid, router.uid);
-        }
-      }
-    });
+    this.#handleRouteUidRequestEventBound = undefined;
   }
 
   /******************************************************************
    * ElementUidProps
    *****************************************************************/
   get uid(): string {
-    return this._uid;
+    return this.#uid;
   }
 
   /******************************************************************
    * RouteActivation
    *****************************************************************/
   async activate() {
-    if (this._active) {
+    if (this.#active) {
       return;
     }
 
-    this._active = true;
+    this.#active = true;
 
-    // `_children` contains the elements to be presented when the route is
+    // `#children` contains the elements to be presented when the route is
     // active.
-    this.append(...this._children);
-    this._children.length = 0;
+    this.append(...this.#children);
+    this.#children.length = 0;
 
     // When the loader is activated, and it hasn't already downloaded the
     // module, it downloads the module.
-    await this._loader.activate();
+    await this.#loader.activate();
 
     // Have the params changed? If so fire off an event.
     const router = this.parentElement;
@@ -156,7 +140,7 @@ export class Route
           bubbles: true,
           composed: true,
           detail: {
-            params: this._lastParams ?? {},
+            params: this.#lastParams ?? {},
             routerUid: router.uid,
             routeUid: this.uid
           }
@@ -168,40 +152,77 @@ export class Route
   }
 
   deactivate() {
-    if (!this._active) {
+    if (!this.#active) {
       return;
     }
 
-    this._active = false;
+    this.#active = false;
 
     // Remove the route children from the display. We could in the future allow
     // the client to "release" the slot and module to free up memory then fetch
     // and attach them again when needed.
     Array.from(this.children).forEach(element => {
-      this._children.push(element);
+      this.#children.push(element);
       element.remove();
     });
 
-    this._loader.deactivate();
+    this.#loader.deactivate();
   }
 
   /******************************************************************
    * RouteMatch
    *****************************************************************/
   setPathname(pathname: string): Promise<void> {
-    return Promise.resolve(this._pathname?.setPathname(pathname));
+    return Promise.resolve(this.#pathname?.setPathname(pathname));
   }
 
   addMatchListener(
     onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
   ) {
-    this._pathname?.addMatchChangeListener(data => {
+    this.#pathname?.addMatchChangeListener(data => {
       // TODO: don't save these, change the Pathname interface so that we can
       // invoke a method at any time to get the params.
-      this._lastParams = data.params;
+      this.#lastParams = data.params;
 
       onMatch(data.match);
     });
+  }
+
+  #handleRouteUidRequestEvent(evt: Event) {
+    if (!isRouteUidRequestEventDetails(evt)) {
+      return;
+    }
+
+    const {
+      detail: { callback },
+      target
+    } = evt;
+
+    // Unfortunately among sibling elements listeners are invoked in the order
+    // they are registered, NOT first in the element that is the ancestor of
+    // the event dispatcher then the other siblings. So we have to query our
+    // children to see if the target is among them, if so we claim the event
+    // for this route.
+    if (target instanceof HTMLElement) {
+      const match = [...this.querySelectorAll(target.localName)].find(
+        e => e === target
+      );
+
+      if (!match) {
+        return;
+      }
+
+      // We don't want upstream routes to get this event so `stopPropagation`.
+      // There are probably sibling elements that are routes, we don't want
+      // them to get this event so use `stopImmediatePropagation`.
+      evt.stopImmediatePropagation();
+
+      const router = this.parentElement;
+
+      if (isElementUidProps(router)) {
+        callback(this.uid, router.uid);
+      }
+    }
   }
 }
 
@@ -211,4 +232,10 @@ if (!customElements.get(Route.webComponentName)) {
 
 function isElementUidProps(obj: any): obj is ElementUidProps {
   return obj && "uid" in obj;
+}
+
+function isRouteUidRequestEventDetails(
+  evt: any
+): evt is CustomEvent<RouteUidRequestEventDetails> {
+  return evt && "detail" in evt && "callback" in evt.detail;
 }

@@ -6,9 +6,9 @@ import { splitPath } from "../../libs/url/url.ts";
  * if it has any params from the path.
  */
 export class Pathname implements PathnameProps {
-  private _lastMatch: boolean | null = null;
-  private _listeners: OnPathnameMatchChange[] = [];
-  private _lastPathname: string = "";
+  #lastMatch: boolean | null = null;
+  #listeners: OnPathnameMatchChange[] = [];
+  #lastPathname: string = "";
   protected _pattern: string | undefined;
 
   /**
@@ -75,64 +75,34 @@ export class Pathname implements PathnameProps {
    * PathnameProps
    *****************************************************************/
   addMatchChangeListener(onMatchChange: OnPathnameMatchChange) {
-    this._listeners.push(onMatchChange);
+    this.#listeners.push(onMatchChange);
   }
 
   setPathname(pathname: string): Promise<void> {
     return new Promise(resolve => {
-      if (pathname === this._lastPathname) {
+      if (pathname === this.#lastPathname) {
         resolve();
         return;
       }
 
-      this._lastPathname = pathname;
+      this.#lastPathname = pathname;
 
       // Let the stack unwind, and asynchronously invoke listeners.
       setTimeout(() => {
         const data = Pathname.getPathnameData(
-          this._lastPathname,
+          this.#lastPathname,
           this._pattern
         );
 
-        if (this._lastMatch === null || this._lastMatch !== data.match)
-          for (const listener of this._listeners) {
+        if (this.#lastMatch === null || this.#lastMatch !== data.match)
+          for (const listener of this.#listeners) {
             listener(data);
           }
 
-        this._lastMatch = data.match;
+        this.#lastMatch = data.match;
 
         resolve();
       }, 0);
     });
   }
-}
-
-/**
- * This will be needed in the near future I think.
- */
-function paramsChanged(
-  next: Record<string, string>,
-  current?: Record<string, string>
-): boolean {
-  if (!current) {
-    return true;
-  }
-
-  const nextKeys = Object.keys(next);
-  const currentKeys = Object.keys(current);
-
-  if (nextKeys.length !== currentKeys.length) {
-    return true;
-  }
-
-  for (let i = 0; i < currentKeys.length; i++) {
-    const nextValue = next[nextKeys[i]];
-    const currentValue = current[currentKeys[i]];
-
-    if (nextValue !== currentValue) {
-      return true;
-    }
-  }
-
-  return false;
 }

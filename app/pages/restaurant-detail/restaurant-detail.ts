@@ -36,7 +36,7 @@ export class RestaurantDetail extends BasecompParams {
     }
   }
 
-  protected override onParamsChange(params: Record<string, string>): void {
+  protected override _onParamsChange(params: Record<string, string>): void {
     this.setState(
       "#slug",
       this.#slug,

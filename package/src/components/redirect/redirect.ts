@@ -8,7 +8,7 @@ export class Redirect
   extends HTMLElement
   implements RouteSelector, WebComponent
 {
-  private _to: string | undefined;
+  #to: string | undefined;
 
   constructor() {
     super();
@@ -28,7 +28,7 @@ export class Redirect
     newValue: string
   ): void {
     if (name === "to") {
-      this._to = newValue;
+      this.#to = newValue;
     }
   }
 
@@ -36,7 +36,7 @@ export class Redirect
    * RouteSelector
    *****************************************************************/
   get to(): string | undefined {
-    return this._to;
+    return this.#to;
   }
 }
 

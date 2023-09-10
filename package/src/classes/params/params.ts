@@ -1,4 +1,7 @@
-import type { RouteUidRequestEventDetails } from "../../types.ts";
+import type {
+  ParamsChangeEventDetails,
+  RouteUidRequestEventDetails
+} from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 
 /**
@@ -9,31 +12,49 @@ import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
  * `uid` property.
  */
 export class Params extends HTMLElement {
-  private _routeUid: string | undefined;
-  private _routerUid: string | undefined;
+  #handleParamsChangeBound: ((evt: Event) => void) | undefined;
+  #routeUid: string | undefined;
+  #routerUid: string | undefined;
 
   constructor() {
     super();
   }
 
+  /**
+   * This will be invoked when the params change.
+   * @param params A collection of tokens and values.
+   * @protected
+   */
+  protected _onParamsChange(params: Record<string, string>): void {}
+
+  /**
+   * @private
+   */
   connectedCallback() {
-    this.getRouteUids();
+    this.#getRouteUids();
+
+    this.#handleParamsChangeBound = this.#handleParamsChange.bind(this);
 
     addEventListenerFactory(
       "r4w-params-change",
       window
-    )(evt => {
-      const {
-        detail: { params, routeUid, routerUid }
-      } = evt;
-
-      if (this._routeUid === routeUid && this._routerUid === routerUid) {
-        this.onParamsChange(params);
-      }
-    });
+    )(this.#handleParamsChangeBound);
   }
 
-  private async getRouteUids() {
+  /**
+   * @private
+   */
+  disconnectedCallback() {
+    this.#handleParamsChangeBound &&
+      window.removeEventListener(
+        "r4w-params-change",
+        this.#handleParamsChangeBound
+      );
+
+    this.#handleParamsChangeBound = undefined;
+  }
+
+  async #getRouteUids() {
     return new Promise<void>(resolve => {
       this.dispatchEvent(
         new CustomEvent<RouteUidRequestEventDetails>("r4w-route-uid-request", {
@@ -41,8 +62,8 @@ export class Params extends HTMLElement {
           composed: true,
           detail: {
             callback: (routeUid, routerUid) => {
-              this._routeUid = routeUid;
-              this._routerUid = routerUid;
+              this.#routeUid = routeUid;
+              this.#routerUid = routerUid;
             }
           }
         })
@@ -52,9 +73,29 @@ export class Params extends HTMLElement {
     });
   }
 
-  /**
-   * This will be invoked when the params change.
-   * @param params A collection of tokens and values.
-   */
-  protected onParamsChange(params: Record<string, string>): void {}
+  #handleParamsChange(evt: Event) {
+    if (!isParamsChangeEventDetails(evt)) {
+      return;
+    }
+
+    const {
+      detail: { params, routeUid, routerUid }
+    } = evt;
+
+    if (this.#routeUid === routeUid && this.#routerUid === routerUid) {
+      this._onParamsChange(params);
+    }
+  }
+}
+
+function isParamsChangeEventDetails(
+  evt: any
+): evt is CustomEvent<ParamsChangeEventDetails> {
+  return (
+    evt &&
+    "detail" in evt &&
+    "params" in evt.detail &&
+    "routeUid" in evt.detail &&
+    "routerUid" in evt.detail
+  );
 }
