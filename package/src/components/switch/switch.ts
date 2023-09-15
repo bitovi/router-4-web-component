@@ -4,23 +4,24 @@ import type {
   RouteActivationProps,
   ElementUidProps,
   PathnameChangeEventDetails,
-  RouterUidRequestEventDetails
+  SwitchUidRequestEventDetails
 } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { Redirect } from "../redirect/redirect.ts";
 
 /**
- * Incremented for each Router instance that's created.
+ * Incremented for each Switch instance that's created.
  */
 let uidCount = 0;
 
 /**
  * The base element for routing.
  */
-export class Router extends HTMLElement implements ElementUidProps {
+export class Switch extends HTMLElement implements ElementUidProps {
   #connected = false;
-  #handleRouterUidRequestEventBound: ((evt: Event) => void) | undefined;
+  #handleSwitchUidRequestEventBound: ((evt: Event) => void) | undefined;
+  #init = false;
   #uid: string;
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
@@ -29,7 +30,7 @@ export class Router extends HTMLElement implements ElementUidProps {
     super();
 
     uidCount = uidCount + 1;
-    this.#uid = `r4w-router-${uidCount}`;
+    this.#uid = `r4w-switch-${uidCount}`;
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
 
@@ -37,7 +38,7 @@ export class Router extends HTMLElement implements ElementUidProps {
   }
 
   static get webComponentName(): string {
-    return "r4w-router";
+    return "r4w-switch";
   }
 
   get uid(): string {
@@ -51,17 +52,17 @@ export class Router extends HTMLElement implements ElementUidProps {
 
     this.#connected = true;
 
-    this._shadowRoot.append(create("slot"));
+    this._componentInitialConnect();
 
-    this.#handleRouterUidRequestEventBound =
-      this.#handleRouterUidRequestEvent.bind(this);
+    this.#handleSwitchUidRequestEventBound =
+      this.#handleSwitchUidRequestEvent.bind(this);
 
     addEventListenerFactory(
-      "r4w-router-uid-request",
+      "r4w-switch-uid-request",
       this
-    )(this.#handleRouterUidRequestEventBound);
+    )(this.#handleSwitchUidRequestEventBound);
 
-    // Need to let the DOM finish rendering the children of this router. Then
+    // Need to let the DOM finish rendering the children of this switch. Then
     // add the match listeners to the child Routes - these are invoked when the
     // match status changes. After that set the initial selected route.
     const id = requestIdleCallback(() => {
@@ -82,7 +83,7 @@ export class Router extends HTMLElement implements ElementUidProps {
               // On initial page load if the path is empty or "/" and a route
               // handles that path the browser will display the page without a
               // navigation event, in such a case we need to set the state
-              // associated with the path to this router's UID.
+              // associated with the path to this switch's UID.
               !window.history.state &&
                 window.history.replaceState(this.uid, "");
             } else {
@@ -99,17 +100,32 @@ export class Router extends HTMLElement implements ElementUidProps {
   }
 
   disconnectedCallback(): void {
-    this.#handleRouterUidRequestEventBound &&
+    this.#handleSwitchUidRequestEventBound &&
       this.removeEventListener(
-        "r4w-router-uid-request",
-        this.#handleRouterUidRequestEventBound
+        "r4w-switch-uid-request",
+        this.#handleSwitchUidRequestEventBound
       );
 
-    this.#handleRouterUidRequestEventBound = undefined;
+    this.#handleSwitchUidRequestEventBound = undefined;
   }
 
-  #handleRouterUidRequestEvent(evt: Event): void {
-    if (!isRouterUidRequestEventDetails(evt)) {
+  /**
+   * Override to make changes only the very first time the component is
+   * connected.
+   * @protected
+   */
+  _componentInitialConnect(): void {
+    if (this.#init) {
+      return;
+    }
+
+    this.#init = true;
+
+    this._shadowRoot.append(create("slot"));
+  }
+
+  #handleSwitchUidRequestEvent(evt: Event): void {
+    if (!isSwitchUidRequestEventDetails(evt)) {
       return;
     }
 
@@ -202,7 +218,7 @@ export class Router extends HTMLElement implements ElementUidProps {
       const { detail } = evt;
 
       // We add our `uid` so that later when popstate events occur we know
-      // whether or not this instance of Router needs to handle or ignore the
+      // whether or not this instance of switch needs to handle or ignore the
       // event.
       window.history.pushState(this.uid, "", detail.to);
       onUrlChange(detail.to);
@@ -210,8 +226,8 @@ export class Router extends HTMLElement implements ElementUidProps {
   }
 }
 
-if (!customElements.get(Router.webComponentName)) {
-  customElements.define(Router.webComponentName, Router);
+if (!customElements.get(Switch.webComponentName)) {
+  customElements.define(Switch.webComponentName, Switch);
 }
 
 function isRedirect(obj: Element): obj is Redirect {
@@ -223,10 +239,10 @@ function isRouteLike(obj: any): obj is RouteMatchProps & RouteActivationProps {
   return "addMatchListener" in obj && "activate" in obj && "deactivate" in obj;
 }
 
-function isRouterUidRequestEventDetails(
+function isSwitchUidRequestEventDetails(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   evt: any
-): evt is CustomEvent<RouterUidRequestEventDetails> {
+): evt is CustomEvent<SwitchUidRequestEventDetails> {
   return evt && "detail" in evt && "callback" in evt.detail;
 }
 

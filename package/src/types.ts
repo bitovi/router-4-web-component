@@ -9,7 +9,7 @@ export interface R4WEventMap {
   "r4w-params-change": CustomEvent<ParamsChangeEventDetails>;
   "r4w-pathname-change": CustomEvent<PathnameChangeEventDetails>;
   "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
-  "r4w-router-uid-request": CustomEvent<RouterUidRequestEventDetails>;
+  "r4w-switch-uid-request": CustomEvent<SwitchUidRequestEventDetails>;
 }
 
 export interface LinkEventDetails {
@@ -33,14 +33,14 @@ export interface PathnameChangeEventDetails {
 
 export interface RouteUidRequestEventDetails {
   /** Invoked by the Route that contains the element that dispatched this event.
-   * Returns the information for the Route and Router that contain the element.
+   * Returns the information for the Route and Switch that contain the element.
    * */
   callback: (routeUid: string, routerUid: string) => void;
 }
 
-export interface RouterUidRequestEventDetails {
-  /** Invoked by the Router that contains the element that dispatched this
-   * event. Returns the information for the Router that contain the element.
+export interface SwitchUidRequestEventDetails {
+  /** Invoked by the Switch that contains the element that dispatched this
+   * event. Returns the information for the Switch that contain the element.
    * */
   callback: (routerUid: string) => void;
 }

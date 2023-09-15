@@ -1,6 +1,6 @@
 import type {
   PathnameChangeEventDetails,
-  RouterUidRequestEventDetails,
+  SwitchUidRequestEventDetails,
   WebComponent
 } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
@@ -62,7 +62,7 @@ export class PathnameChanged extends HTMLElement implements WebComponent {
   async #getRouteUids() {
     return new Promise<void>(resolve => {
       this.dispatchEvent(
-        new CustomEvent<RouterUidRequestEventDetails>(
+        new CustomEvent<SwitchUidRequestEventDetails>(
           "r4w-router-uid-request",
           {
             bubbles: true,
