@@ -6,7 +6,7 @@ import type { Constructor } from "../../types.ts";
  * @returns A constructor for Basecomp.
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function Basecomp<T extends Constructor>(baseType: T) {
+export function BasecompMixin<T extends Constructor>(baseType: T) {
   /**
    * A base class to manage the lifecycle and updating of a web component.
    */
@@ -26,6 +26,10 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @protected
      */
     componentConnect(): void {
+      // No default implementation.
+    }
+
+    componentDisconnect(): void {
       // No default implementation.
     }
 

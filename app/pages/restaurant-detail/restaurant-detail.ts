@@ -1,7 +1,11 @@
+// import {
+//   BasecompMixin,
+//   ParamsMixin
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { BasecompMixin, ParamsMixin } from "../../../dist/src/index.js";
 import type { RestaurantData, RestaurantItem } from "../../types/types.ts";
-import { BasecompParams } from "../../components/basecomp/basecomp.ts";
 
-export class RestaurantDetail extends BasecompParams {
+export class RestaurantDetail extends BasecompMixin(ParamsMixin(HTMLElement)) {
   #shadowRoot: ShadowRoot;
   #slug: string | undefined;
   #restaurants: RestaurantData | undefined;
@@ -36,7 +40,7 @@ export class RestaurantDetail extends BasecompParams {
     }
   }
 
-  protected override _onParamsChange(params: Record<string, string>): void {
+  override _onParamsChange(params: Record<string, string>): void {
     this.setState(
       "#slug",
       this.#slug,

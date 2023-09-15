@@ -1,10 +1,14 @@
-import { BasecompPathnameChanged } from "../basecomp/basecomp.ts";
 // import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
-// import { Pathname } from "https://esm.sh/@bitovi/router-4-web-component";
+// import {
+//   BasecompMixin,
+//   PathnameMixin
+// } from "https://esm.sh/@bitovi/router-4-web-component";
 import type { Link } from "../../../dist/src/index.js";
-import { Pathname } from "../../../dist/src/index.js";
+import { BasecompMixin, PathnameMixin } from "../../../dist/src/index.js";
 
-export class Header extends BasecompPathnameChanged {
+const Pathname = PathnameMixin(HTMLElement);
+
+export class Header extends BasecompMixin(Pathname) {
   #currentPathname: string | undefined;
 
   constructor() {
@@ -49,7 +53,7 @@ export class Header extends BasecompPathnameChanged {
     this.innerHTML = html;
   }
 
-  override onPathnameChange(pathname: string): void {
+  onPathnameChange(pathname: string): void {
     this.setState(
       "#currentPathname",
       this.#currentPathname,

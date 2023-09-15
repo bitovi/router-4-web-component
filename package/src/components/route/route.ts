@@ -7,8 +7,9 @@ import type {
   WebComponent
 } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
-import { Pathname } from "../../classes/pathname/pathname.ts";
-import { Loader } from "../../classes/loader/loader.ts";
+import { PathnameMixin } from "../../classes/pathname/pathname.ts";
+import { LoaderMixin } from "../../classes/loader/loader.ts";
+import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 
 /**
  * Incremented for each Route instance that's created.
@@ -21,7 +22,7 @@ let uidCount = 0;
  *   - src {string} The URL of the module associated with this route.
  */
 export class Route
-  extends HTMLElement
+  extends BasecompMixin(PathnameMixin(LoaderMixin(HTMLElement)))
   implements
     ElementUidProps,
     RouteActivationProps,
@@ -33,8 +34,7 @@ export class Route
   #connected = false;
   #handleRouteUidRequestEventBound: ((evt: Event) => void) | undefined;
   #lastParams: Record<string, string> | undefined;
-  #loader: Loader;
-  #pathname: Pathname;
+  // #pathname: Pathname;
   #uid: string;
 
   constructor() {
@@ -45,8 +45,7 @@ export class Route
     this.setAttribute(this.#uid, "");
 
     this.#active = false;
-    this.#loader = new Loader();
-    this.#pathname = new Pathname();
+    // this.#pathname = new Pathname();
   }
 
   static get observedAttributes(): string[] {
@@ -64,28 +63,17 @@ export class Route
   ): void {
     switch (name) {
       case "path": {
-        this.#pathname.pattern = newValue;
+        this.pattern = newValue;
         break;
       }
       case "src": {
-        this.#loader.moduleName = newValue;
+        this.moduleName = newValue;
         break;
       }
     }
   }
 
-  connectedCallback(): void {
-    if (this.#connected) {
-      return;
-    }
-
-    this.#connected = true;
-
-    Array.from(this.children).forEach(element => {
-      this.#children.push(element);
-      element.remove();
-    });
-
+  override componentConnect(): void {
     this.#handleRouteUidRequestEventBound =
       this.#handleRouteUidRequestEvent.bind(this);
 
@@ -95,7 +83,14 @@ export class Route
     )(this.#handleRouteUidRequestEventBound);
   }
 
-  disconnectedCallback(): void {
+  override componentInitialConnect(): void {
+    Array.from(this.children).forEach(element => {
+      this.#children.push(element);
+      element.remove();
+    });
+  }
+
+  override componentDisconnect(): void {
     this.#handleRouteUidRequestEventBound &&
       this.removeEventListener(
         "r4w-route-uid-request",
@@ -103,6 +98,10 @@ export class Route
       );
 
     this.#handleRouteUidRequestEventBound = undefined;
+  }
+
+  override update(changedProperties: string[]): void {
+    // TODO
   }
 
   /******************************************************************
@@ -115,13 +114,45 @@ export class Route
   /******************************************************************
    * RouteActivationProps
    *****************************************************************/
-  async activate(): Promise<void> {
+  override async activate(): Promise<void> {
+    await super.activate();
+
     if (this.#active) {
       return;
     }
 
     this.#active = true;
+    return this.#becomeActivated();
+  }
 
+  override deactivate(): void {
+    super.deactivate();
+
+    if (!this.#active) {
+      return;
+    }
+
+    this.#active = false;
+    this.#becomeDeactivated();
+  }
+
+  /******************************************************************
+   * RouteMatchProps
+   *****************************************************************/
+  override setPathname(pathname: string): Promise<void> {
+    return super.setPathname(pathname);
+  }
+
+  addMatchListener(
+    onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
+  ): void {
+    this.addMatchChangeListener(data => {
+      this.#lastParams = data.params;
+      onMatch(data.match);
+    });
+  }
+
+  async #becomeActivated(): Promise<void> {
     // `#children` contains the elements to be presented when the route is
     // active.
     this.append(...this.#children);
@@ -129,7 +160,7 @@ export class Route
 
     // When the loader is activated, and it hasn't already downloaded the
     // module, it downloads the module.
-    await this.#loader.activate();
+    await this.activate();
 
     // Have the params changed? If so fire off an event.
     const router = this.parentElement;
@@ -152,13 +183,7 @@ export class Route
     }
   }
 
-  deactivate(): void {
-    if (!this.#active) {
-      return;
-    }
-
-    this.#active = false;
-
+  #becomeDeactivated(): void {
     // Remove the route children from the display. We could in the future allow
     // the client to "release" the slot and module to free up memory then fetch
     // and attach them again when needed.
@@ -167,23 +192,7 @@ export class Route
       element.remove();
     });
 
-    this.#loader.deactivate();
-  }
-
-  /******************************************************************
-   * RouteMatchProps
-   *****************************************************************/
-  setPathname(pathname: string): Promise<void> {
-    return Promise.resolve(this.#pathname?.setPathname(pathname));
-  }
-
-  addMatchListener(
-    onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
-  ): void {
-    this.#pathname?.addMatchChangeListener(data => {
-      this.#lastParams = data.params;
-      onMatch(data.match);
-    });
+    this.deactivate();
   }
 
   #handleRouteUidRequestEvent(evt: Event) {
