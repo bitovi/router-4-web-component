@@ -1,5 +1,8 @@
+// import {
+//   Basecomp
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { Basecomp } from "../../../dist/src/index.js";
 import type { RestaurantData } from "../../types/types.ts";
-import { Basecomp } from "../../components/basecomp/basecomp.ts";
 import { Dropdown } from "../../components/dropdown/dropdown.ts";
 
 export class Restaurants extends Basecomp(HTMLElement) {
@@ -129,8 +132,8 @@ export class Restaurants extends Basecomp(HTMLElement) {
       return;
     }
 
-    const select = content.querySelector("#city") as Dropdown;
-    if (!select) {
+    const select = content.querySelector("#city");
+    if (!isDropdown(select)) {
       return;
     }
 
@@ -150,8 +153,8 @@ export class Restaurants extends Basecomp(HTMLElement) {
       return;
     }
 
-    const region = content.querySelector("#region") as Dropdown;
-    if (!region) {
+    const region = content.querySelector("#region");
+    if (!isDropdown(region)) {
       return;
     }
 

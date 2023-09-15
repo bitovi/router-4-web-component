@@ -1,4 +1,7 @@
-import { Basecomp } from "../../components/basecomp/basecomp.ts";
+// import {
+//   Basecomp
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { Basecomp } from "../../../dist/src/index.js";
 
 export class Home extends Basecomp(HTMLElement) {
   #shadowRoot: ShadowRoot;

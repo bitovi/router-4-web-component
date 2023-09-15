@@ -1,4 +1,7 @@
-import { Basecomp } from "../basecomp/basecomp.ts";
+// import {
+//   Basecomp
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { Basecomp } from "../../../dist/src/index.js";
 
 let uid = 0;
 

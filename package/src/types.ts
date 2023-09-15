@@ -56,6 +56,15 @@ export interface RouteSelector {
 }
 
 /******************************************************************
+ * Mixins
+ *****************************************************************/
+/**
+ * Extend multiple classes using mixins.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Constructor<T = HTMLElement> = new (...args: any[]) => T;
+
+/******************************************************************
  * Pathname types
  *****************************************************************/
 export interface OnPathnameMatchChange {
