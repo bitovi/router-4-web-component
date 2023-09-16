@@ -1,3 +1,4 @@
+import type { SwitchUidRequestEventDetails } from "../../types.ts";
 import { ParamsMixin } from "../../classes/params/params.ts";
 import { PathnameChangedMixin } from "../../classes/pathname-changed/pathname-changed.ts";
 import { LoaderMixin } from "../../classes/loader/loader.ts";
@@ -18,6 +19,7 @@ export class Route extends PathnameChangedMixin(
 ) {
   #activated = false;
   #children: Element[] = [];
+  #switchUid: string | undefined;
   #uid: string;
 
   constructor() {
@@ -76,6 +78,21 @@ export class Route extends PathnameChangedMixin(
     //   this
     // )(this.#handleRouteUidRequestEventBound);
 
+    // Let all the componentConnect methods be invoked (they probably set
+    // listeners) then dispatch a request for a switch UID.
+    setTimeout(() => {
+      this.dispatchEvent(
+        new CustomEvent<SwitchUidRequestEventDetails>(
+          "r4w-switch-uid-request",
+          {
+            bubbles: true,
+            composed: true,
+            detail: { callback: switchUid => (this.#switchUid = switchUid) }
+          }
+        )
+      );
+    }, 0);
+
     Array.from(this.children).forEach(element => {
       this.#children.push(element);
       element.remove();
@@ -96,32 +113,21 @@ export class Route extends PathnameChangedMixin(
   override update(changedProperties: string[]): void {
     super.update && super.update(changedProperties);
 
-    if (changedProperties.includes("#activated") && !this.#activated) {
-      this.#becomeDeactivated();
+    if (changedProperties.includes("#activated")) {
+      this.#activated ? this.#becomeActivated() : this.#becomeDeactivated();
     }
 
     if (
-      (changedProperties.includes("#activated") ||
-        changedProperties.includes("#connected")) &&
-      this.#activated &&
-      this.connected
+      changedProperties.includes("connected") ||
+      changedProperties.includes("match")
     ) {
-      this.#becomeActivated();
+      this.setState(
+        "#activated",
+        this.#activated,
+        this.connected && this.match,
+        next => (this.#activated = !!next)
+      );
     }
-  }
-
-  /******************************************************************
-   * PathnameChanged
-   *****************************************************************/
-  override onPathnameChange(pathname: string, match: boolean): void {
-    super.onPathnameChange && super.onPathnameChange(pathname, match);
-
-    this.setState(
-      "#activated",
-      this.#activated,
-      match,
-      next => (this.#activated = next)
-    );
   }
 
   async #becomeActivated(): Promise<void> {
@@ -188,3 +194,10 @@ export class Route extends PathnameChangedMixin(
 if (!customElements.get(Route.webComponentName)) {
   customElements.define(Route.webComponentName, Route);
 }
+
+// function isRouteUidRequestEventDetails(
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   evt: any
+// ): evt is CustomEvent<SwitchUidRequestEventDetails> {
+//   return evt && "detail" in evt && "callback" in evt.detail;
+// }

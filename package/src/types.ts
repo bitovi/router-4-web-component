@@ -7,7 +7,7 @@
 export interface R4WEventMap {
   "r4w-link-event": CustomEvent<LinkEventDetails>;
   "r4w-pathname-change": CustomEvent<PathnameChangeEventDetails>;
-  "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
+  // "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
   "r4w-switch-uid-request": CustomEvent<SwitchUidRequestEventDetails>;
 }
 
@@ -31,7 +31,7 @@ export interface SwitchUidRequestEventDetails {
   /** Invoked by the Switch that contains the element that dispatched this
    * event. Returns the information for the Switch that contain the element.
    * */
-  callback: (routerUid: string) => void;
+  callback: (switchUid: string) => void;
 }
 
 /******************************************************************

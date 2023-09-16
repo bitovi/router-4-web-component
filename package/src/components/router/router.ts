@@ -18,6 +18,16 @@ export class Router extends BasecompMixin(HTMLElement) {
    *****************************************************************/
   override componentConnect(): void {
     super.componentConnect && super.componentConnect();
+
+    // Let all the componentConnect functions be invoked then dispatch the
+    // browser's current path.
+    setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
+          detail: { pathname: window.location.pathname }
+        })
+      );
+    }, 0);
   }
 
   override componentInitialConnect(): void {

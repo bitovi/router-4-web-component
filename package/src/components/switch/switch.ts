@@ -1,5 +1,5 @@
 import type {
-  LinkEventDetails,
+  // LinkEventDetails,
   RouteMatchProps,
   RouteActivationProps,
   ElementUidProps,
@@ -7,7 +7,8 @@ import type {
 } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
-import { Redirect } from "../redirect/redirect.ts";
+import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+// import { Redirect } from "../redirect/redirect.ts";
 
 /**
  * Incremented for each Switch instance that's created.
@@ -17,10 +18,11 @@ let uidCount = 0;
 /**
  * The base element for routing.
  */
-export class Switch extends HTMLElement implements ElementUidProps {
-  #connected = false;
+export class Switch
+  extends BasecompMixin(HTMLElement)
+  implements ElementUidProps
+{
   #handleSwitchUidRequestEventBound: ((evt: Event) => void) | undefined;
-  #init = false;
   #uid: string;
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
@@ -42,14 +44,8 @@ export class Switch extends HTMLElement implements ElementUidProps {
     return this.#uid;
   }
 
-  connectedCallback(): void {
-    if (this.#connected) {
-      return;
-    }
-
-    this.#connected = true;
-
-    this._componentInitialConnect();
+  override componentConnect(): void {
+    super.componentConnect && super.componentConnect();
 
     this.#handleSwitchUidRequestEventBound =
       this.#handleSwitchUidRequestEvent.bind(this);
@@ -91,12 +87,12 @@ export class Switch extends HTMLElement implements ElementUidProps {
           });
         }
       }
-
-      this.#setPathname(window.location.pathname);
     });
   }
 
-  disconnectedCallback(): void {
+  override componentDisconnect(): void {
+    super.componentDisconnect && super.componentDisconnect();
+
     this.#handleSwitchUidRequestEventBound &&
       this.removeEventListener(
         "r4w-switch-uid-request",
@@ -106,18 +102,8 @@ export class Switch extends HTMLElement implements ElementUidProps {
     this.#handleSwitchUidRequestEventBound = undefined;
   }
 
-  /**
-   * Override to make changes only the very first time the component is
-   * connected.
-   * @protected
-   */
-  _componentInitialConnect(): void {
-    if (this.#init) {
-      return;
-    }
-
-    this.#init = true;
-
+  override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
     this._shadowRoot.append(create("slot"));
   }
 
@@ -126,9 +112,7 @@ export class Switch extends HTMLElement implements ElementUidProps {
       return;
     }
 
-    // We don't want upstream routers to get this event so `stopPropagation`.
-    // There might be sibling elements that are routers, we don't want them to
-    // get this event so use `stopImmediatePropagation`.
+    // We don't want upstream switches to get this event so `stopPropagation`.
     evt.stopImmediatePropagation();
 
     const {
@@ -150,58 +134,54 @@ export class Switch extends HTMLElement implements ElementUidProps {
         return;
       }
 
-      // There are probably sibling elements that are routes, we don't want
-      // them to get this event so use `stopImmediatePropagation`.
-      evt.stopImmediatePropagation();
-
       callback(this.#uid);
     }
   }
 
-  async #setPathname(pathname: string) {
-    const children = (
-      this._shadowRoot.firstElementChild as HTMLSlotElement
-    ).assignedElements();
+  // async #setPathname(pathname: string) {
+  //   const children = (
+  //     this._shadowRoot.firstElementChild as HTMLSlotElement
+  //   ).assignedElements();
 
-    if (!children?.length) {
-      return;
-    }
+  //   if (!children?.length) {
+  //     return;
+  //   }
 
-    // setPathname only resolves once all the pathname change listeners for that
-    // route have been invoked with the new pathname. We wait for everything to
-    // resolve then, if no route is active, and there is a redirect, fire a change
-    // event with the redirect's `to` value.
-    await Promise.all(
-      children
-        .filter(child => isRouteLike(child))
-        .map(route =>
-          (route as unknown as RouteMatchProps).setPathname(pathname)
-        )
-    );
+  //   // setPathname only resolves once all the pathname change listeners for that
+  //   // route have been invoked with the new pathname. We wait for everything to
+  //   // resolve then, if no route is active, and there is a redirect, fire a change
+  //   // event with the redirect's `to` value.
+  //   await Promise.all(
+  //     children
+  //       .filter(child => isRouteLike(child))
+  //       .map(route =>
+  //         (route as unknown as RouteMatchProps).setPathname(pathname)
+  //       )
+  //   );
 
-    if (!this._activeRoute) {
-      const redirect = children.find(child => isRedirect(child)) as Redirect;
+  //   if (!this._activeRoute) {
+  //     const redirect = children.find(child => isRedirect(child)) as Redirect;
 
-      if (redirect?.to) {
-        this.dispatchEvent(
-          new CustomEvent<LinkEventDetails>("r4w-link-event", {
-            bubbles: true,
-            composed: true,
-            detail: { to: redirect.to }
-          })
-        );
-      }
-    }
-  }
+  //     if (redirect?.to) {
+  //       this.dispatchEvent(
+  //         new CustomEvent<LinkEventDetails>("r4w-link-event", {
+  //           bubbles: true,
+  //           composed: true,
+  //           detail: { to: redirect.to }
+  //         })
+  //       );
+  //     }
+  //   }
+  // }
 }
 
 if (!customElements.get(Switch.webComponentName)) {
   customElements.define(Switch.webComponentName, Switch);
 }
 
-function isRedirect(obj: Element): obj is Redirect {
-  return obj.tagName === Redirect.webComponentName.toLocaleUpperCase();
-}
+// function isRedirect(obj: Element): obj is Redirect {
+//   return obj.tagName === Redirect.webComponentName.toLocaleUpperCase();
+// }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isRouteLike(obj: any): obj is RouteMatchProps & RouteActivationProps {

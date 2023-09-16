@@ -14,12 +14,21 @@ import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 export function PathnameChangedMixin<T extends Constructor>(baseType: T) {
   return class PathnameChanged extends BasecompMixin(baseType) {
     #handlePathnameChangeBound: ((evt: Event) => void) | undefined;
+    #match = false;
     #pathname: string | undefined;
     #pattern: string | undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
+    }
+
+    get match(): boolean {
+      return this.#match;
+    }
+
+    get pathname(): string | undefined {
+      return this.#pathname;
     }
 
     get pattern(): string | undefined {
@@ -61,19 +70,6 @@ export function PathnameChangedMixin<T extends Constructor>(baseType: T) {
       this.#handlePathnameChangeBound = undefined;
     }
 
-    override update(changedProperties: string[]): void {
-      super.update && super.update(changedProperties);
-    }
-
-    /**
-     * Invoked when the browser's pathname has changed.
-     * @abstract
-     * @protected
-     */
-    onPathnameChange(pathname: string, match: boolean): void {
-      super.onPathnameChange && super.onPathnameChange(pathname, match);
-    }
-
     // async #getRouteUids() {
     //   return new Promise<void>(resolve => {
     //     this.dispatchEvent(
@@ -104,15 +100,16 @@ export function PathnameChangedMixin<T extends Constructor>(baseType: T) {
         detail: { pathname }
       } = evt;
 
-      if (this.#pathname === pathname) {
-        return;
-      }
-
-      this.#pathname = pathname;
+      this.setState(
+        "pathname",
+        this.#pathname,
+        pathname,
+        next => (this.#pathname = next)
+      );
 
       const { match } = getPathnameData(pathname, this.pattern);
 
-      this.onPathnameChange(pathname, match);
+      this.setState("match", this.#match, match, next => (this.#match = next));
     }
   };
 }

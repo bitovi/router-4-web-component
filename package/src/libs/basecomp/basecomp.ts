@@ -24,6 +24,10 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
       return this.#connected;
     }
 
+    get init(): boolean {
+      return this.#init;
+    }
+
     /**
      * Override to make changes when connected. Invoked by `connectedCallback`.
      * @abstract
@@ -31,22 +35,22 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
      */
     componentConnect(): void {
       super.componentConnect && super.componentConnect();
-      this.setState(
-        "connected",
-        this.#connected,
-        true,
-        next => (this.#connected = next)
-      );
+      // this.setState(
+      //   "connected",
+      //   this.#connected,
+      //   true,
+      //   next => (this.#connected = next)
+      // );
     }
 
     componentDisconnect(): void {
       super.componentDisconnect && super.componentDisconnect();
-      this.setState(
-        "connected",
-        this.#connected,
-        false,
-        next => (this.#connected = next)
-      );
+      // this.setState(
+      //   "connected",
+      //   this.#connected,
+      //   false,
+      //   next => (this.#connected = next)
+      // );
     }
 
     /**
@@ -57,7 +61,7 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
      */
     componentInitialConnect(): void {
       super.componentInitialConnect && super.componentInitialConnect();
-      this.setState("init", this.#init, true, next => (this.#init = next));
+      // this.setState("init", this.#init, true, next => (this.#init = next));
     }
 
     /**
@@ -94,11 +98,7 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
 
       setter(next, property);
 
-      if (!this.#changedProperties.includes(property)) {
-        this.#changedProperties.push(property);
-      }
-
-      this.#queueUpdate();
+      this.#changePropertiesAndQueueUpdate(property);
     }
 
     /**
@@ -125,9 +125,11 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
       }
 
       this.#connected = true;
+      this.#changePropertiesAndQueueUpdate("connected");
 
       if (!this.#init) {
         this.#init = true;
+        this.#changePropertiesAndQueueUpdate("init");
         this.componentInitialConnect();
       }
 
@@ -142,6 +144,15 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
       this.#connected = false;
+      this.#changePropertiesAndQueueUpdate("connected");
+    }
+
+    #changePropertiesAndQueueUpdate(property: string): void {
+      if (!this.#changedProperties.includes(property)) {
+        this.#changedProperties.push(property);
+      }
+
+      this.#queueUpdate();
     }
 
     #queueUpdate() {
