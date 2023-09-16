@@ -3,7 +3,7 @@
 // } from "https://esm.sh/@bitovi/router-4-web-component";
 import { BasecompMixin } from "../../../dist/src/index.js";
 
-export class Test extends BasecompMixin(HTMLElement) {
+export class Debug extends BasecompMixin(HTMLElement) {
   #shadowRoot: ShadowRoot;
 
   constructor() {
@@ -13,16 +13,18 @@ export class Test extends BasecompMixin(HTMLElement) {
   }
 
   static get webComponentName(): string {
-    return "app-test";
+    return "app-debug";
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const html = `<div style="background-color: lightgray;height: 100px;position: fixed;width: 100px"><p>This is a test element.</p></div>`;
 
     this.#shadowRoot.innerHTML = html;
   }
 }
 
-if (!customElements.get(Test.webComponentName)) {
-  customElements.define(Test.webComponentName, Test);
+if (!customElements.get(Debug.webComponentName)) {
+  customElements.define(Debug.webComponentName, Debug);
 }

@@ -9,7 +9,7 @@ import type { R4WEventMap } from "../../types.ts";
  */
 export function addEventListenerFactory<K extends keyof R4WEventMap>(
   type: K,
-  element: Window | Element
+  element: Document | Element | Window
 ): Listener<K> {
   const addR4WEventListener = element.addEventListener as <
     K extends keyof R4WEventMap

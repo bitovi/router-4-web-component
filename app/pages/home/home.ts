@@ -17,6 +17,8 @@ export class Home extends BasecompMixin(HTMLElement) {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const link = document.createElement("link");
     link.href = "/app/assets/place-my-order-assets.css";
     link.rel = "stylesheet";

@@ -4,11 +4,9 @@
 //   PathnameMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
 import type { Link } from "../../../dist/src/index.js";
-import { BasecompMixin, PathnameMixin } from "../../../dist/src/index.js";
+import { BasecompMixin, getPathnameData } from "../../../dist/src/index.js";
 
-const Pathname = PathnameMixin(HTMLElement);
-
-export class Header extends BasecompMixin(Pathname) {
+export class Header extends BasecompMixin(HTMLElement) {
   #currentPathname: string | undefined;
 
   constructor() {
@@ -20,15 +18,12 @@ export class Header extends BasecompMixin(Pathname) {
   }
 
   override componentInitialConnect(): void {
-    const { match: matchRoot } = Pathname.getPathnameData(
-      window.location.pathname,
-      "/"
-    );
-    const { match: matchRestaurants } = Pathname.getPathnameData(
+    const { match: matchRoot } = getPathnameData(window.location.pathname, "/");
+    const { match: matchRestaurants } = getPathnameData(
       window.location.pathname,
       "/restaurants"
     );
-    const { match: matchOrderHistory } = Pathname.getPathnameData(
+    const { match: matchOrderHistory } = getPathnameData(
       window.location.pathname,
       "/order-history"
     );
@@ -68,7 +63,7 @@ export class Header extends BasecompMixin(Pathname) {
         const link = li.querySelector("r4w-link");
 
         if (this.#currentPathname && isLink(link)) {
-          const { match } = Pathname.getPathnameData(
+          const { match } = getPathnameData(
             this.#currentPathname,
             link.getAttribute("to") ?? ""
           );

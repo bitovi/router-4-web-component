@@ -19,6 +19,8 @@ export class RestaurantOrder extends BasecompMixin(ParamsMixin(HTMLElement)) {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const html = `<link href="/app/assets/place-my-order-assets.css" rel="stylesheet"></link>
 <div class="order-history"><h1>place order for '${this.#slug}'</h1></div>`;
 
@@ -26,12 +28,14 @@ export class RestaurantOrder extends BasecompMixin(ParamsMixin(HTMLElement)) {
   }
 
   override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
     if (changedProperties.includes("#slug")) {
       this.#updateContent();
     }
   }
 
-  override _onParamsChange(params: Record<string, string>): void {
+  override onParamsChange(params: Record<string, string>): void {
     this.setState(
       "#slug",
       this.#slug,

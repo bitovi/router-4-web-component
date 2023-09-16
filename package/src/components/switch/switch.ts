@@ -3,7 +3,6 @@ import type {
   RouteMatchProps,
   RouteActivationProps,
   ElementUidProps,
-  PathnameChangeEventDetails,
   SwitchUidRequestEventDetails
 } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
@@ -33,8 +32,6 @@ export class Switch extends HTMLElement implements ElementUidProps {
     this.#uid = `r4w-switch-${uidCount}`;
 
     this._shadowRoot = this.attachShadow({ mode: "closed" });
-
-    this.#setupNavigationHandling(this.#setPathname.bind(this));
   }
 
   static get webComponentName(): string {
@@ -182,13 +179,6 @@ export class Switch extends HTMLElement implements ElementUidProps {
         )
     );
 
-    // May want this to fire only when there is an `_activeRoute`...
-    window.dispatchEvent(
-      new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
-        detail: { pathname, routerUid: this.uid }
-      })
-    );
-
     if (!this._activeRoute) {
       const redirect = children.find(child => isRedirect(child)) as Redirect;
 
@@ -202,27 +192,6 @@ export class Switch extends HTMLElement implements ElementUidProps {
         );
       }
     }
-  }
-
-  #setupNavigationHandling(onUrlChange: OnUrlChange) {
-    window.addEventListener("popstate", (evt: PopStateEvent) => {
-      // Ignore popstate events that don't include this instance's `uid`.
-      evt.state === this.uid && onUrlChange(window.location.pathname);
-    });
-
-    addEventListenerFactory(
-      "r4w-link-event",
-      this
-    )(evt => {
-      evt.stopPropagation();
-      const { detail } = evt;
-
-      // We add our `uid` so that later when popstate events occur we know
-      // whether or not this instance of switch needs to handle or ignore the
-      // event.
-      window.history.pushState(this.uid, "", detail.to);
-      onUrlChange(detail.to);
-    });
   }
 }
 
@@ -244,8 +213,4 @@ function isSwitchUidRequestEventDetails(
   evt: any
 ): evt is CustomEvent<SwitchUidRequestEventDetails> {
   return evt && "detail" in evt && "callback" in evt.detail;
-}
-
-interface OnUrlChange {
-  (url: string): void;
 }

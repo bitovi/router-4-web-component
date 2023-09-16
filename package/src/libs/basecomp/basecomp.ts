@@ -5,8 +5,8 @@ import type { Constructor } from "../../types.ts";
  * @param baseType A class or interface that Basecomp instance extends.
  * @returns A constructor for Basecomp.
  */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function BasecompMixin<T extends Constructor>(baseType: T) {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
   /**
    * A base class to manage the lifecycle and updating of a web component.
    */
@@ -20,17 +20,33 @@ export function BasecompMixin<T extends Constructor>(baseType: T) {
       super(...args);
     }
 
+    get connected(): boolean {
+      return this.#connected;
+    }
+
     /**
      * Override to make changes when connected. Invoked by `connectedCallback`.
      * @abstract
      * @protected
      */
     componentConnect(): void {
-      // No default implementation.
+      super.componentConnect && super.componentConnect();
+      this.setState(
+        "connected",
+        this.#connected,
+        true,
+        next => (this.#connected = next)
+      );
     }
 
     componentDisconnect(): void {
-      // No default implementation.
+      super.componentDisconnect && super.componentDisconnect();
+      this.setState(
+        "connected",
+        this.#connected,
+        false,
+        next => (this.#connected = next)
+      );
     }
 
     /**
@@ -40,7 +56,8 @@ export function BasecompMixin<T extends Constructor>(baseType: T) {
      * @protected
      */
     componentInitialConnect(): void {
-      // No default implementation.
+      super.componentInitialConnect && super.componentInitialConnect();
+      this.setState("init", this.#init, true, next => (this.#init = next));
     }
 
     /**
@@ -89,7 +106,7 @@ export function BasecompMixin<T extends Constructor>(baseType: T) {
      * @protected
      */
     update(changedProperties: string[]): void {
-      // No default implementation.
+      super.update && super.update(changedProperties);
     }
 
     /**
@@ -101,8 +118,6 @@ export function BasecompMixin<T extends Constructor>(baseType: T) {
       // If you need to specifically invoke a Mixin's functions - and it seems
       // like you should - you will need to tell TS that you know what you are
       // doing and ignore the error.
-      //
-      // @ts-ignore
       super.connectedCallback && super.connectedCallback();
 
       if (this.#connected) {
@@ -125,9 +140,7 @@ export function BasecompMixin<T extends Constructor>(baseType: T) {
      * @private
      */
     disconnectedCallback() {
-      // @ts-ignore
       super.disconnectedCallback && super.disconnectedCallback();
-
       this.#connected = false;
     }
 

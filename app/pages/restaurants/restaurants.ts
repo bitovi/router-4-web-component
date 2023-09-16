@@ -28,6 +28,8 @@ export class Restaurants extends BasecompMixin(HTMLElement) {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const link = document.createElement("link");
     link.href = "/app/assets/place-my-order-assets.css";
     link.rel = "stylesheet";
@@ -91,6 +93,8 @@ export class Restaurants extends BasecompMixin(HTMLElement) {
   }
 
   override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
     if (changedProperties.includes("_regions")) {
       const div = this.#restaurantsElement;
       this.populateRegionsList(div);

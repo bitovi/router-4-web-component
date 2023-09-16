@@ -17,6 +17,8 @@ export class OrderHistory extends BasecompMixin(HTMLElement) {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const html = `<link href="/app/assets/place-my-order-assets.css" rel="stylesheet"></link>
 <div class="order-history"><h1>order history</h1></div>`;
 

@@ -10,26 +10,28 @@
 </head>
 
 <body>
-  <r4w-switch>
+  <r4w-router>
     <app-header></app-header>
-    <r4w-route path="/" src="/app/pages/home/home.ts">
-      <app-home />
-    </r4w-route>
-    <r4w-route path="/restaurants" src="/app/pages/restaurants/restaurants.ts">
-      <app-restaurants />
-    </r4w-route>
-    <r4w-route path="/restaurants/:slug" src="/app/pages/restaurant-detail/restaurant-detail.ts">
-      <app-restaurant-detail />
-    </r4w-route>
-    <r4w-route path="/restaurants/:slug/order" src="/app/pages/restaurant-order/restaurant-order.ts">
-      <app-restaurant-order />
-    </r4w-route>
-    <r4w-route path="/order-history" src="/app/pages/order-history/order-history.ts">
-      <app-order-history />
-    </r4w-route>
-    <r4w-redirect to="/" />
-  </r4w-switch>
-  <r4w-route path="/" src="/app/pages/test/test.ts">
+    <r4w-switch>
+      <r4w-route path="/" src="/app/pages/home/home.ts">
+        <app-home />
+      </r4w-route>
+      <r4w-route path="/restaurants" src="/app/pages/restaurants/restaurants.ts">
+        <app-restaurants />
+      </r4w-route>
+      <r4w-route path="/restaurants/:slug" src="/app/pages/restaurant-detail/restaurant-detail.ts">
+        <app-restaurant-detail />
+      </r4w-route>
+      <r4w-route path="/restaurants/:slug/order" src="/app/pages/restaurant-order/restaurant-order.ts">
+        <app-restaurant-order />
+      </r4w-route>
+      <r4w-route path="/order-history" src="/app/pages/order-history/order-history.ts">
+        <app-order-history />
+      </r4w-route>
+      <r4w-redirect to="/" />
+    </r4w-switch>
+    <r4w-route path="/" src="/app/pages/debug/debug.ts"><app-debug /></r4w-route>
+  </r4w-router>
 </body>
 
 </html>

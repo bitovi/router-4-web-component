@@ -24,6 +24,8 @@ export class RestaurantDetail extends BasecompMixin(ParamsMixin(HTMLElement)) {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const link = document.createElement("link");
     link.href = "/app/assets/place-my-order-assets.css";
     link.rel = "stylesheet";
@@ -32,6 +34,8 @@ export class RestaurantDetail extends BasecompMixin(ParamsMixin(HTMLElement)) {
   }
 
   override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
     if (
       changedProperties.includes("#restaurants") ||
       changedProperties.includes("#slug")
@@ -40,7 +44,7 @@ export class RestaurantDetail extends BasecompMixin(ParamsMixin(HTMLElement)) {
     }
   }
 
-  override _onParamsChange(params: Record<string, string>): void {
+  override onParamsChange(params: Record<string, string>): void {
     this.setState(
       "#slug",
       this.#slug,

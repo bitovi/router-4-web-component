@@ -6,7 +6,6 @@
  */
 export interface R4WEventMap {
   "r4w-link-event": CustomEvent<LinkEventDetails>;
-  "r4w-params-change": CustomEvent<ParamsChangeEventDetails>;
   "r4w-pathname-change": CustomEvent<PathnameChangeEventDetails>;
   "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
   "r4w-switch-uid-request": CustomEvent<SwitchUidRequestEventDetails>;
@@ -17,18 +16,8 @@ export interface LinkEventDetails {
   to: string;
 }
 
-export interface ParamsChangeEventDetails {
-  params: Record<string, string>;
-  /** The `uid` of the route that sourced this event. */
-  routeUid: string;
-  /** The `uid` of the router that sourced this event. */
-  routerUid: string;
-}
-
 export interface PathnameChangeEventDetails {
   pathname: string;
-  /** The `uid` of the router that sourced this event. */
-  routerUid: string;
 }
 
 export interface RouteUidRequestEventDetails {
@@ -69,15 +58,6 @@ export type Constructor<T = HTMLElement> = new (...args: any[]) => T;
  *****************************************************************/
 export interface OnPathnameMatchChange {
   (data: { match: boolean; params?: Record<string, string> }): void;
-}
-
-export interface PathnameProps {
-  /**
-   * Subscribers will be informed when there has been a change in the matching
-   * of a pathname to a pattern.
-   */
-  addMatchChangeListener: (onMatchChange: OnPathnameMatchChange) => void;
-  setPathname: RouteMatchProps["setPathname"];
 }
 
 /******************************************************************
