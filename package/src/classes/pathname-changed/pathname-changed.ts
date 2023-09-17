@@ -27,6 +27,19 @@ export function PathnameChangedMixin<T extends Constructor>(baseType: T) {
       return this.#match;
     }
 
+    set pathname(pathname: string | undefined) {
+      if (super.pathname) {
+        super.pathname = pathname;
+      }
+
+      this.setState(
+        "#pathname",
+        this.#pathname,
+        pathname,
+        next => (this.#pathname = next)
+      );
+    }
+
     get pathname(): string | undefined {
       return this.#pathname;
     }

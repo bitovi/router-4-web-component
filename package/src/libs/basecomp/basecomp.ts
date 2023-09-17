@@ -20,6 +20,10 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
       super(...args);
     }
 
+    static defaultStateComparison<T>(oldValue: T, newValue: T): boolean {
+      return oldValue === newValue;
+    }
+
     get connected(): boolean {
       return this.#connected;
     }
@@ -35,22 +39,22 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
      */
     componentConnect(): void {
       super.componentConnect && super.componentConnect();
-      // this.setState(
-      //   "connected",
-      //   this.#connected,
-      //   true,
-      //   next => (this.#connected = next)
-      // );
+      this.setState(
+        "connected",
+        this.#connected,
+        true,
+        next => (this.#connected = next)
+      );
     }
 
     componentDisconnect(): void {
       super.componentDisconnect && super.componentDisconnect();
-      // this.setState(
-      //   "connected",
-      //   this.#connected,
-      //   false,
-      //   next => (this.#connected = next)
-      // );
+      this.setState(
+        "connected",
+        this.#connected,
+        false,
+        next => (this.#connected = next)
+      );
     }
 
     /**
@@ -70,12 +74,16 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
      * @param property The name of the property being compared.
      * @param oldValue The current value of the property.
      * @param newValue The new value of the property.
-     * @returns If true the property will be set with `newValue` and an update
-     * cycle will start.
+     * @returns If false (old and new values are not the same) the property will
+     * be set with `newValue` and an update cycle will start.
      * @protected
      */
     stateComparison<T>(property: string, oldValue: T, newValue: T): boolean {
-      return oldValue === newValue;
+      if (super.stateComparison) {
+        return super.stateComparison(property, oldValue, newValue);
+      }
+
+      return Basecomp.defaultStateComparison(oldValue, newValue);
     }
 
     /**
@@ -96,6 +104,10 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
         return;
       }
 
+      // console.log(
+      //   `Basecomp.setState: property='${property}', current='${current}', next='${next}'; updating.`
+      // );
+
       setter(next, property);
 
       this.#changePropertiesAndQueueUpdate(property);
@@ -115,11 +127,6 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
      * @private
      */
     connectedCallback() {
-      // If you need to specifically invoke a Mixin's functions - and it seems
-      // like you should - you will need to tell TS that you know what you are
-      // doing and ignore the error.
-      super.connectedCallback && super.connectedCallback();
-
       if (this.#connected) {
         return;
       }

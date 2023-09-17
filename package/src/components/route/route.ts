@@ -1,8 +1,15 @@
-import type { SwitchUidRequestEventDetails } from "../../types.ts";
-import { ParamsMixin } from "../../classes/params/params.ts";
-import { PathnameChangedMixin } from "../../classes/pathname-changed/pathname-changed.ts";
-import { LoaderMixin } from "../../classes/loader/loader.ts";
+import type {
+  NavigationEventDetails,
+  PathnameChangeEventDetails,
+  PathnameRequestEventDetails,
+  RouteUidRequestEventDetails,
+  SwitchUidRequestEventDetails
+} from "../../types.ts";
+import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import { getPathnameData } from "../../libs/url/url.ts";
 import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+import { ParamsMixin } from "../../classes/params/params.ts";
+import { LoaderMixin } from "../../classes/loader/loader.ts";
 
 /**
  * Incremented for each Route instance that's created.
@@ -14,11 +21,22 @@ let uidCount = 0;
  *   - path {string} The path that is cognate with the `to` attribute of a link.
  *   - src {string} The URL of the module associated with this route.
  */
-export class Route extends PathnameChangedMixin(
-  ParamsMixin(LoaderMixin(BasecompMixin(HTMLElement)))
+export class Route extends ParamsMixin(
+  LoaderMixin(BasecompMixin(HTMLElement))
 ) {
   #activated = false;
   #children: Element[] = [];
+  #handleNavigationEventBound:
+    | ((evt: CustomEvent<NavigationEventDetails>) => void)
+    | undefined;
+  #handlePathnameRequestEventBound:
+    | ((evt: CustomEvent<PathnameRequestEventDetails>) => void)
+    | undefined;
+  #handleRouteUidRequestEventBound:
+    | ((evt: CustomEvent<RouteUidRequestEventDetails>) => void)
+    | undefined;
+  #pattern: string | undefined;
+  #pathname: string | undefined;
   #switchUid: string | undefined;
   #uid: string;
 
@@ -46,10 +64,10 @@ export class Route extends PathnameChangedMixin(
     switch (name) {
       case "path": {
         this.setState(
-          "pattern",
-          this.pattern,
+          "#pattern",
+          this.#pattern,
           newValue,
-          next => (this.pattern = next)
+          next => (this.#pattern = next)
         );
         break;
       }
@@ -68,15 +86,13 @@ export class Route extends PathnameChangedMixin(
   /******************************************************************
    * Basecomp
    *****************************************************************/
+
   override componentConnect(): void {
     super.componentConnect && super.componentConnect();
 
-    // this.#handleRouteUidRequestEventBound =
-    //   this.#handleRouteUidRequestEvent.bind(this);
-    // addEventListenerFactory(
-    //   "r4w-route-uid-request",
-    //   this
-    // )(this.#handleRouteUidRequestEventBound);
+    // console.trace(`Route[${this.#uid}].componentConnect`);
+
+    this.#connectListeners();
 
     // Let all the componentConnect methods be invoked (they probably set
     // listeners) then dispatch a request for a switch UID.
@@ -97,17 +113,19 @@ export class Route extends PathnameChangedMixin(
       this.#children.push(element);
       element.remove();
     });
+
+    // Set the initial pathname.
+    this.setState(
+      "#pathname",
+      this.#pathname,
+      window.location.pathname,
+      next => (this.#pathname = next)
+    );
   }
 
   override componentDisconnect(): void {
     super.componentDisconnect && super.componentDisconnect();
-
-    // this.#handleRouteUidRequestEventBound &&
-    //   this.removeEventListener(
-    //     "r4w-route-uid-request",
-    //     this.#handleRouteUidRequestEventBound
-    //   );
-    // this.#handleRouteUidRequestEventBound = undefined;
+    this.#disconnectListeners();
   }
 
   override update(changedProperties: string[]): void {
@@ -128,6 +146,33 @@ export class Route extends PathnameChangedMixin(
         next => (this.#activated = !!next)
       );
     }
+
+    if (
+      changedProperties.includes("#pathname") ||
+      changedProperties.includes("#pattern")
+    ) {
+      this.#activateIfMatch();
+      this.#dispatchPathnameChangedEvent();
+    }
+  }
+
+  /******************************************************************
+   * private
+   *****************************************************************/
+
+  #activateIfMatch() {
+    if (!this.#pathname || !this.#pattern) {
+      return;
+    }
+
+    const { match } = getPathnameData(this.#pathname, this.#pattern);
+
+    this.setState(
+      "#activated",
+      this.#activated,
+      match,
+      next => (this.#activated = next)
+    );
   }
 
   async #becomeActivated(): Promise<void> {
@@ -153,51 +198,140 @@ export class Route extends PathnameChangedMixin(
     this.deactivate();
   }
 
-  // #handleRouteUidRequestEvent(evt: Event) {
-  //   if (!isRouteUidRequestEventDetails(evt)) {
-  //     return;
-  //   }
+  #connectListeners() {
+    this.#handleNavigationEventBound = this.#handleNavigationEvent.bind(this);
+    addEventListenerFactory(
+      "r4w-navigation-change",
+      window
+    )(this.#handleNavigationEventBound);
 
-  //   const {
-  //     detail: { callback },
-  //     target
-  //   } = evt;
+    this.#handleRouteUidRequestEventBound =
+      this.#handleRouteUidRequestEvent.bind(this);
+    addEventListenerFactory(
+      "r4w-route-uid-request",
+      this
+    )(this.#handleRouteUidRequestEventBound);
 
-  //   // Unfortunately among sibling elements listeners are invoked in the order
-  //   // they are registered, NOT first in the element that is the ancestor of
-  //   // the event dispatcher then the other siblings. So we have to query our
-  //   // children to see if the target is among them, if so we claim the event
-  //   // for this route.
-  //   if (target instanceof HTMLElement) {
-  //     const match = [...this.querySelectorAll(target.localName)].find(
-  //       e => e === target
-  //     );
+    this.#handlePathnameRequestEventBound =
+      this.#handlePathnameRequestEvent.bind(this);
+    addEventListenerFactory(
+      "r4w-pathname-request",
+      this
+    )(this.#handlePathnameRequestEventBound);
+  }
 
-  //     if (!match) {
-  //       return;
-  //     }
+  #disconnectListeners() {
+    this.#handleNavigationEventBound &&
+      window.removeEventListener(
+        "r4w-navigation-change",
+        this.#handleNavigationEventBound as (evt: Event) => void
+      );
 
-  //     // We don't want upstream routes to get this event so `stopPropagation`.
-  //     // There are probably sibling elements that are routes, we don't want
-  //     // them to get this event so use `stopImmediatePropagation`.
-  //     evt.stopImmediatePropagation();
+    this.#handleNavigationEventBound = undefined;
 
-  //     const router = this.parentElement;
+    this.#handleRouteUidRequestEventBound &&
+      this.removeEventListener(
+        "r4w-route-uid-request",
+        this.#handleRouteUidRequestEventBound as (evt: Event) => void
+      );
 
-  //     if (isElementUidProps(router)) {
-  //       callback(this.uid, router.uid);
-  //     }
-  //   }
-  // }
+    this.#handleRouteUidRequestEventBound = undefined;
+
+    this.#handlePathnameRequestEventBound &&
+      this.removeEventListener(
+        "r4w-pathname-request",
+        this.#handlePathnameRequestEventBound as (evt: Event) => void
+      );
+
+    this.#handlePathnameRequestEventBound = undefined;
+  }
+
+  #dispatchPathnameChangedEvent() {
+    if (!this.#pathname || !this.#pattern) {
+      return;
+    }
+
+    // console.log(
+    //   `Route[${
+    //     this.#uid
+    //   }].#dispatchPathnameChangedEvent: dispatching; pathname='${
+    //     this.#pathname
+    //   }', pattern='${this.#pattern}', uid='${this.#uid}'`
+    // );
+
+    window.dispatchEvent(
+      new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
+        detail: {
+          pathname: this.#pathname,
+          pattern: this.#pattern,
+          routeUid: this.#uid
+        }
+      })
+    );
+  }
+
+  #handleNavigationEvent(evt: CustomEvent<NavigationEventDetails>) {
+    this.setState(
+      "#pathname",
+      this.#pathname,
+      evt.detail.pathname,
+      next => (this.#pathname = next)
+    );
+  }
+
+  #handlePathnameRequestEvent(evt: CustomEvent<PathnameRequestEventDetails>) {
+    if (this.#uid !== evt.detail.routeUid) {
+      return;
+    }
+
+    evt.stopImmediatePropagation();
+
+    this.#dispatchPathnameChangedEvent();
+  }
+
+  #handleRouteUidRequestEvent(evt: CustomEvent<RouteUidRequestEventDetails>) {
+    // console.log(
+    //   `Route[${this.#uid}].#handleRouteUidRequestEvent: event arrived.`
+    // );
+
+    const {
+      detail: { callback },
+      target
+    } = evt;
+
+    // Unfortunately among sibling elements listeners are invoked in the order
+    // they are registered, NOT first in the element that is the ancestor of
+    // the event dispatcher then the other siblings. So we have to query our
+    // children to see if the target is among them, if so we claim the event
+    // for this route.
+    if (target instanceof HTMLElement) {
+      // If a one of our mixins is firing the event the target will be us.
+      let match = this === target;
+
+      if (!match) {
+        match = !![...this.querySelectorAll(target.localName)].find(
+          e => e === target
+        );
+      }
+
+      if (!match) {
+        return;
+      }
+
+      // console.log(
+      //   `Route[${this.#uid}].#handleRouteUidRequestEvent: responding.`
+      // );
+
+      // We don't want upstream routes to get this event so `stopPropagation`.
+      // There are probably sibling elements that are routes, we don't want
+      // them to get this event so use `stopImmediatePropagation`.
+      evt.stopImmediatePropagation();
+
+      callback(this.#uid);
+    }
+  }
 }
 
 if (!customElements.get(Route.webComponentName)) {
   customElements.define(Route.webComponentName, Route);
 }
-
-// function isRouteUidRequestEventDetails(
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   evt: any
-// ): evt is CustomEvent<SwitchUidRequestEventDetails> {
-//   return evt && "detail" in evt && "callback" in evt.detail;
-// }

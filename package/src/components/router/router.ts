@@ -1,10 +1,15 @@
-import type { PathnameChangeEventDetails } from "../../types.ts";
+import type { LinkEventDetails, NavigationEventDetails } from "../../types.ts";
 import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 
 const HISTORY_STATE = "r4w-router";
 
 export class Router extends BasecompMixin(HTMLElement) {
+  #handleLinkEventBound:
+    | ((evt: CustomEvent<LinkEventDetails>) => void)
+    | undefined;
+  #handlePopStateBound: ((evt: PopStateEvent) => void) | undefined;
+
   constructor() {
     super();
   }
@@ -16,58 +21,65 @@ export class Router extends BasecompMixin(HTMLElement) {
   /******************************************************************
    * Basecomp
    *****************************************************************/
+
   override componentConnect(): void {
     super.componentConnect && super.componentConnect();
-
-    // Let all the componentConnect functions be invoked then dispatch the
-    // browser's current path.
-    setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
-          detail: { pathname: window.location.pathname }
-        })
-      );
-    }, 0);
-  }
-
-  override componentInitialConnect(): void {
-    super.componentInitialConnect && super.componentInitialConnect();
-
-    window.addEventListener("popstate", (evt: PopStateEvent) => {
-      // Ignore popstate events that don't include this instance's state..
-      evt.state === HISTORY_STATE &&
-        this.#dispatchPathChangeEvent(window.location.pathname);
-    });
-
-    addEventListenerFactory(
-      "r4w-link-event",
-      this
-    )(evt => {
-      evt.stopPropagation();
-      const { detail } = evt;
-
-      // We add our `uid` so that later when popstate events occur we know
-      // whether or not this instance of switch needs to handle or ignore the
-      // event.
-      window.history.pushState(HISTORY_STATE, "", detail.to);
-      this.#dispatchPathChangeEvent(detail.to);
-    });
+    this.#connectListeners();
   }
 
   override componentDisconnect(): void {
-    super.componentDisconnect();
+    super.componentDisconnect && super.componentDisconnect();
+    this.#disconnectListeners();
   }
 
-  override update(changedProperties: string[]): void {
-    super.update && super.update(changedProperties);
+  /******************************************************************
+   * private
+   *****************************************************************/
+
+  #connectListeners() {
+    this.#handlePopStateBound = this.#handlePopState.bind(this);
+    window.addEventListener("popstate", this.#handlePopStateBound);
+
+    this.#handleLinkEventBound = this.#handleLinkEvent.bind(this);
+    addEventListenerFactory("r4w-link-event", this)(this.#handleLinkEventBound);
   }
 
-  #dispatchPathChangeEvent(pathname: string) {
+  #disconnectListeners() {
+    this.#handlePopStateBound &&
+      window.removeEventListener("popstate", this.#handlePopStateBound);
+    this.#handlePopStateBound = undefined;
+
+    this.#handleLinkEventBound &&
+      this.removeEventListener(
+        "r4w-link-event",
+        this.#handleLinkEventBound as (evt: Event) => void
+      );
+    this.#handleLinkEventBound = undefined;
+  }
+
+  #dispatchNavigationEvent(pathname: string) {
     window.dispatchEvent(
-      new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
+      new CustomEvent<NavigationEventDetails>("r4w-navigation-change", {
         detail: { pathname }
       })
     );
+  }
+
+  #handleLinkEvent(evt: CustomEvent<LinkEventDetails>) {
+    evt.stopPropagation();
+    const { detail } = evt;
+
+    // We add our `uid` so that later when popstate events occur we know
+    // whether or not this instance of switch needs to handle or ignore the
+    // event.
+    window.history.pushState(HISTORY_STATE, "", detail.to);
+    this.#dispatchNavigationEvent(detail.to);
+  }
+
+  #handlePopState(evt: PopStateEvent) {
+    // Ignore popstate events that don't include this instance's state..
+    evt.state === HISTORY_STATE &&
+      this.#dispatchNavigationEvent(window.location.pathname);
   }
 }
 

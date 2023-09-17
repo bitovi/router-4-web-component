@@ -1,6 +1,13 @@
-import type { Constructor, PathnameChangeEventDetails } from "../../types.ts";
-import { getPathnameData } from "../../libs/url/url.ts";
+import type {
+  Constructor,
+  ParamsChangeEventDetails,
+  ParamsRequestEventDetails,
+  PathnameChangeEventDetails,
+  PathnameRequestEventDetails,
+  RouteUidRequestEventDetails
+} from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import { getPathnameData } from "../../libs/url/url.ts";
 import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 
 /**
@@ -17,87 +24,238 @@ import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 export function ParamsMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return class Params extends BasecompMixin(baseType) {
-    #handleParamsChangeBound: ((evt: Event) => void) | undefined;
+    #handleParamsRequestEventBound:
+      | ((evt: CustomEvent<ParamsRequestEventDetails>) => void)
+      | undefined;
+    #handlePathnameChangeBound:
+      | ((evt: CustomEvent<PathnameChangeEventDetails>) => void)
+      | undefined;
+    #params: Record<string, string> | undefined;
+    #pathname: string | undefined;
     #pattern: string | undefined;
+    #routeUid: string | undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
 
-    /** The pattern that will be used to determine when a changed pathname is
-     * for this class instance. */
-    get pattern(): string | undefined {
-      return this.#pattern;
+    /******************************************************************
+     * Basecomp
+     *****************************************************************/
+
+    override componentConnect(): void {
+      super.componentConnect && super.componentConnect();
+
+      // console.log("Params.componentConnect");
+
+      this.#connectListeners();
+
+      setTimeout(() => this.#dispatchRouteUidRequestEvent(), 0);
     }
 
-    set pattern(pattern: string | undefined) {
+    override componentDisconnect(): void {
+      super.componentDisconnect && super.componentDisconnect();
+      this.#disconnectListeners();
+    }
+
+    override stateComparison<T>(
+      property: string,
+      oldValue: T,
+      newValue: T
+    ): boolean {
+      if (property === "params") {
+        const oldParams = oldValue as typeof this.params;
+        const newParams = newValue as typeof this.params;
+        if (!oldParams && !newParams) {
+          return true;
+        }
+
+        if (oldParams && newParams) {
+          const oldKeys = Object.keys(oldParams);
+          const newKeys = Object.keys(newParams);
+          if (oldKeys.length !== newKeys.length) {
+            return false;
+          } else {
+            const keysSame = oldKeys.every(ok => newKeys.some(nk => ok === nk));
+            if (!keysSame) {
+              return false;
+            }
+
+            const valuesSame = oldKeys.every(
+              ok => oldParams[ok] === newParams[ok]
+            );
+
+            return valuesSame;
+          }
+        }
+
+        return true;
+      }
+
+      return super.stateComparison(property, oldValue, newValue);
+    }
+
+    override update(changedProperties: string[]): void {
+      super.update && super.update(changedProperties);
+
+      if (changedProperties.includes("#routeUid")) {
+        this.#dispatchPathnameRequestEvent();
+      }
+
+      if (
+        changedProperties.includes("#pathname") ||
+        changedProperties.includes("#pattern") ||
+        changedProperties.includes("#routeUid")
+      ) {
+        if (this.#pathname && this.#pattern && this.#routeUid) {
+          const { match, params } = getPathnameData(
+            this.#pathname,
+            this.#pattern
+          );
+          if (match) {
+            this.setState(
+              "#params",
+              this.#params,
+              params,
+              next => (this.#params = next)
+            );
+          }
+        }
+      }
+
+      if (changedProperties.includes("#params")) {
+        this.#dispatchParamsChangedEvent();
+      }
+    }
+
+    /******************************************************************
+     * private
+     *****************************************************************/
+
+    #connectListeners() {
+      this.#handlePathnameChangeBound =
+        this.#handlePathnameChangeEvent.bind(this);
+      addEventListenerFactory(
+        "r4w-pathname-change",
+        window
+      )(this.#handlePathnameChangeBound);
+
+      this.#handleParamsRequestEventBound =
+        this.#handleParamsRequestEvent.bind(this);
+      addEventListenerFactory(
+        "r4w-params-request",
+        window
+      )(this.#handleParamsRequestEventBound);
+    }
+
+    #disconnectListeners() {
+      this.#handlePathnameChangeBound &&
+        window.removeEventListener(
+          "r4w-pathname-change",
+          this.#handlePathnameChangeBound as (evt: Event) => void
+        );
+
+      this.#handlePathnameChangeBound = undefined;
+
+      this.#handleParamsRequestEventBound &&
+        window.removeEventListener(
+          "r4w-params-request",
+          this.#handleParamsRequestEventBound as (evt: Event) => void
+        );
+
+      this.#handleParamsRequestEventBound = undefined;
+    }
+
+    #dispatchParamsChangedEvent() {
+      if (!this.#routeUid) {
+        return;
+      }
+
+      // console.log(
+      //   `Params.#dispatchParamsChangedEvent: dispatching; params='${
+      //     this.#params
+      //   }', routeUid='${this.#routeUid}'`
+      // );
+
+      window.dispatchEvent(
+        new CustomEvent<ParamsChangeEventDetails>("r4w-params-change", {
+          bubbles: true,
+          composed: true,
+          detail: { params: this.#params, routeUid: this.#routeUid }
+        })
+      );
+    }
+
+    #dispatchPathnameRequestEvent() {
+      if (!this.#routeUid) {
+        return;
+      }
+
+      window.dispatchEvent(
+        new CustomEvent<PathnameRequestEventDetails>("r4w-pathname-request", {
+          bubbles: true,
+          composed: true,
+          detail: { routeUid: this.#routeUid }
+        })
+      );
+    }
+
+    #dispatchRouteUidRequestEvent() {
+      // console.log("Params.#dispatchRouteUidRequestEvent: dispatch 'r4w-route-uid-request'.");
+
+      this.dispatchEvent(
+        new CustomEvent<RouteUidRequestEventDetails>("r4w-route-uid-request", {
+          bubbles: true,
+          composed: true,
+          detail: {
+            callback: routeUid => {
+              this.setState(
+                "#routeUid",
+                this.#routeUid,
+                routeUid,
+                next => (this.#routeUid = next)
+              );
+            }
+          }
+        })
+      );
+    }
+
+    #handleParamsRequestEvent(evt: CustomEvent<ParamsRequestEventDetails>) {
+      const {
+        detail: { routeUid }
+      } = evt;
+
+      if (this.#routeUid !== routeUid) {
+        return;
+      }
+
+      this.#dispatchParamsChangedEvent();
+    }
+
+    #handlePathnameChangeEvent(evt: CustomEvent<PathnameChangeEventDetails>) {
+      const {
+        detail: { pathname, pattern, routeUid }
+      } = evt;
+
+      if (this.#routeUid !== routeUid) {
+        return;
+      }
+
       this.setState(
-        "pattern",
+        "#pathname",
+        this.#pathname,
+        pathname,
+        next => (this.#pathname = next)
+      );
+
+      this.setState(
+        "#pattern",
         this.#pattern,
         pattern,
         next => (this.#pattern = next)
       );
     }
-
-    /**
-     * This will be invoked when the params change.
-     * @param params A collection of tokens and values.
-     * @protected
-     */
-    onParamsChange(params: Record<string, string>): void {
-      super.onParamsChange && super.onParamsChange(params);
-    }
-
-    /******************************************************************
-     * Basecomp
-     *****************************************************************/
-    override componentConnect(): void {
-      super.componentConnect && super.componentConnect();
-
-      this.#handleParamsChangeBound = this.#handleParamsChange.bind(this);
-
-      addEventListenerFactory(
-        "r4w-pathname-change",
-        document
-      )(this.#handleParamsChangeBound);
-    }
-
-    override componentDisconnect(): void {
-      super.componentDisconnect && super.componentDisconnect();
-
-      this.#handleParamsChangeBound &&
-        window.removeEventListener(
-          "r4w-pathname-change",
-          this.#handleParamsChangeBound
-        );
-
-      this.#handleParamsChangeBound = undefined;
-    }
-
-    override update(changedProperties: string[]): void {
-      super.update && super.update(changedProperties);
-    }
-
-    #handleParamsChange(evt: Event) {
-      if (!isPathnameChangeEventDetails(evt)) {
-        return;
-      }
-
-      const {
-        detail: { pathname }
-      } = evt;
-
-      const { match, params } = getPathnameData(pathname, this.pattern);
-
-      match && params && this.onParamsChange(params);
-    }
   };
-
-  function isPathnameChangeEventDetails(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    evt: any
-  ): evt is CustomEvent<PathnameChangeEventDetails> {
-    return evt && "detail" in evt && "pathname" in evt.detail;
-  }
 }

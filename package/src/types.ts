@@ -6,8 +6,12 @@
  */
 export interface R4WEventMap {
   "r4w-link-event": CustomEvent<LinkEventDetails>;
+  "r4w-navigation-change": CustomEvent<NavigationEventDetails>;
+  "r4w-params-change": CustomEvent<ParamsChangeEventDetails>;
+  "r4w-params-request": CustomEvent<ParamsRequestEventDetails>;
   "r4w-pathname-change": CustomEvent<PathnameChangeEventDetails>;
-  // "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
+  "r4w-pathname-request": CustomEvent<PathnameRequestEventDetails>;
+  "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
   "r4w-switch-uid-request": CustomEvent<SwitchUidRequestEventDetails>;
 }
 
@@ -16,15 +20,34 @@ export interface LinkEventDetails {
   to: string;
 }
 
+export interface NavigationEventDetails {
+  pathname: string;
+}
+
+export interface ParamsChangeEventDetails {
+  params: Record<string, string> | undefined;
+  routeUid: string;
+}
+
+export interface ParamsRequestEventDetails {
+  routeUid: string;
+}
+
 export interface PathnameChangeEventDetails {
   pathname: string;
+  pattern: string;
+  routeUid: string;
+}
+
+export interface PathnameRequestEventDetails {
+  routeUid: string;
 }
 
 export interface RouteUidRequestEventDetails {
   /** Invoked by the Route that contains the element that dispatched this event.
    * Returns the information for the Route and Switch that contain the element.
    * */
-  callback: (routeUid: string, routerUid: string) => void;
+  callback: (routeUid: string) => void;
 }
 
 export interface SwitchUidRequestEventDetails {
