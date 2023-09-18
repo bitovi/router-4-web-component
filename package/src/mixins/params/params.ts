@@ -1,40 +1,37 @@
 import type {
-  Constructor,
   ParamsChangeEventDetails,
   ParamsRequestEventDetails,
   PathnameRequestEventDetails
 } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
-import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
-import { PathnameMixin } from "../pathname/pathname.ts";
+import type { Pathname } from "../pathname/pathname.ts";
+import type { Route } from "../route/route.ts";
+import type { ComponentLifecycle } from "../../libs/basecomp/basecomp.ts";
 
 /**
- * This abstract class is used as a base for web components that want to get
- * params information from a route's path. An instance of this class MUST be an
- * element that is the immediate child of `<r4w-route>`. That's because the
- * route is going to set an attribute on this instance whose name is the route's
- * `uid` property.
  *
- * Can be used as a mixin definition.
- * https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function ParamsMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return class Params extends PathnameMixin(BasecompMixin(baseType)) {
+  return class ParamsImpl extends baseType implements Params {
     #handleParamsRequestEventBound:
       | ((evt: CustomEvent<ParamsRequestEventDetails>) => void)
       | undefined;
-    #params: Record<string, string> | undefined;
+    #params: Params["params"];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    constructor(...args: any[]) {
-      super(...args);
+    constructor(...cArgs: any[]) {
+      super(...cArgs);
+    }
+
+    get params(): Params["params"] {
+      return this.#params;
     }
 
     /******************************************************************
-     * Basecomp
+     * ComponentLifecycle
      *****************************************************************/
 
     override componentConnect(): void {
@@ -56,8 +53,8 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
       newValue: T
     ): boolean {
       if (property === "params") {
-        const oldParams = oldValue as typeof this.params;
-        const newParams = newValue as typeof this.params;
+        const oldParams = oldValue as Params["params"];
+        const newParams = newValue as Params["params"];
         if (!oldParams && !newParams) {
           return true;
         }
@@ -81,10 +78,12 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
           }
         }
 
-        return true;
+        return false;
       }
 
-      return super.stateComparison(property, oldValue, newValue);
+      return super.stateComparison
+        ? super.stateComparison(property, oldValue, newValue)
+        : false;
     }
 
     override update(changedProperties: string[]): void {
@@ -106,7 +105,7 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
           );
           if (match) {
             this.setState(
-              "#params",
+              "params",
               this.#params,
               params,
               next => (this.#params = next)
@@ -115,7 +114,7 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
         }
       }
 
-      if (changedProperties.includes("#params")) {
+      if (changedProperties.includes("params")) {
         this.#dispatchParamsChangedEvent();
       }
     }
@@ -189,4 +188,14 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
       this.#dispatchParamsChangedEvent();
     }
   };
+}
+
+type Constructor<T = HTMLElement & ComponentLifecycle & Pathname & Route> =
+  new (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ...args: any[]
+  ) => T;
+
+export interface Params {
+  readonly params: Record<string, string> | undefined;
 }

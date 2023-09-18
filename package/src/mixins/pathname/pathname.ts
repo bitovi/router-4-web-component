@@ -1,28 +1,28 @@
-import type { Constructor, PathnameChangeEventDetails } from "../../types.ts";
+import type { PathnameChangeEventDetails } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
-import { RouteMixin } from "../route/route.ts";
-import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+import type { ComponentLifecycle } from "../../libs/basecomp/basecomp.ts";
+import type { Route } from "../route/route.ts";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function PathnameMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return class Pathname extends RouteMixin(BasecompMixin(baseType)) {
+  return class PathnameImpl extends baseType implements Pathname {
     #handlePathnameChangeBound:
       | ((evt: CustomEvent<PathnameChangeEventDetails>) => void)
       | undefined;
-    #pathname: string | undefined;
-    #pattern: string | undefined;
+    #pathname: Pathname["pathname"];
+    #pattern: Pathname["pattern"];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
 
-    get pathname(): string | undefined {
+    get pathname(): Pathname["pathname"] {
       return this.#pathname;
     }
 
-    get pattern(): string | undefined {
+    get pattern(): Pathname["pattern"] {
       return this.#pattern;
     }
 
@@ -91,4 +91,14 @@ export function PathnameMixin<T extends Constructor>(baseType: T) {
       );
     }
   };
+}
+
+type Constructor<T = HTMLElement & ComponentLifecycle & Route> = new (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ...args: any[]
+) => T;
+
+export interface Pathname {
+  readonly pathname: string | undefined;
+  readonly pattern: string | undefined;
 }

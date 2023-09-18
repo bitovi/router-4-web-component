@@ -4,15 +4,14 @@ import type {
   ParamsRequestEventDetails,
   RouteUidRequestEventDetails
 } from "../../types.js";
-import { BasecompMixin } from "../../libs/basecomp/basecomp.js";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.js";
 
 /**
- * Loads a module when the Loader is activated.
+ * Provides route params to a web component when they change.
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
-  return class ParamsListener extends BasecompMixin(baseType) {
+  return class ParamsListenerImpl extends baseType implements ParamsListener {
     #handleParamsChangeBound:
       | ((evt: CustomEvent<ParamsChangeEventDetails>) => void)
       | undefined;
@@ -110,7 +109,7 @@ export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
      * @protected
      */
     onParamsChange(params: Record<string, string> | undefined) {
-      super.onParamsChange && super.onParamsChange(params);
+      // Not implemented.
     }
 
     /******************************************************************
@@ -169,4 +168,8 @@ export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
       );
     }
   };
+}
+
+export interface ParamsListener {
+  onParamsChange(params: Record<string, string> | undefined): void;
 }

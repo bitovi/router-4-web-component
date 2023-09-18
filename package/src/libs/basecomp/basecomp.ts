@@ -10,7 +10,7 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
   /**
    * A base class to manage the lifecycle and updating of a web component.
    */
-  return class Basecomp extends baseType {
+  return class Basecomp extends baseType implements ComponentLifecycle {
     #changedProperties: string[] = [];
     #connected = false;
     #init = false;
@@ -31,6 +31,10 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
     get init(): boolean {
       return this.#init;
     }
+
+    /******************************************************************
+     * ComponentLifecycle
+     *****************************************************************/
 
     /**
      * Override to make changes when connected. Invoked by `connectedCallback`.
@@ -121,6 +125,10 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
       super.update && super.update(changedProperties);
     }
 
+    /******************************************************************
+     * private
+     *****************************************************************/
+
     /**
      * Do NOT override!, Prefer override of `componentInitialConnect` or
      * `componentConnect`.
@@ -179,4 +187,18 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
       });
     }
   };
+}
+
+export interface ComponentLifecycle {
+  componentConnect?(): void;
+  componentDisconnect?(): void;
+  componentInitialConnect?(): void;
+  stateComparison?<T>(property: string, oldValue: T, newValue: T): boolean;
+  setState<T>(
+    property: string,
+    current: T,
+    next: T,
+    setter: (value: T, property?: string) => void
+  ): void;
+  update(hangedProperties: string[]): void;
 }

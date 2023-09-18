@@ -6,7 +6,10 @@ import { documentUrl } from "../../libs/url/url.ts";
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function LoaderMixin<T extends Constructor>(baseType: T) {
-  return class Loader extends baseType implements RouteActivationProps {
+  return class LoaderImpl
+    extends baseType
+    implements Loader, RouteActivationProps
+  {
     #module = false;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,4 +39,6 @@ export function LoaderMixin<T extends Constructor>(baseType: T) {
   };
 }
 
-// export const LoaderMixin = LoaderFactory(BasecompMixin(HTMLElement));
+export interface Loader {
+  readonly moduleName: string | undefined;
+}

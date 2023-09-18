@@ -1,18 +1,18 @@
 import type { Constructor, RouteUidRequestEventDetails } from "../../types.ts";
-import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+// import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function RouteMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return class Route extends BasecompMixin(baseType) {
-    #routeUid: string | undefined;
+  return class RouteImpl extends baseType implements Route {
+    #routeUid: Route["routeUid"];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
 
-    get routeUid(): string | undefined {
+    get routeUid(): Route["routeUid"] {
       return this.#routeUid;
     }
 
@@ -50,4 +50,8 @@ export function RouteMixin<T extends Constructor>(baseType: T) {
       );
     }
   };
+}
+
+export interface Route {
+  readonly routeUid: string | undefined;
 }
