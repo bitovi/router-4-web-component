@@ -1,13 +1,13 @@
-// import {
-//   ComponentLifecycleMixin,
-//   ParamsListenerMixin,
-//   TemplateMixin
-// } from "https://esm.sh/@bitovi/router-4-web-component";
 import {
   ComponentLifecycleMixin,
   ParamsListenerMixin,
   TemplateMixin
-} from "../../../dist/src/index.js";
+} from "https://esm.sh/@bitovi/router-4-web-component";
+// import {
+//   ComponentLifecycleMixin,
+//   ParamsListenerMixin,
+//   TemplateMixin
+// } from "../../../dist/src/index.js";
 import type { RestaurantData, RestaurantItem } from "../../types/types.ts";
 
 export class RestaurantDetail extends ParamsListenerMixin(

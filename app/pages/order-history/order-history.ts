@@ -1,7 +1,5 @@
-// import {
-//   ComponentLifecycleMixin
-// } from "https://esm.sh/@bitovi/router-4-web-component";
-import { ComponentLifecycleMixin } from "../../../dist/src/index.js";
+import { ComponentLifecycleMixin } from "https://esm.sh/@bitovi/router-4-web-component";
+// import { ComponentLifecycleMixin } from "../../../dist/src/index.js";
 
 export class OrderHistory extends ComponentLifecycleMixin(HTMLElement) {
   #shadowRoot: ShadowRoot;

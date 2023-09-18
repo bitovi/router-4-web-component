@@ -1,11 +1,11 @@
-// import {
-//   ComponentLifecycleMixin,
-//   TemplateMixin
-// } from "https://esm.sh/@bitovi/router-4-web-component";
 import {
   ComponentLifecycleMixin,
   TemplateMixin
-} from "../../../dist/src/index.js";
+} from "https://esm.sh/@bitovi/router-4-web-component";
+// import {
+//   ComponentLifecycleMixin,
+//   TemplateMixin
+// } from "../../../dist/src/index.js";
 import type { RestaurantData } from "../../types/types.ts";
 import type { Dropdown } from "../../components/dropdown/dropdown.ts";
 import "../../components/dropdown/dropdown.ts";

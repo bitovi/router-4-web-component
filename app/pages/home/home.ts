@@ -1,11 +1,11 @@
-// import {
-//   ComponentLifecycleMixin,
-//   TemplateMixin
-// } from "https://esm.sh/@bitovi/router-4-web-component";
 import {
   ComponentLifecycleMixin,
   TemplateMixin
-} from "../../../dist/src/index.js";
+} from "https://esm.sh/@bitovi/router-4-web-component";
+// import {
+//   ComponentLifecycleMixin,
+//   TemplateMixin
+// } from "../../../dist/src/index.js";
 
 export class Home extends TemplateMixin(ComponentLifecycleMixin(HTMLElement)) {
   #shadowRoot: ShadowRoot;

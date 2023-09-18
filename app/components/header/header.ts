@@ -1,15 +1,15 @@
-// import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
-// import {
-//   ComponentLifecycleMixin,
-//   getPathnameData,
-//   TemplateMixin
-// } from "https://esm.sh/@bitovi/router-4-web-component";
-import type { Link } from "../../../dist/src/index.js";
+import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
 import {
   ComponentLifecycleMixin,
   getPathnameData,
   TemplateMixin
-} from "../../../dist/src/index.js";
+} from "https://esm.sh/@bitovi/router-4-web-component";
+// import type { Link } from "../../../dist/src/index.js";
+// import {
+//   ComponentLifecycleMixin,
+//   getPathnameData,
+//   TemplateMixin
+// } from "../../../dist/src/index.js";
 
 export class Header extends TemplateMixin(
   ComponentLifecycleMixin(HTMLElement)

@@ -1,11 +1,11 @@
-// import {
-//   ComponentLifecycleMixin,
-//   ParamsListenerMixin
-// } from "https://esm.sh/@bitovi/router-4-web-component";
 import {
   ComponentLifecycleMixin,
   ParamsListenerMixin
-} from "../../../dist/src/index.js";
+} from "https://esm.sh/@bitovi/router-4-web-component";
+// import {
+//   ComponentLifecycleMixin,
+//   ParamsListenerMixin
+// } from "../../../dist/src/index.js";
 
 export class RestaurantOrder extends ParamsListenerMixin(
   ComponentLifecycleMixin(HTMLElement)
