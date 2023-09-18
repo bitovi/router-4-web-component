@@ -2,6 +2,7 @@ import type {
   NavigationEventDetails,
   PathnameChangeEventDetails,
   PathnameRequestEventDetails,
+  RouteActivateEventDetails,
   RouteUidRequestEventDetails,
   SwitchUidRequestEventDetails
 } from "../../types.ts";
@@ -45,7 +46,7 @@ export class Route extends ParamsMixin(
 
     uidCount = uidCount + 1;
     this.#uid = `r4w-route-${uidCount}`;
-    this.setAttribute(this.#uid, "");
+    this.setAttribute("data-r4w-route", this.#uid);
   }
 
   static get observedAttributes(): string[] {
@@ -94,33 +95,14 @@ export class Route extends ParamsMixin(
 
     this.#connectListeners();
 
-    // Let all the componentConnect methods be invoked (they probably set
-    // listeners) then dispatch a request for a switch UID.
-    setTimeout(() => {
-      this.dispatchEvent(
-        new CustomEvent<SwitchUidRequestEventDetails>(
-          "r4w-switch-uid-request",
-          {
-            bubbles: true,
-            composed: true,
-            detail: { callback: switchUid => (this.#switchUid = switchUid) }
-          }
-        )
-      );
-    }, 0);
-
     Array.from(this.children).forEach(element => {
       this.#children.push(element);
       element.remove();
     });
 
-    // Set the initial pathname.
-    this.setState(
-      "#pathname",
-      this.#pathname,
-      window.location.pathname,
-      next => (this.#pathname = next)
-    );
+    // Let all the componentConnect methods be invoked (they probably set
+    // listeners) then dispatch a request for a switch UID.
+    setTimeout(() => this.#dispatchSwitchUidRequestEvent(), 0);
   }
 
   override componentDisconnect(): void {
@@ -130,6 +112,12 @@ export class Route extends ParamsMixin(
 
   override update(changedProperties: string[]): void {
     super.update && super.update(changedProperties);
+
+    // console.log(
+    //   `Route[${this.#uid}].update: changedProperties='${changedProperties
+    //     .map(p => `${p}='${this.#mapPropertyToValue(p)}'`)
+    //     .join(",")}'`
+    // );
 
     if (changedProperties.includes("#activated")) {
       this.#activated ? this.#becomeActivated() : this.#becomeDeactivated();
@@ -151,8 +139,12 @@ export class Route extends ParamsMixin(
       changedProperties.includes("#pathname") ||
       changedProperties.includes("#pattern")
     ) {
-      this.#activateIfMatch();
+      this.#activateIfMatchAndPermitted();
       this.#dispatchPathnameChangedEvent();
+    }
+
+    if (changedProperties.includes("#switchUid")) {
+      this.#setInitialPathname();
     }
   }
 
@@ -160,17 +152,23 @@ export class Route extends ParamsMixin(
    * private
    *****************************************************************/
 
-  #activateIfMatch() {
+  #activateIfMatchAndPermitted() {
     if (!this.#pathname || !this.#pattern) {
       return;
     }
 
     const { match } = getPathnameData(this.#pathname, this.#pattern);
 
+    // match && console.trace(`Route[${this.#uid}].#activateIfMatchAndPermitted.`);
+
+    const permitted = this.#switchUid
+      ? this.#dispatchRouteActivateEvent(match)
+      : true;
+
     this.setState(
       "#activated",
       this.#activated,
-      match,
+      match && permitted,
       next => (this.#activated = next)
     );
   }
@@ -270,6 +268,60 @@ export class Route extends ParamsMixin(
     );
   }
 
+  #dispatchRouteActivateEvent(match: boolean): boolean {
+    // Routes not inside a switch always activate.
+    if (!this.#switchUid) {
+      return true;
+    }
+
+    if (!this.#pathname || !this.#pattern) {
+      return false;
+    }
+
+    let permitted = false;
+    window.dispatchEvent(
+      new CustomEvent<RouteActivateEventDetails>("r4w-route-activate", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          callback: activatePermitted => (permitted = activatePermitted),
+          match,
+          pathname: this.#pathname,
+          self: this,
+          switchUid: this.#switchUid
+        }
+      })
+    );
+
+    return permitted;
+  }
+
+  #dispatchSwitchUidRequestEvent() {
+    // If we are not in a switch then nextSwitchUid will remain `undefined`.
+    let nextSwitchUid;
+
+    this.dispatchEvent(
+      new CustomEvent<SwitchUidRequestEventDetails>("r4w-switch-uid-request", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          callback: switchUid => (nextSwitchUid = switchUid)
+        }
+      })
+    );
+
+    if (nextSwitchUid) {
+      this.setState(
+        "#switchUid",
+        this.#switchUid,
+        nextSwitchUid,
+        next => (this.#switchUid = next)
+      );
+    } else {
+      this.#setInitialPathname();
+    }
+  }
+
   #handleNavigationEvent(evt: CustomEvent<NavigationEventDetails>) {
     this.setState(
       "#pathname",
@@ -329,6 +381,49 @@ export class Route extends ParamsMixin(
 
       callback(this.#uid);
     }
+  }
+
+  #mapPropertyToValue(property: string): unknown {
+    let value;
+
+    switch (property) {
+      case "#activated": {
+        value = this.#activated;
+        break;
+      }
+      case "#uid": {
+        value = this.#uid;
+        break;
+      }
+      case "#pathname": {
+        value = this.#pathname;
+        break;
+      }
+      case "#pattern": {
+        value = this.#pattern;
+        break;
+      }
+      case "#switchUid": {
+        value = this.#switchUid;
+        break;
+      }
+    }
+
+    return value;
+  }
+
+  #setInitialPathname() {
+    if (this.#pathname) {
+      return;
+    }
+
+    // Set the initial pathname.
+    this.setState(
+      "#pathname",
+      this.#pathname,
+      window.location.pathname,
+      next => (this.#pathname = next)
+    );
   }
 }
 

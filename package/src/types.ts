@@ -11,6 +11,7 @@ export interface R4WEventMap {
   "r4w-params-request": CustomEvent<ParamsRequestEventDetails>;
   "r4w-pathname-change": CustomEvent<PathnameChangeEventDetails>;
   "r4w-pathname-request": CustomEvent<PathnameRequestEventDetails>;
+  "r4w-route-activate": CustomEvent<RouteActivateEventDetails>;
   "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
   "r4w-switch-uid-request": CustomEvent<SwitchUidRequestEventDetails>;
 }
@@ -41,6 +42,13 @@ export interface PathnameChangeEventDetails {
 
 export interface PathnameRequestEventDetails {
   routeUid: string;
+}
+export interface RouteActivateEventDetails {
+  callback: (activatePermitted: boolean) => void;
+  match: boolean;
+  pathname: string;
+  self: HTMLElement;
+  switchUid: string;
 }
 
 export interface RouteUidRequestEventDetails {
