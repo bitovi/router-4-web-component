@@ -2,13 +2,12 @@ import type {
   Constructor,
   ParamsChangeEventDetails,
   ParamsRequestEventDetails,
-  PathnameChangeEventDetails,
-  PathnameRequestEventDetails,
-  RouteUidRequestEventDetails
+  PathnameRequestEventDetails
 } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
 import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+import { PathnameMixin } from "../pathname/pathname.ts";
 
 /**
  * This abstract class is used as a base for web components that want to get
@@ -23,17 +22,11 @@ import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function ParamsMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return class Params extends BasecompMixin(baseType) {
+  return class Params extends PathnameMixin(BasecompMixin(baseType)) {
     #handleParamsRequestEventBound:
       | ((evt: CustomEvent<ParamsRequestEventDetails>) => void)
       | undefined;
-    #handlePathnameChangeBound:
-      | ((evt: CustomEvent<PathnameChangeEventDetails>) => void)
-      | undefined;
     #params: Record<string, string> | undefined;
-    #pathname: string | undefined;
-    #pattern: string | undefined;
-    #routeUid: string | undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
@@ -50,8 +43,6 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
       // console.log("Params.componentConnect");
 
       this.#connectListeners();
-
-      setTimeout(() => this.#dispatchRouteUidRequestEvent(), 0);
     }
 
     override componentDisconnect(): void {
@@ -99,19 +90,19 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
     override update(changedProperties: string[]): void {
       super.update && super.update(changedProperties);
 
-      if (changedProperties.includes("#routeUid")) {
+      if (changedProperties.includes("routeUid")) {
         this.#dispatchPathnameRequestEvent();
       }
 
       if (
-        changedProperties.includes("#pathname") ||
-        changedProperties.includes("#pattern") ||
-        changedProperties.includes("#routeUid")
+        changedProperties.includes("pathname") ||
+        changedProperties.includes("pattern") ||
+        changedProperties.includes("routeUid")
       ) {
-        if (this.#pathname && this.#pattern && this.#routeUid) {
+        if (this.pathname && this.pattern && this.routeUid) {
           const { match, params } = getPathnameData(
-            this.#pathname,
-            this.#pattern
+            this.pathname,
+            this.pattern
           );
           if (match) {
             this.setState(
@@ -134,13 +125,6 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
      *****************************************************************/
 
     #connectListeners() {
-      this.#handlePathnameChangeBound =
-        this.#handlePathnameChangeEvent.bind(this);
-      addEventListenerFactory(
-        "r4w-pathname-change",
-        window
-      )(this.#handlePathnameChangeBound);
-
       this.#handleParamsRequestEventBound =
         this.#handleParamsRequestEvent.bind(this);
       addEventListenerFactory(
@@ -150,14 +134,6 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
     }
 
     #disconnectListeners() {
-      this.#handlePathnameChangeBound &&
-        window.removeEventListener(
-          "r4w-pathname-change",
-          this.#handlePathnameChangeBound as (evt: Event) => void
-        );
-
-      this.#handlePathnameChangeBound = undefined;
-
       this.#handleParamsRequestEventBound &&
         window.removeEventListener(
           "r4w-params-request",
@@ -168,27 +144,27 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
     }
 
     #dispatchParamsChangedEvent() {
-      if (!this.#routeUid) {
+      if (!this.routeUid) {
         return;
       }
 
       // console.log(
       //   `Params.#dispatchParamsChangedEvent: dispatching; params='${
       //     this.#params
-      //   }', routeUid='${this.#routeUid}'`
+      //   }', routeUid='${this.routeUid}'`
       // );
 
       window.dispatchEvent(
         new CustomEvent<ParamsChangeEventDetails>("r4w-params-change", {
           bubbles: true,
           composed: true,
-          detail: { params: this.#params, routeUid: this.#routeUid }
+          detail: { params: this.#params, routeUid: this.routeUid }
         })
       );
     }
 
     #dispatchPathnameRequestEvent() {
-      if (!this.#routeUid) {
+      if (!this.routeUid) {
         return;
       }
 
@@ -196,28 +172,7 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
         new CustomEvent<PathnameRequestEventDetails>("r4w-pathname-request", {
           bubbles: true,
           composed: true,
-          detail: { routeUid: this.#routeUid }
-        })
-      );
-    }
-
-    #dispatchRouteUidRequestEvent() {
-      // console.log("Params.#dispatchRouteUidRequestEvent: dispatch 'r4w-route-uid-request'.");
-
-      this.dispatchEvent(
-        new CustomEvent<RouteUidRequestEventDetails>("r4w-route-uid-request", {
-          bubbles: true,
-          composed: true,
-          detail: {
-            callback: routeUid => {
-              this.setState(
-                "#routeUid",
-                this.#routeUid,
-                routeUid,
-                next => (this.#routeUid = next)
-              );
-            }
-          }
+          detail: { routeUid: this.routeUid }
         })
       );
     }
@@ -227,35 +182,11 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
         detail: { routeUid }
       } = evt;
 
-      if (this.#routeUid !== routeUid) {
+      if (this.routeUid !== routeUid) {
         return;
       }
 
       this.#dispatchParamsChangedEvent();
-    }
-
-    #handlePathnameChangeEvent(evt: CustomEvent<PathnameChangeEventDetails>) {
-      const {
-        detail: { pathname, pattern, routeUid }
-      } = evt;
-
-      if (this.#routeUid !== routeUid) {
-        return;
-      }
-
-      this.setState(
-        "#pathname",
-        this.#pathname,
-        pathname,
-        next => (this.#pathname = next)
-      );
-
-      this.setState(
-        "#pattern",
-        this.#pattern,
-        pattern,
-        next => (this.#pattern = next)
-      );
     }
   };
 }
