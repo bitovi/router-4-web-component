@@ -1,12 +1,15 @@
 // import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
 // import {
-//   BasecompMixin,
-//   PathnameMixin
+//   ComponentLifecycleMixin,
+//   getPathnameData
 // } from "https://esm.sh/@bitovi/router-4-web-component";
 import type { Link } from "../../../dist/src/index.js";
-import { BasecompMixin, getPathnameData } from "../../../dist/src/index.js";
+import {
+  ComponentLifecycleMixin,
+  getPathnameData
+} from "../../../dist/src/index.js";
 
-export class Header extends BasecompMixin(HTMLElement) {
+export class Header extends ComponentLifecycleMixin(HTMLElement) {
   #currentPathname: string | undefined;
 
   constructor() {

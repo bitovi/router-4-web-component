@@ -1,10 +1,10 @@
 import type { LinkEventDetails, NavigationEventDetails } from "../../types.ts";
-import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+import { ComponentLifecycleMixin } from "../../libs/component-lifecycle/component-lifecycle.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 
 const HISTORY_STATE = "r4w-router";
 
-export class Router extends BasecompMixin(HTMLElement) {
+export class Router extends ComponentLifecycleMixin(HTMLElement) {
   #handleLinkEventBound:
     | ((evt: CustomEvent<LinkEventDetails>) => void)
     | undefined;

@@ -1,5 +1,4 @@
 import type { Constructor, RouteUidRequestEventDetails } from "../../types.ts";
-// import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function RouteMixin<T extends Constructor>(baseType: T) {

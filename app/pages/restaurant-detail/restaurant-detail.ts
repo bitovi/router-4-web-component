@@ -1,12 +1,15 @@
 // import {
-//   BasecompMixin,
-//   ParamsMixin
+//   ComponentLifecycleMixin,
+//   ParamsListenerMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
-import { BasecompMixin, ParamsListenerMixin } from "../../../dist/src/index.js";
+import {
+  ComponentLifecycleMixin,
+  ParamsListenerMixin
+} from "../../../dist/src/index.js";
 import type { RestaurantData, RestaurantItem } from "../../types/types.ts";
 
 export class RestaurantDetail extends ParamsListenerMixin(
-  BasecompMixin(HTMLElement)
+  ComponentLifecycleMixin(HTMLElement)
 ) {
   #shadowRoot: ShadowRoot;
   #slug: string | undefined;

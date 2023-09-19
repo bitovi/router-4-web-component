@@ -1,9 +1,9 @@
 // import {
-//   BasecompMixin
+//   ComponentLifecycleMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
-import { BasecompMixin } from "../../../dist/src/index.js";
+import { ComponentLifecycleMixin } from "../../../dist/src/index.js";
 
-export class Home extends BasecompMixin(HTMLElement) {
+export class Home extends ComponentLifecycleMixin(HTMLElement) {
   #shadowRoot: ShadowRoot;
 
   constructor() {

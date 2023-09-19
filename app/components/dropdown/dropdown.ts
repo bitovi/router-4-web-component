@@ -1,12 +1,12 @@
 // import {
-//   BasecompMixin
+//   ComponentLifecycleMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
-import { BasecompMixin } from "../../../dist/src/index.js";
+import { ComponentLifecycleMixin } from "../../../dist/src/index.js";
 
 let uid = 0;
 
 export class Dropdown
-  extends BasecompMixin(HTMLElement)
+  extends ComponentLifecycleMixin(HTMLElement)
   implements DropdownProps
 {
   #defaultItem: DropdownItem | undefined;

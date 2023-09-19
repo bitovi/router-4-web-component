@@ -8,7 +8,7 @@ import type {
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
-import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+import { ComponentLifecycleMixin } from "../../libs/component-lifecycle/component-lifecycle.ts";
 
 /**
  * Incremented for each Switch instance that's created.
@@ -19,7 +19,7 @@ let uidCount = 0;
  * The base element for routing.
  */
 export class Switch
-  extends BasecompMixin(HTMLElement)
+  extends ComponentLifecycleMixin(HTMLElement)
   implements ElementUidProps
 {
   #handleRouteActivateEventBound:

@@ -7,7 +7,7 @@ import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
 import type { Pathname } from "../pathname/pathname.ts";
 import type { Route } from "../route/route.ts";
-import type { ComponentLifecycle } from "../../libs/basecomp/basecomp.ts";
+import type { ComponentLifecycle } from "../../libs/component-lifecycle/component-lifecycle.ts";
 
 /**
  *

@@ -1,6 +1,6 @@
 import type { PathnameChangeEventDetails } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
-import type { ComponentLifecycle } from "../../libs/basecomp/basecomp.ts";
+import type { ComponentLifecycle } from "../../libs/component-lifecycle/component-lifecycle.ts";
 import type { Route } from "../route/route.ts";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

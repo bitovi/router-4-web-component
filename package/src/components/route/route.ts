@@ -8,7 +8,7 @@ import type {
 } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
-import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+import { ComponentLifecycleMixin } from "../../libs/component-lifecycle/component-lifecycle.ts";
 import { LoaderMixin } from "../../mixins/loader/loader.ts";
 import { RouteMixin } from "../../mixins/route/route.ts";
 import { PathnameMixin } from "../../mixins/pathname/pathname.ts";
@@ -25,7 +25,7 @@ let uidCount = 0;
  *   - src {string} The URL of the module associated with this route.
  */
 export class Route extends ParamsMixin(
-  PathnameMixin(RouteMixin(LoaderMixin(BasecompMixin(HTMLElement))))
+  PathnameMixin(RouteMixin(LoaderMixin(ComponentLifecycleMixin(HTMLElement))))
 ) {
   #activated = false;
   #children: Element[] = [];
