@@ -1,8 +1,17 @@
 import type { Constructor } from "../../types.js";
 
 /**
- * Mixin to create a ComponentLifecycleImpl constructor derived from the
- * HTMLElement class.
+ * Mixin to create a ComponentLifecycleImpl class derived from the HTMLElement
+ * class.
+ * @description Applied to another web component class this mixin provides a
+ * more comprehensive and straightforward way of managing state and events in a
+ * web component.
+ *
+ * Use the `component*` methods to manage the DOM lifecycle. When an event
+ * happens use `setState` to update the value of the associated data member,
+ * this will trigger a call to update. The `update` method is invoked whenever a
+ * data member has changed and is the place to make updates to the DOM, fetch
+ * data, etc.
  * @param baseType A class or interface that ComponentLifecycleImpl instance
  * extends.
  * @returns A constructor for ComponentLifecycleImpl.
@@ -11,9 +20,6 @@ import type { Constructor } from "../../types.js";
 export function ComponentLifecycleMixin<T extends Constructor<any>>(
   baseType: T
 ) {
-  /**
-   * A base class to manage the lifecycle and updating of a web component.
-   */
   return class ComponentLifecycleImpl
     extends baseType
     implements ComponentLifecycle
@@ -196,16 +202,68 @@ export function ComponentLifecycleMixin<T extends Constructor<any>>(
   };
 }
 
+/**
+ * An interface that defines methods needed by an object to manage the web
+ * component lifecycle.
+ */
 export interface ComponentLifecycle {
+  /*
+   * Invoked whenever the component is attached to the DOM. This can be invoked
+   * multiple times. Typically event listeners are connected here.
+   */
   componentConnect?(): void;
+  /**
+   * Invoked when the component is removed from the DOM. This is where event
+   * listeners should be disconnected.
+   */
   componentDisconnect?(): void;
+  /**
+   * Invoked only one time when the element is initially attached to the DOM.
+   * This is a good place to construct the elements initial DOM children.
+   */
   componentInitialConnect?(): void;
+  /**
+   * Compares two values (shallow comparison using `===`) and returns a value
+   * the indicates if the values are the same (false when the values are
+   * different, true when they are the same).
+   * @param property The name of the property that holds the value. If the
+   * property is accessible through a public getter or data member use the
+   * public name.
+   * @param oldValue Usually the current property value.
+   * @param newValue The value to set on the property, if it is the same as the
+   * oldValue nothing will happen.
+   * @returns False indicates the values ae not the same, true that they are the
+   * same.
+   */
   stateComparison?<T>(property: string, oldValue: T, newValue: T): boolean;
+  /**
+   * Change the value of a class data property.
+   * @param property The name of the property that holds the value. If the
+   * property is accessible through a public getter or data member use the
+   * public name.
+   * @param current The current property value.
+   * @param next The value to set on the property, if it is the same as
+   * `current` nothing will happen.
+   * @param setter
+   */
   setState<T>(
     property: string,
     current: T,
     next: T,
-    setter: (value: T, property?: string) => void
+    /**
+     * Invoked when `current` and `next` are different to update a property with
+     * the value of `next`.
+     */
+    setter: (
+      /** The value to set on the property. */ value: T,
+      /** The name of the property to change. */ property?: string
+    ) => void
   ): void;
+  /**
+   * After properties have been set the `update` method will run. This is where
+   * the web component should update the DOM or start any side effects.
+   * @param hangedProperties A collection of the names of the properties that
+   * have changed during this update cycle.
+   */
   update(hangedProperties: string[]): void;
 }
