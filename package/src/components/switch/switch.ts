@@ -2,13 +2,13 @@ import type {
   RouteMatchProps,
   ElementUidProps,
   SwitchUidRequestEventDetails,
-  RouteActivateEventDetails
+  RouteActivateEventDetails,
+  LinkEventDetails
 } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
 import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
-// import { Redirect } from "../redirect/redirect.ts";
 
 /**
  * Incremented for each Switch instance that's created.
@@ -29,6 +29,9 @@ export class Switch
     | ((evt: CustomEvent<SwitchUidRequestEventDetails>) => void)
     | undefined;
   #uid: string;
+  #routeActivationComplete = false;
+  #routeActivationMatch = false;
+  #routeSet: { [id: string]: string[] } = {};
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
 
@@ -71,9 +74,71 @@ export class Switch
     this._shadowRoot.append(create("slot"));
   }
 
+  override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
+    if (
+      changedProperties.includes("#routeActivationComplete") ||
+      changedProperties.includes("#routeActivationMatch")
+    ) {
+      if (this.#routeActivationComplete && !this.#routeActivationMatch) {
+        // console.log("Switch.update: needs redirect.");
+        this.#redirect();
+      }
+    }
+  }
+
   /******************************************************************
    * private
    *****************************************************************/
+
+  #addRouteToRouteSet(routes: NodeListOf<Element>, routeUid: string) {
+    if (!Object.keys(this.#routeSet).length) {
+      // console.log("Switch.#addRouteToRouteSet: no keys, setting to '0'.");
+      this.#routeSet["0"] = [];
+    }
+
+    const [key] = Object.keys(this.#routeSet);
+    // console.log(
+    //   `Switch.#addRouteToRouteSet: key='${key}', routeUid='${routeUid}'.`
+    // );
+
+    if (this.#routeSet[key].includes(routeUid)) {
+      delete this.#routeSet[key];
+
+      this.#routeSet[`${+key + 1}`] = [routeUid];
+      // console.log(
+      //   `Switch.#addRouteToRouteSet: deleted key; new key='${
+      //     Object.keys(this.#routeSet)[0]
+      //   }', routeUid='${routeUid}'.`
+      // );
+
+      this.setState(
+        "#routeActivationComplete",
+        this.#routeActivationComplete,
+        false,
+        next => (this.#routeActivationComplete = next)
+      );
+
+      this.setState(
+        "#routeActivationMatch",
+        this.#routeActivationMatch,
+        false,
+        next => (this.#routeActivationMatch = next)
+      );
+    } else {
+      this.#routeSet[key].push(routeUid);
+
+      if (routes.length <= this.#routeSet[key].length) {
+        this.setState(
+          "#routeActivationComplete",
+          this.#routeActivationComplete,
+          true,
+          next => (this.#routeActivationComplete = next)
+        );
+      }
+    }
+  }
 
   #connectListeners() {
     this.#handleSwitchUidRequestEventBound =
@@ -122,11 +187,6 @@ export class Switch
 
     evt.stopImmediatePropagation();
 
-    if (!match) {
-      callback(false);
-      return;
-    }
-
     // console.log(
     //   `Switch.#handleRouteActivateEvent: self='${self.getAttribute(
     //     "data-r4w-route"
@@ -134,6 +194,15 @@ export class Switch
     // );
 
     const routes = this.querySelectorAll(":scope > r4w-route");
+
+    const selfRouteUid = self.getAttribute("data-r4w-route");
+    selfRouteUid && this.#addRouteToRouteSet(routes, selfRouteUid);
+
+    if (!match) {
+      callback(false);
+      return;
+    }
+
     const firstRoute = Array.from(routes).find(route => {
       const routePattern = route.getAttribute("path");
       if (!routePattern) {
@@ -144,7 +213,18 @@ export class Switch
       return routeMatch;
     });
 
-    callback(firstRoute === self);
+    const same = firstRoute === self;
+
+    if (same) {
+      this.setState(
+        "#routeActivationMatch",
+        this.#routeActivationMatch,
+        true,
+        next => (this.#routeActivationMatch = next)
+      );
+    }
+
+    callback(same);
   }
 
   #handleSwitchUidRequestEvent(
@@ -174,6 +254,23 @@ export class Switch
 
       callback(this.#uid);
     }
+  }
+
+  #redirect() {
+    const redirect = this.querySelector(":scope > r4w-redirect");
+    if (!redirect) {
+      return;
+    }
+
+    const to = redirect.getAttribute("to");
+    to &&
+      window.dispatchEvent(
+        new CustomEvent<LinkEventDetails>("r4w-link-event", {
+          bubbles: true,
+          composed: true,
+          detail: { to }
+        })
+      );
   }
 }
 

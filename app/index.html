@@ -13,7 +13,7 @@
   <r4w-router>
     <app-header></app-header>
     <r4w-switch>
-      <r4w-route path="/" src="/app/pages/home/home.ts">
+      <r4w-route path="/home" src="/app/pages/home/home.ts">
         <app-home />
       </r4w-route>
       <r4w-route path="/restaurants" src="/app/pages/restaurants/restaurants.ts">
@@ -28,9 +28,9 @@
       <r4w-route path="/order-history" src="/app/pages/order-history/order-history.ts">
         <app-order-history />
       </r4w-route>
-      <r4w-redirect to="/" />
+      <r4w-redirect to="/home" />
     </r4w-switch>
-    <r4w-route path="/" src="/app/pages/debug/debug.ts"><app-debug /></r4w-route>
+    <r4w-route path="/home" src="/app/pages/debug/debug.ts"><app-debug /></r4w-route>
   </r4w-router>
 </body>
 
