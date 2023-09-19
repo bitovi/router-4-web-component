@@ -1,6 +1,12 @@
-import { BasecompParams } from "../../components/basecomp/basecomp.ts";
+// import {
+//   BasecompMixin,
+//   ParamsMixin
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { BasecompMixin, ParamsListenerMixin } from "../../../dist/src/index.js";
 
-export class RestaurantOrder extends BasecompParams {
+export class RestaurantOrder extends ParamsListenerMixin(
+  BasecompMixin(HTMLElement)
+) {
   #shadowRoot: ShadowRoot;
   #slug: string | undefined;
 
@@ -15,6 +21,8 @@ export class RestaurantOrder extends BasecompParams {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const html = `<link href="/app/assets/place-my-order-assets.css" rel="stylesheet"></link>
 <div class="order-history"><h1>place order for '${this.#slug}'</h1></div>`;
 
@@ -22,16 +30,18 @@ export class RestaurantOrder extends BasecompParams {
   }
 
   override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
     if (changedProperties.includes("#slug")) {
       this.#updateContent();
     }
   }
 
-  protected override _onParamsChange(params: Record<string, string>): void {
+  override onParamsChange(params: Record<string, string> | undefined): void {
     this.setState(
       "#slug",
       this.#slug,
-      params["slug"],
+      params ? params["slug"] : undefined,
       next => (this.#slug = next)
     );
   }

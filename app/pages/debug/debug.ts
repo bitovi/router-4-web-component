@@ -3,7 +3,7 @@
 // } from "https://esm.sh/@bitovi/router-4-web-component";
 import { BasecompMixin } from "../../../dist/src/index.js";
 
-export class OrderHistory extends BasecompMixin(HTMLElement) {
+export class Debug extends BasecompMixin(HTMLElement) {
   #shadowRoot: ShadowRoot;
 
   constructor() {
@@ -13,19 +13,18 @@ export class OrderHistory extends BasecompMixin(HTMLElement) {
   }
 
   static get webComponentName(): string {
-    return "app-order-history";
+    return "app-debug";
   }
 
   override componentInitialConnect(): void {
     super.componentInitialConnect && super.componentInitialConnect();
 
-    const html = `<link href="/app/assets/place-my-order-assets.css" rel="stylesheet"></link>
-<div class="order-history"><h1>order history</h1></div>`;
+    const html = `<div style="background-color: lightgray;height: 100px;position: fixed;width: 100px"><p>This is a test element.</p></div>`;
 
     this.#shadowRoot.innerHTML = html;
   }
 }
 
-if (!customElements.get(OrderHistory.webComponentName)) {
-  customElements.define(OrderHistory.webComponentName, OrderHistory);
+if (!customElements.get(Debug.webComponentName)) {
+  customElements.define(Debug.webComponentName, Debug);
 }

@@ -1,14 +1,16 @@
 import type {
-  ElementUidProps,
-  ParamsChangeEventDetails,
-  RouteActivationProps,
-  RouteMatchProps,
+  NavigationEventDetails,
+  PathnameChangeEventDetails,
+  PathnameRequestEventDetails,
+  RouteActivateEventDetails,
   RouteUidRequestEventDetails,
-  WebComponent
+  SwitchUidRequestEventDetails
 } from "../../types.ts";
 import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
-import { Pathname } from "../../classes/pathname/pathname.ts";
-import { Loader } from "../../classes/loader/loader.ts";
+import { getPathnameData } from "../../libs/url/url.ts";
+import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
+import { ParamsMixin } from "../../classes/params/params.ts";
+import { LoaderMixin } from "../../classes/loader/loader.ts";
 
 /**
  * Incremented for each Route instance that's created.
@@ -20,21 +22,23 @@ let uidCount = 0;
  *   - path {string} The path that is cognate with the `to` attribute of a link.
  *   - src {string} The URL of the module associated with this route.
  */
-export class Route
-  extends HTMLElement
-  implements
-    ElementUidProps,
-    RouteActivationProps,
-    RouteMatchProps,
-    WebComponent
-{
-  #active: boolean;
+export class Route extends ParamsMixin(
+  LoaderMixin(BasecompMixin(HTMLElement))
+) {
+  #activated = false;
   #children: Element[] = [];
-  #connected = false;
-  #handleRouteUidRequestEventBound: ((evt: Event) => void) | undefined;
-  #lastParams: Record<string, string> | undefined;
-  #loader: Loader;
-  #pathname: Pathname;
+  #handleNavigationEventBound:
+    | ((evt: CustomEvent<NavigationEventDetails>) => void)
+    | undefined;
+  #handlePathnameRequestEventBound:
+    | ((evt: CustomEvent<PathnameRequestEventDetails>) => void)
+    | undefined;
+  #handleRouteUidRequestEventBound:
+    | ((evt: CustomEvent<RouteUidRequestEventDetails>) => void)
+    | undefined;
+  #pattern: string | undefined;
+  #pathname: string | undefined;
+  #switchUid: string | undefined;
   #uid: string;
 
   constructor() {
@@ -42,11 +46,7 @@ export class Route
 
     uidCount = uidCount + 1;
     this.#uid = `r4w-route-${uidCount}`;
-    this.setAttribute(this.#uid, "");
-
-    this.#active = false;
-    this.#loader = new Loader();
-    this.#pathname = new Pathname();
+    this.setAttribute("data-r4w-route", this.#uid);
   }
 
   static get observedAttributes(): string[] {
@@ -64,64 +64,116 @@ export class Route
   ): void {
     switch (name) {
       case "path": {
-        this.#pathname.pattern = newValue;
+        this.setState(
+          "#pattern",
+          this.#pattern,
+          newValue,
+          next => (this.#pattern = next)
+        );
         break;
       }
       case "src": {
-        this.#loader.moduleName = newValue;
+        this.setState(
+          "moduleName",
+          this.moduleName,
+          newValue,
+          next => (this.moduleName = next)
+        );
         break;
       }
     }
   }
 
-  connectedCallback(): void {
-    if (this.#connected) {
-      return;
-    }
+  /******************************************************************
+   * Basecomp
+   *****************************************************************/
 
-    this.#connected = true;
+  override componentConnect(): void {
+    super.componentConnect && super.componentConnect();
+
+    // console.trace(`Route[${this.#uid}].componentConnect`);
+
+    this.#connectListeners();
 
     Array.from(this.children).forEach(element => {
       this.#children.push(element);
       element.remove();
     });
 
-    this.#handleRouteUidRequestEventBound =
-      this.#handleRouteUidRequestEvent.bind(this);
-
-    addEventListenerFactory(
-      "r4w-route-uid-request",
-      this
-    )(this.#handleRouteUidRequestEventBound);
+    // Let all the componentConnect methods be invoked (they probably set
+    // listeners) then dispatch a request for a switch UID.
+    setTimeout(() => this.#dispatchSwitchUidRequestEvent(), 0);
   }
 
-  disconnectedCallback(): void {
-    this.#handleRouteUidRequestEventBound &&
-      this.removeEventListener(
-        "r4w-route-uid-request",
-        this.#handleRouteUidRequestEventBound
+  override componentDisconnect(): void {
+    super.componentDisconnect && super.componentDisconnect();
+    this.#disconnectListeners();
+  }
+
+  override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
+    // console.log(
+    //   `Route[${this.#uid}].update: changedProperties='${changedProperties
+    //     .map(p => `${p}='${this.#mapPropertyToValue(p)}'`)
+    //     .join(",")}'`
+    // );
+
+    if (changedProperties.includes("#activated")) {
+      this.#activated ? this.#becomeActivated() : this.#becomeDeactivated();
+    }
+
+    if (
+      changedProperties.includes("connected") ||
+      changedProperties.includes("match")
+    ) {
+      this.setState(
+        "#activated",
+        this.#activated,
+        this.connected && this.match,
+        next => (this.#activated = !!next)
       );
+    }
 
-    this.#handleRouteUidRequestEventBound = undefined;
+    if (
+      changedProperties.includes("#pathname") ||
+      changedProperties.includes("#pattern")
+    ) {
+      this.#activateIfMatchAndPermitted();
+      this.#dispatchPathnameChangedEvent();
+    }
+
+    if (changedProperties.includes("#switchUid")) {
+      this.#setInitialPathname();
+    }
   }
 
   /******************************************************************
-   * ElementUidProps
+   * private
    *****************************************************************/
-  get uid(): string {
-    return this.#uid;
-  }
 
-  /******************************************************************
-   * RouteActivationProps
-   *****************************************************************/
-  async activate(): Promise<void> {
-    if (this.#active) {
+  #activateIfMatchAndPermitted() {
+    if (!this.#pathname || !this.#pattern) {
       return;
     }
 
-    this.#active = true;
+    const { match } = getPathnameData(this.#pathname, this.#pattern);
 
+    // match && console.trace(`Route[${this.#uid}].#activateIfMatchAndPermitted.`);
+
+    const permitted = this.#switchUid
+      ? this.#dispatchRouteActivateEvent(match)
+      : true;
+
+    this.setState(
+      "#activated",
+      this.#activated,
+      match && permitted,
+      next => (this.#activated = next)
+    );
+  }
+
+  async #becomeActivated(): Promise<void> {
     // `#children` contains the elements to be presented when the route is
     // active.
     this.append(...this.#children);
@@ -129,36 +181,10 @@ export class Route
 
     // When the loader is activated, and it hasn't already downloaded the
     // module, it downloads the module.
-    await this.#loader.activate();
-
-    // Have the params changed? If so fire off an event.
-    const router = this.parentElement;
-
-    if (isElementUidProps(router)) {
-      const evt = new CustomEvent<ParamsChangeEventDetails>(
-        "r4w-params-change",
-        {
-          bubbles: true,
-          composed: true,
-          detail: {
-            params: this.#lastParams ?? {},
-            routerUid: router.uid,
-            routeUid: this.uid
-          }
-        }
-      );
-
-      window.dispatchEvent(evt);
-    }
+    await this.activate();
   }
 
-  deactivate(): void {
-    if (!this.#active) {
-      return;
-    }
-
-    this.#active = false;
-
+  #becomeDeactivated(): void {
     // Remove the route children from the display. We could in the future allow
     // the client to "release" the slot and module to free up memory then fetch
     // and attach them again when needed.
@@ -167,29 +193,158 @@ export class Route
       element.remove();
     });
 
-    this.#loader.deactivate();
+    this.deactivate();
   }
 
-  /******************************************************************
-   * RouteMatchProps
-   *****************************************************************/
-  setPathname(pathname: string): Promise<void> {
-    return Promise.resolve(this.#pathname?.setPathname(pathname));
+  #connectListeners() {
+    this.#handleNavigationEventBound = this.#handleNavigationEvent.bind(this);
+    addEventListenerFactory(
+      "r4w-navigation-change",
+      window
+    )(this.#handleNavigationEventBound);
+
+    this.#handleRouteUidRequestEventBound =
+      this.#handleRouteUidRequestEvent.bind(this);
+    addEventListenerFactory(
+      "r4w-route-uid-request",
+      this
+    )(this.#handleRouteUidRequestEventBound);
+
+    this.#handlePathnameRequestEventBound =
+      this.#handlePathnameRequestEvent.bind(this);
+    addEventListenerFactory(
+      "r4w-pathname-request",
+      this
+    )(this.#handlePathnameRequestEventBound);
   }
 
-  addMatchListener(
-    onMatch: Parameters<RouteMatchProps["addMatchListener"]>[0]
-  ): void {
-    this.#pathname?.addMatchChangeListener(data => {
-      this.#lastParams = data.params;
-      onMatch(data.match);
-    });
+  #disconnectListeners() {
+    this.#handleNavigationEventBound &&
+      window.removeEventListener(
+        "r4w-navigation-change",
+        this.#handleNavigationEventBound as (evt: Event) => void
+      );
+
+    this.#handleNavigationEventBound = undefined;
+
+    this.#handleRouteUidRequestEventBound &&
+      this.removeEventListener(
+        "r4w-route-uid-request",
+        this.#handleRouteUidRequestEventBound as (evt: Event) => void
+      );
+
+    this.#handleRouteUidRequestEventBound = undefined;
+
+    this.#handlePathnameRequestEventBound &&
+      this.removeEventListener(
+        "r4w-pathname-request",
+        this.#handlePathnameRequestEventBound as (evt: Event) => void
+      );
+
+    this.#handlePathnameRequestEventBound = undefined;
   }
 
-  #handleRouteUidRequestEvent(evt: Event) {
-    if (!isRouteUidRequestEventDetails(evt)) {
+  #dispatchPathnameChangedEvent() {
+    if (!this.#pathname || !this.#pattern) {
       return;
     }
+
+    // console.log(
+    //   `Route[${
+    //     this.#uid
+    //   }].#dispatchPathnameChangedEvent: dispatching; pathname='${
+    //     this.#pathname
+    //   }', pattern='${this.#pattern}', uid='${this.#uid}'`
+    // );
+
+    window.dispatchEvent(
+      new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
+        detail: {
+          pathname: this.#pathname,
+          pattern: this.#pattern,
+          routeUid: this.#uid
+        }
+      })
+    );
+  }
+
+  #dispatchRouteActivateEvent(match: boolean): boolean {
+    // Routes not inside a switch always activate.
+    if (!this.#switchUid) {
+      return true;
+    }
+
+    if (!this.#pathname || !this.#pattern) {
+      return false;
+    }
+
+    let permitted = false;
+    window.dispatchEvent(
+      new CustomEvent<RouteActivateEventDetails>("r4w-route-activate", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          callback: activatePermitted => (permitted = activatePermitted),
+          match,
+          pathname: this.#pathname,
+          self: this,
+          switchUid: this.#switchUid
+        }
+      })
+    );
+
+    return permitted;
+  }
+
+  #dispatchSwitchUidRequestEvent() {
+    // If we are not in a switch then nextSwitchUid will remain `undefined`.
+    let nextSwitchUid;
+
+    this.dispatchEvent(
+      new CustomEvent<SwitchUidRequestEventDetails>("r4w-switch-uid-request", {
+        bubbles: true,
+        composed: true,
+        detail: {
+          callback: switchUid => (nextSwitchUid = switchUid)
+        }
+      })
+    );
+
+    if (nextSwitchUid) {
+      this.setState(
+        "#switchUid",
+        this.#switchUid,
+        nextSwitchUid,
+        next => (this.#switchUid = next)
+      );
+    } else {
+      this.#setInitialPathname();
+    }
+  }
+
+  #handleNavigationEvent(evt: CustomEvent<NavigationEventDetails>) {
+    this.setState(
+      "#pathname",
+      this.#pathname,
+      evt.detail.pathname,
+      next => (this.#pathname = next)
+    );
+  }
+
+  #handlePathnameRequestEvent(evt: CustomEvent<PathnameRequestEventDetails>) {
+    if (this.#uid !== evt.detail.routeUid) {
+      return;
+    }
+
+    evt.stopImmediatePropagation();
+
+    this.#dispatchPathnameChangedEvent();
+  }
+
+  #handleRouteUidRequestEvent(evt: CustomEvent<RouteUidRequestEventDetails>) {
+    // console.log(
+    //   `Route[${this.#uid}].#handleRouteUidRequestEvent: event arrived.`
+    // );
 
     const {
       detail: { callback },
@@ -202,40 +357,76 @@ export class Route
     // children to see if the target is among them, if so we claim the event
     // for this route.
     if (target instanceof HTMLElement) {
-      const match = [...this.querySelectorAll(target.localName)].find(
-        e => e === target
-      );
+      // If a one of our mixins is firing the event the target will be us.
+      let match = this === target;
+
+      if (!match) {
+        match = !![...this.querySelectorAll(target.localName)].find(
+          e => e === target
+        );
+      }
 
       if (!match) {
         return;
       }
+
+      // console.log(
+      //   `Route[${this.#uid}].#handleRouteUidRequestEvent: responding.`
+      // );
 
       // We don't want upstream routes to get this event so `stopPropagation`.
       // There are probably sibling elements that are routes, we don't want
       // them to get this event so use `stopImmediatePropagation`.
       evt.stopImmediatePropagation();
 
-      const router = this.parentElement;
+      callback(this.#uid);
+    }
+  }
 
-      if (isElementUidProps(router)) {
-        callback(this.uid, router.uid);
+  #mapPropertyToValue(property: string): unknown {
+    let value;
+
+    switch (property) {
+      case "#activated": {
+        value = this.#activated;
+        break;
+      }
+      case "#uid": {
+        value = this.#uid;
+        break;
+      }
+      case "#pathname": {
+        value = this.#pathname;
+        break;
+      }
+      case "#pattern": {
+        value = this.#pattern;
+        break;
+      }
+      case "#switchUid": {
+        value = this.#switchUid;
+        break;
       }
     }
+
+    return value;
+  }
+
+  #setInitialPathname() {
+    if (this.#pathname) {
+      return;
+    }
+
+    // Set the initial pathname.
+    this.setState(
+      "#pathname",
+      this.#pathname,
+      window.location.pathname,
+      next => (this.#pathname = next)
+    );
   }
 }
 
 if (!customElements.get(Route.webComponentName)) {
   customElements.define(Route.webComponentName, Route);
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isElementUidProps(obj: any): obj is ElementUidProps {
-  return obj && "uid" in obj;
-}
-
-function isRouteUidRequestEventDetails(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  evt: any
-): evt is CustomEvent<RouteUidRequestEventDetails> {
-  return evt && "detail" in evt && "callback" in evt.detail;
 }

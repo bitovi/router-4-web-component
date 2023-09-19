@@ -1,17 +1,12 @@
-import {
-  Params,
-  PathnameChanged
-} from "https://esm.sh/@bitovi/router-4-web-component";
-// import { Params, PathnameChanged } from "../../../dist/src/index.js";
-import type { Constructor } from "../../types/types.ts";
+import type { Constructor } from "../../types.ts";
 
 /**
  * Mixin to create a Basecomp constructor for a specific type.
  * @param baseType A class or interface that Basecomp instance extends.
  * @returns A constructor for Basecomp.
  */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function Basecomp<T extends Constructor>(baseType: T) {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
   /**
    * A base class to manage the lifecycle and updating of a web component.
    */
@@ -25,13 +20,41 @@ export function Basecomp<T extends Constructor>(baseType: T) {
       super(...args);
     }
 
+    static defaultStateComparison<T>(oldValue: T, newValue: T): boolean {
+      return oldValue === newValue;
+    }
+
+    get connected(): boolean {
+      return this.#connected;
+    }
+
+    get init(): boolean {
+      return this.#init;
+    }
+
     /**
      * Override to make changes when connected. Invoked by `connectedCallback`.
      * @abstract
      * @protected
      */
     componentConnect(): void {
-      // No default implementation.
+      super.componentConnect && super.componentConnect();
+      this.setState(
+        "connected",
+        this.#connected,
+        true,
+        next => (this.#connected = next)
+      );
+    }
+
+    componentDisconnect(): void {
+      super.componentDisconnect && super.componentDisconnect();
+      this.setState(
+        "connected",
+        this.#connected,
+        false,
+        next => (this.#connected = next)
+      );
     }
 
     /**
@@ -41,7 +64,8 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @protected
      */
     componentInitialConnect(): void {
-      // No default implementation.
+      super.componentInitialConnect && super.componentInitialConnect();
+      // this.setState("init", this.#init, true, next => (this.#init = next));
     }
 
     /**
@@ -50,12 +74,16 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @param property The name of the property being compared.
      * @param oldValue The current value of the property.
      * @param newValue The new value of the property.
-     * @returns If true the property will be set with `newValue` and an update
-     * cycle will start.
+     * @returns If false (old and new values are not the same) the property will
+     * be set with `newValue` and an update cycle will start.
      * @protected
      */
     stateComparison<T>(property: string, oldValue: T, newValue: T): boolean {
-      return oldValue === newValue;
+      if (super.stateComparison) {
+        return super.stateComparison(property, oldValue, newValue);
+      }
+
+      return Basecomp.defaultStateComparison(oldValue, newValue);
     }
 
     /**
@@ -76,13 +104,13 @@ export function Basecomp<T extends Constructor>(baseType: T) {
         return;
       }
 
+      // console.log(
+      //   `Basecomp.setState: property='${property}', current='${current}', next='${next}'; updating.`
+      // );
+
       setter(next, property);
 
-      if (!this.#changedProperties.includes(property)) {
-        this.#changedProperties.push(property);
-      }
-
-      this.#queueUpdate();
+      this.#changePropertiesAndQueueUpdate(property);
     }
 
     /**
@@ -90,7 +118,7 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @protected
      */
     update(changedProperties: string[]): void {
-      // No default implementation.
+      super.update && super.update(changedProperties);
     }
 
     /**
@@ -99,21 +127,16 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @private
      */
     connectedCallback() {
-      // If you need to specifically invoke a Mixin's functions - and it seems
-      // like you should - you will need to tell TS that you know what you are
-      // doing and ignore the error.
-      //
-      // @ts-ignore
-      super.connectedCallback && super.connectedCallback();
-
       if (this.#connected) {
         return;
       }
 
       this.#connected = true;
+      this.#changePropertiesAndQueueUpdate("connected");
 
       if (!this.#init) {
         this.#init = true;
+        this.#changePropertiesAndQueueUpdate("init");
         this.componentInitialConnect();
       }
 
@@ -126,10 +149,17 @@ export function Basecomp<T extends Constructor>(baseType: T) {
      * @private
      */
     disconnectedCallback() {
-      // @ts-ignore
       super.disconnectedCallback && super.disconnectedCallback();
-
       this.#connected = false;
+      this.#changePropertiesAndQueueUpdate("connected");
+    }
+
+    #changePropertiesAndQueueUpdate(property: string): void {
+      if (!this.#changedProperties.includes(property)) {
+        this.#changedProperties.push(property);
+      }
+
+      this.#queueUpdate();
     }
 
     #queueUpdate() {
@@ -150,6 +180,3 @@ export function Basecomp<T extends Constructor>(baseType: T) {
     }
   };
 }
-
-export const BasecompParams = Basecomp(Params);
-export const BasecompPathnameChanged = Basecomp(PathnameChanged);

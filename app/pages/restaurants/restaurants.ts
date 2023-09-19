@@ -1,8 +1,11 @@
+// import {
+//   BasecompMixin
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { BasecompMixin } from "../../../dist/src/index.js";
 import type { RestaurantData } from "../../types/types.ts";
-import { Basecomp } from "../../components/basecomp/basecomp.ts";
 import { Dropdown } from "../../components/dropdown/dropdown.ts";
 
-export class Restaurants extends Basecomp(HTMLElement) {
+export class Restaurants extends BasecompMixin(HTMLElement) {
   #regionsLock: Promise<void> | undefined;
   #restaurantsLock: Promise<void> | undefined;
   protected _cities: { [region: string]: [{ name: string }] } | undefined;
@@ -25,6 +28,8 @@ export class Restaurants extends Basecomp(HTMLElement) {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const link = document.createElement("link");
     link.href = "/app/assets/place-my-order-assets.css";
     link.rel = "stylesheet";
@@ -88,6 +93,8 @@ export class Restaurants extends Basecomp(HTMLElement) {
   }
 
   override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
     if (changedProperties.includes("_regions")) {
       const div = this.#restaurantsElement;
       this.populateRegionsList(div);
@@ -129,8 +136,8 @@ export class Restaurants extends Basecomp(HTMLElement) {
       return;
     }
 
-    const select = content.querySelector("#city") as Dropdown;
-    if (!select) {
+    const select = content.querySelector("#city");
+    if (!isDropdown(select)) {
       return;
     }
 
@@ -150,8 +157,8 @@ export class Restaurants extends Basecomp(HTMLElement) {
       return;
     }
 
-    const region = content.querySelector("#region") as Dropdown;
-    if (!region) {
+    const region = content.querySelector("#region");
+    if (!isDropdown(region)) {
       return;
     }
 

@@ -1,8 +1,14 @@
-import { Basecomp } from "../basecomp/basecomp.ts";
+// import {
+//   BasecompMixin
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { BasecompMixin } from "../../../dist/src/index.js";
 
 let uid = 0;
 
-export class Dropdown extends Basecomp(HTMLElement) implements DropdownProps {
+export class Dropdown
+  extends BasecompMixin(HTMLElement)
+  implements DropdownProps
+{
   #defaultItem: DropdownItem | undefined;
   #disabled = false;
   #items: DropdownProps["items"] | undefined;

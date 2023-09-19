@@ -1,9 +1,12 @@
-import { BasecompPathnameChanged } from "../basecomp/basecomp.ts";
-import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
-import { Pathname } from "https://esm.sh/@bitovi/router-4-web-component";
-// import { Pathname } from "../../../dist/src/index.js";
+// import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
+// import {
+//   BasecompMixin,
+//   PathnameMixin
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import type { Link } from "../../../dist/src/index.js";
+import { BasecompMixin, getPathnameData } from "../../../dist/src/index.js";
 
-export class Header extends BasecompPathnameChanged {
+export class Header extends BasecompMixin(HTMLElement) {
   #currentPathname: string | undefined;
 
   constructor() {
@@ -15,15 +18,12 @@ export class Header extends BasecompPathnameChanged {
   }
 
   override componentInitialConnect(): void {
-    const { match: matchRoot } = Pathname.getPathnameData(
-      window.location.pathname,
-      "/"
-    );
-    const { match: matchRestaurants } = Pathname.getPathnameData(
+    const { match: matchRoot } = getPathnameData(window.location.pathname, "/");
+    const { match: matchRestaurants } = getPathnameData(
       window.location.pathname,
       "/restaurants"
     );
-    const { match: matchOrderHistory } = Pathname.getPathnameData(
+    const { match: matchOrderHistory } = getPathnameData(
       window.location.pathname,
       "/order-history"
     );
@@ -48,7 +48,7 @@ export class Header extends BasecompPathnameChanged {
     this.innerHTML = html;
   }
 
-  override onPathnameChange(pathname: string): void {
+  onPathnameChange(pathname: string): void {
     this.setState(
       "#currentPathname",
       this.#currentPathname,
@@ -63,7 +63,7 @@ export class Header extends BasecompPathnameChanged {
         const link = li.querySelector("r4w-link");
 
         if (this.#currentPathname && isLink(link)) {
-          const { match } = Pathname.getPathnameData(
+          const { match } = getPathnameData(
             this.#currentPathname,
             link.getAttribute("to") ?? ""
           );

@@ -5,6 +5,7 @@
     "emitDeclarationOnly": true,
     "exactOptionalPropertyTypes": true,
     "isolatedModules": true,
+    "lib": ["DOM", "ES2022", "DOM.Iterable"],
     "module": "ES2022",
     "noImplicitOverride": true,
     "noImplicitReturns": true,

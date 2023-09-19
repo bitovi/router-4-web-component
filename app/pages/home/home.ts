@@ -1,6 +1,9 @@
-import { Basecomp } from "../../components/basecomp/basecomp.ts";
+// import {
+//   BasecompMixin
+// } from "https://esm.sh/@bitovi/router-4-web-component";
+import { BasecompMixin } from "../../../dist/src/index.js";
 
-export class Home extends Basecomp(HTMLElement) {
+export class Home extends BasecompMixin(HTMLElement) {
   #shadowRoot: ShadowRoot;
 
   constructor() {
@@ -14,6 +17,8 @@ export class Home extends Basecomp(HTMLElement) {
   }
 
   override componentInitialConnect(): void {
+    super.componentInitialConnect && super.componentInitialConnect();
+
     const link = document.createElement("link");
     link.href = "/app/assets/place-my-order-assets.css";
     link.rel = "stylesheet";

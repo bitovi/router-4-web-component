@@ -1,108 +1,94 @@
-import type { OnPathnameMatchChange, PathnameProps } from "../../types.ts";
-import { splitPath } from "../../libs/url/url.ts";
+import type { Constructor, PathnameChangeEventDetails } from "../../types.ts";
+import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import { RouteMixin } from "../route/route.ts";
+import { BasecompMixin } from "../../libs/basecomp/basecomp.ts";
 
-/**
- * This element tells you if the pattern set on it matches the current path and
- * if it has any params from the path.
- */
-export class Pathname implements PathnameProps {
-  #lastMatch: boolean | null = null;
-  #listeners: OnPathnameMatchChange[] = [];
-  #lastPathname: string = "";
-  protected _pattern: string | undefined;
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function PathnameMixin<T extends Constructor>(baseType: T) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return class Pathname extends RouteMixin(BasecompMixin(baseType)) {
+    #handlePathnameChangeBound:
+      | ((evt: CustomEvent<PathnameChangeEventDetails>) => void)
+      | undefined;
+    #pathname: string | undefined;
+    #pattern: string | undefined;
 
-  /**
-   * Returns data about a path: does it match the provided pathname pattern, any
-   * params extracted from the pathname.
-   * @param pathname A pathname - usually the current browser path.
-   * @param pattern A route pattern - usually the `path` from an `<r4w-route>`.
-   */
-  static getPathnameData(
-    pathname: string,
-    pattern?: string
-  ): Parameters<OnPathnameMatchChange>[0] {
-    if (!pattern) {
-      return { match: false };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    constructor(...args: any[]) {
+      super(...args);
     }
 
-    if (pattern.indexOf(":") < 0) {
-      const match = pattern === pathname;
-      return match ? { match: true, params: {} } : { match: false };
+    get pathname(): string | undefined {
+      return this.#pathname;
     }
 
-    const pathnameData = splitPath(pathname);
-    const patternData = splitPath(pattern);
-
-    if (pathnameData.parts.length !== patternData.parts.length) {
-      return { match: false };
+    get pattern(): string | undefined {
+      return this.#pattern;
     }
 
-    if (pathnameData.absolute !== patternData.absolute) {
-      return { match: false };
+    /******************************************************************
+     * Basecomp
+     *****************************************************************/
+
+    override componentConnect(): void {
+      super.componentConnect && super.componentConnect();
+      this.#connectListeners();
     }
 
-    const params: Record<string, string> = {};
-    for (let i = 0; i < patternData.parts.length; i++) {
-      let matched = false;
-
-      const pathnameDecoded = decodeURIComponent(pathnameData.parts[i]);
-      const patternDecoded = decodeURIComponent(patternData.parts[i]);
-
-      if (patternDecoded.startsWith(":")) {
-        params[patternDecoded.slice(1)] = pathnameDecoded;
-        matched = true;
-      } else {
-        matched = pathnameDecoded === patternDecoded;
-      }
-
-      if (!matched) {
-        return { match: false };
-      }
+    override componentDisconnect(): void {
+      super.componentDisconnect && super.componentDisconnect();
+      this.#disconnectListeners();
     }
 
-    return { match: true, params };
-  }
+    override update(changedProperties: string[]): void {
+      super.update && super.update(changedProperties);
+    }
 
-  get pattern(): string | undefined {
-    return this._pattern;
-  }
+    /******************************************************************
+     * private
+     *****************************************************************/
 
-  set pattern(pattern: string) {
-    this._pattern = pattern;
-  }
+    #connectListeners() {
+      this.#handlePathnameChangeBound =
+        this.#handlePathnameChangeEvent.bind(this);
+      addEventListenerFactory(
+        "r4w-pathname-change",
+        window
+      )(this.#handlePathnameChangeBound);
+    }
 
-  /******************************************************************
-   * PathnameProps
-   *****************************************************************/
-  addMatchChangeListener(onMatchChange: OnPathnameMatchChange): void {
-    this.#listeners.push(onMatchChange);
-  }
+    #disconnectListeners() {
+      this.#handlePathnameChangeBound &&
+        window.removeEventListener(
+          "r4w-pathname-change",
+          this.#handlePathnameChangeBound as (evt: Event) => void
+        );
 
-  setPathname(pathname: string): Promise<void> {
-    return new Promise(resolve => {
-      if (pathname === this.#lastPathname) {
-        resolve();
+      this.#handlePathnameChangeBound = undefined;
+    }
+
+    #handlePathnameChangeEvent(evt: CustomEvent<PathnameChangeEventDetails>) {
+      const {
+        detail: { pathname, pattern, routeUid }
+      } = evt;
+
+      if (this.routeUid !== routeUid) {
         return;
       }
 
-      this.#lastPathname = pathname;
+      this.setState(
+        "pathname",
+        this.#pathname,
+        pathname,
+        next => (this.#pathname = next)
+      );
 
-      // Let the stack unwind, and asynchronously invoke listeners.
-      setTimeout(() => {
-        const data = Pathname.getPathnameData(
-          this.#lastPathname,
-          this._pattern
-        );
-
-        if (this.#lastMatch === null || this.#lastMatch !== data.match)
-          for (const listener of this.#listeners) {
-            listener(data);
-          }
-
-        this.#lastMatch = data.match;
-
-        resolve();
-      }, 0);
-    });
-  }
+      this.setState(
+        "pattern",
+        this.#pattern,
+        pattern,
+        next => (this.#pattern = next)
+      );
+    }
+  };
 }
