@@ -1,16 +1,23 @@
-import type { Constructor } from "../../types.ts";
+import type { Constructor } from "../../types.js";
 
 /**
- * Mixin to create a Basecomp constructor for a specific type.
- * @param baseType A class or interface that Basecomp instance extends.
- * @returns A constructor for Basecomp.
+ * Mixin to create a ComponentLifecycleImpl constructor derived from the
+ * HTMLElement class.
+ * @param baseType A class or interface that ComponentLifecycleImpl instance
+ * extends.
+ * @returns A constructor for ComponentLifecycleImpl.
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
+export function ComponentLifecycleMixin<T extends Constructor<any>>(
+  baseType: T
+) {
   /**
    * A base class to manage the lifecycle and updating of a web component.
    */
-  return class Basecomp extends baseType implements ComponentLifecycle {
+  return class ComponentLifecycleImpl
+    extends baseType
+    implements ComponentLifecycle
+  {
     #changedProperties: string[] = [];
     #connected = false;
     #init = false;
@@ -87,7 +94,7 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
         return super.stateComparison(property, oldValue, newValue);
       }
 
-      return Basecomp.defaultStateComparison(oldValue, newValue);
+      return ComponentLifecycleImpl.defaultStateComparison(oldValue, newValue);
     }
 
     /**
@@ -109,7 +116,7 @@ export function BasecompMixin<T extends Constructor<any>>(baseType: T) {
       }
 
       // console.log(
-      //   `Basecomp.setState: property='${property}', current='${current}', next='${next}'; updating.`
+      //   `ComponentLifecycleImpl.setState: property='${property}', current='${current}', next='${next}'; updating.`
       // );
 
       setter(next, property);

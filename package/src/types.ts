@@ -1,4 +1,4 @@
-import type { ComponentLifecycle } from "./libs/basecomp/basecomp";
+import type { ComponentLifecycle } from "./libs/component-lifecycle/component-lifecycle.ts";
 
 /******************************************************************
  * Event types

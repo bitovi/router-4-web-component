@@ -1,11 +1,11 @@
 // import {
-//   BasecompMixin
+//   ComponentLifecycleMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
-import { BasecompMixin } from "../../../dist/src/index.js";
+import { ComponentLifecycleMixin } from "../../../dist/src/index.js";
 import type { RestaurantData } from "../../types/types.ts";
 import { Dropdown } from "../../components/dropdown/dropdown.ts";
 
-export class Restaurants extends BasecompMixin(HTMLElement) {
+export class Restaurants extends ComponentLifecycleMixin(HTMLElement) {
   #regionsLock: Promise<void> | undefined;
   #restaurantsLock: Promise<void> | undefined;
   protected _cities: { [region: string]: [{ name: string }] } | undefined;
