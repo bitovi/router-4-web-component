@@ -1,15 +1,17 @@
 // import {
 //   ComponentLifecycleMixin,
-//   ParamsListenerMixin
+//   ParamsListenerMixin,
+//   TemplateMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
 import {
   ComponentLifecycleMixin,
-  ParamsListenerMixin
+  ParamsListenerMixin,
+  TemplateMixin
 } from "../../../dist/src/index.js";
 import type { RestaurantData, RestaurantItem } from "../../types/types.ts";
 
 export class RestaurantDetail extends ParamsListenerMixin(
-  ComponentLifecycleMixin(HTMLElement)
+  TemplateMixin(ComponentLifecycleMixin(HTMLElement))
 ) {
   #shadowRoot: ShadowRoot;
   #slug: string | undefined;
@@ -19,6 +21,7 @@ export class RestaurantDetail extends ParamsListenerMixin(
   constructor() {
     super();
 
+    this.templateSrc = "app/pages/restaurant-detail/restaurant-detail.html";
     this.#shadowRoot = this.attachShadow({ mode: "closed" });
 
     this.#getRestaurants();
@@ -43,7 +46,8 @@ export class RestaurantDetail extends ParamsListenerMixin(
 
     if (
       changedProperties.includes("#restaurants") ||
-      changedProperties.includes("#slug")
+      changedProperties.includes("#slug") ||
+      changedProperties.includes("templateHtml")
     ) {
       this.#updateContent();
     }
@@ -119,21 +123,20 @@ export class RestaurantDetail extends ParamsListenerMixin(
       return;
     }
 
-    const style =
-      "<link href='/app/assets/place-my-order-assets.css' rel='stylesheet'></link>";
+    if (!this.templateHtml) {
+      return;
+    }
 
-    const address = `<div className="address">${restaurant.address.street}<br />${restaurant.address.city}, ${restaurant.address.state} ${restaurant.address.zip}</div>`;
-    const hoursPrice =
-      '<div class="hours-price">$$$<br />Hours: M-F 10am-11pm<span class="open-now">Open Now</span></div>';
-    const background = `<div class="background"><h2>${restaurant.name}</h2>${address}${hoursPrice}<br /></div>`;
-    const restaurantHeader = `<div class="restaurant-header" style="background-image: url('${restaurant.resources.banner}')">${background}</div>`;
-
-    const image = `<img alt="The owner of ${restaurant.name}." src="${restaurant.resources.owner}" />`;
-    const description = `<p class="description">${image}Description for ${restaurant.name}</p>`;
-    const link = `<p class="order-link"><r4w-link class="btn" to="/restaurants/${restaurant.slug}/order">Order from ${restaurant.name}</r4w-link></p>`;
-    const content = `<div class="restaurant-content"><h3>The best food this side of the Mississippi</h3>${description}${link}</div>`;
-
-    this.#shadowRoot.innerHTML = style + restaurantHeader + content;
+    this.#shadowRoot.innerHTML = this.templateHtml
+      .replace("%%restaurant_resources_banner%%", restaurant.resources.banner)
+      .replace("%%restaurant_name%%", restaurant.name)
+      .replace("%%restaurant_address_street%%", restaurant.address.street)
+      .replace("%%restaurant_address_city%%", restaurant.address.city)
+      .replace("%%restaurant_address_state%%", restaurant.address.state)
+      .replace("%%restaurant_address_zip%%", restaurant.address.zip)
+      .replace(/%%restaurant_name%%/g, restaurant.name)
+      .replace("%%restaurant_resources_owner%%", restaurant.resources.owner)
+      .replace("%%restaurant_slug%%", restaurant.slug);
   }
 }
 

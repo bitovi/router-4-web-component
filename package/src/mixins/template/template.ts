@@ -8,8 +8,8 @@ import { documentUrl } from "../../libs/url/url.ts";
 export function TemplateMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return class TemplateImpl extends baseType implements Template {
-    #src: string | undefined;
-    #template: HTMLTemplateElement | undefined;
+    #templateSrc: string | undefined;
+    #templateHtml: string | undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
@@ -17,11 +17,16 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
     }
 
     set templateSrc(src: string) {
-      this.setState("#src", this.#src, src, next => (this.#src = next));
+      this.setState(
+        "#templateSrc",
+        this.#templateSrc,
+        src,
+        next => (this.#templateSrc = next)
+      );
     }
 
-    get templateElement(): HTMLTemplateElement | undefined {
-      return this.#template;
+    get templateHtml(): string | undefined {
+      return this.#templateHtml;
     }
 
     /******************************************************************
@@ -31,12 +36,12 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
     override update(changedProperties: string[]): void {
       super.update && super.update(changedProperties);
 
-      if (changedProperties.includes("#src")) {
+      if (changedProperties.includes("#templateSrc")) {
         this.#fetchSrc();
       }
 
-      if (changedProperties.includes("#template")) {
-        this.#template && this._onTemplateReady(this.#template);
+      if (changedProperties.includes("templateHtml")) {
+        this.#templateHtml && this._onTemplateReady(this.#templateHtml);
       }
     }
 
@@ -44,13 +49,26 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
      * protected
      *****************************************************************/
 
+    _getTemplateElement(): HTMLTemplateElement | void {
+      if (!this.#templateHtml) {
+        return;
+      }
+
+      const template = document.createElement(
+        "template"
+      ) as HTMLTemplateElement;
+      template.innerHTML = this.#templateHtml;
+
+      return template;
+    }
+
     /**
      * A protected method that is invoked after the template data has been
      * returned from the server.
      * @protected
      */
-    _onTemplateReady(template: HTMLTemplateElement): void {
-      throw Error("Not implemented. You must override this protected method.");
+    _onTemplateReady(html: string): void {
+      // no op
     }
 
     /******************************************************************
@@ -58,11 +76,11 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
      *****************************************************************/
 
     async #fetchSrc() {
-      if (!this.#src) {
+      if (!this.#templateSrc) {
         return;
       }
 
-      const src = documentUrl(this.#src);
+      const src = documentUrl(this.#templateSrc);
 
       let response: Response | undefined;
       try {
@@ -78,14 +96,11 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
 
       const html = await response.text();
 
-      const element = document.createElement("template") as HTMLTemplateElement;
-      element.innerHTML = html;
-
       this.setState(
-        "#template",
-        this.#template,
-        element,
-        next => (this.#template = next)
+        "templateHtml",
+        this.#templateHtml,
+        html,
+        next => (this.#templateHtml = next)
       );
     }
   };
@@ -93,11 +108,15 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
 
 interface Template {
   /**
+   * Protected method to get a template based on the current HTML.
+   */
+  _getTemplateElement(): HTMLTemplateElement | void;
+  /**
    * A protected method that is invoked after the template data has been
    * returned from the server.
    * @param template
    */
-  _onTemplateReady(template: HTMLTemplateElement): void;
+  _onTemplateReady(html: string): void;
   /**
    * The URL to the template html file.
    */
@@ -105,5 +124,5 @@ interface Template {
   /**
    * A template element that contains the HTML fetched from the `templateSrc`.
    */
-  readonly templateElement: HTMLTemplateElement | undefined;
+  readonly templateHtml: string | undefined;
 }

@@ -1,11 +1,18 @@
 // import {
-//   ComponentLifecycleMixin
+//   ComponentLifecycleMixin,
+//   TemplateMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
-import { ComponentLifecycleMixin } from "../../../dist/src/index.js";
+import {
+  ComponentLifecycleMixin,
+  TemplateMixin
+} from "../../../dist/src/index.js";
 import type { RestaurantData } from "../../types/types.ts";
-import { Dropdown } from "../../components/dropdown/dropdown.ts";
+import type { Dropdown } from "../../components/dropdown/dropdown.ts";
+import "../../components/dropdown/dropdown.ts";
 
-export class Restaurants extends ComponentLifecycleMixin(HTMLElement) {
+export class Restaurants extends TemplateMixin(
+  ComponentLifecycleMixin(HTMLElement)
+) {
   #regionsLock: Promise<void> | undefined;
   #restaurantsLock: Promise<void> | undefined;
   protected _cities: { [region: string]: [{ name: string }] } | undefined;
@@ -18,6 +25,7 @@ export class Restaurants extends ComponentLifecycleMixin(HTMLElement) {
   constructor() {
     super();
 
+    this.templateSrc = "app/pages/restaurants/restaurants.html";
     this._shadowRoot = this.attachShadow({ mode: "closed" });
 
     this.#getRegions();
@@ -27,73 +35,12 @@ export class Restaurants extends ComponentLifecycleMixin(HTMLElement) {
     return "app-restaurants";
   }
 
-  override componentInitialConnect(): void {
-    super.componentInitialConnect && super.componentInitialConnect();
-
-    const link = document.createElement("link");
-    link.href = "/app/assets/place-my-order-assets.css";
-    link.rel = "stylesheet";
-
-    const div = document.createElement("div");
-    div.innerHTML = `<div class="restaurants">
-  <h2 class="page-header">Restaurants</h2>
-  <form class="form">
-    <div class="form-group">
-      <label>State</label>
-      <${Dropdown.webComponentName} id="region" />
-    </div>
-    <div class="form-group">
-      <label>City</label>
-      <${Dropdown.webComponentName} id="city" />
-    </div>
-  </form>
-</div>`;
-
-    const region = div.querySelector("#region") as HTMLSelectElement;
-    const city = div.querySelector("#city") as HTMLSelectElement;
-
-    if (isDropdown(region)) {
-      region.defaultItem = {
-        key: "default",
-        text: "Choose a state",
-        value: "",
-        selected: true
-      };
-    }
-
-    region.addEventListener("change", evt => {
-      this.setState(
-        "_selectedRegion",
-        this._selectedRegion,
-        (evt.target as HTMLSelectElement).value,
-        next => (this._selectedRegion = next)
-      );
-    });
-
-    if (isDropdown(city)) {
-      city.defaultItem = {
-        key: "default",
-        text: "Choose a city",
-        value: "",
-        selected: true
-      };
-      city.disabled = true;
-    }
-
-    city.addEventListener("change", evt => {
-      this.setState(
-        "_selectedCity",
-        this._selectedCity,
-        (evt.target as HTMLSelectElement).value,
-        next => (this._selectedCity = next)
-      );
-    });
-
-    this._shadowRoot.append(link, div);
-  }
-
   override update(changedProperties: string[]): void {
     super.update && super.update(changedProperties);
+
+    // console.log(
+    //   `Restaurants.update: changedProperties='${changedProperties.join(", ")}'`
+    // );
 
     if (changedProperties.includes("_regions")) {
       const div = this.#restaurantsElement;
@@ -122,6 +69,11 @@ export class Restaurants extends ComponentLifecycleMixin(HTMLElement) {
     if (changedProperties.includes("_restaurants")) {
       this.#updateRestaurants(this._selectedRegion, this._selectedCity);
     }
+  }
+
+  override _onTemplateReady(): void {
+    this.#updateDOM();
+    this.populateRegionsList(this.#restaurantsElement);
   }
 
   protected async populateCitiesList(
@@ -157,8 +109,16 @@ export class Restaurants extends ComponentLifecycleMixin(HTMLElement) {
       return;
     }
 
+    if (!this.templateHtml) {
+      return;
+    }
+
     const region = content.querySelector("#region");
     if (!isDropdown(region)) {
+      return;
+    }
+
+    if (region.items) {
       return;
     }
 
@@ -306,6 +266,61 @@ export class Restaurants extends ComponentLifecycleMixin(HTMLElement) {
     }
 
     return this.#restaurantsLock;
+  }
+
+  #updateDOM(): void {
+    if (!this.templateHtml) {
+      return;
+    }
+
+    const div = document.createElement("div");
+    div.innerHTML = this.templateHtml;
+
+    const region = div.querySelector("#region") as HTMLSelectElement;
+    const city = div.querySelector("#city") as HTMLSelectElement;
+
+    if (isDropdown(region)) {
+      region.defaultItem = {
+        key: "default",
+        text: "Choose a state",
+        value: "",
+        selected: true
+      };
+    }
+
+    region.addEventListener("change", evt => {
+      this.setState(
+        "_selectedRegion",
+        this._selectedRegion,
+        (evt.target as HTMLSelectElement).value,
+        next => (this._selectedRegion = next)
+      );
+    });
+
+    if (isDropdown(city)) {
+      city.defaultItem = {
+        key: "default",
+        text: "Choose a city",
+        value: "",
+        selected: true
+      };
+      city.disabled = true;
+    }
+
+    city.addEventListener("change", evt => {
+      this.setState(
+        "_selectedCity",
+        this._selectedCity,
+        (evt.target as HTMLSelectElement).value,
+        next => (this._selectedCity = next)
+      );
+    });
+
+    const link = document.createElement("link");
+    link.href = "/app/assets/place-my-order-assets.css";
+    link.rel = "stylesheet";
+
+    this._shadowRoot.append(link, div);
   }
 
   #updateRestaurants(region: string | undefined, city: string | undefined) {
