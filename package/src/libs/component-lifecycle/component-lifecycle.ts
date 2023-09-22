@@ -25,8 +25,8 @@ export function ComponentLifecycleMixin<T extends Constructor<any>>(
     implements ComponentLifecycle
   {
     #changedProperties: string[] = [];
-    #connected = false;
-    #init = false;
+    #lifecycle_connected = false;
+    #lifecycle_init = false;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
@@ -37,12 +37,12 @@ export function ComponentLifecycleMixin<T extends Constructor<any>>(
       return oldValue === newValue;
     }
 
-    get connected(): boolean {
-      return this.#connected;
+    get lifecycle_connected(): boolean {
+      return this.#lifecycle_connected;
     }
 
-    get init(): boolean {
-      return this.#init;
+    get lifecycle_init(): boolean {
+      return this.#lifecycle_init;
     }
 
     /******************************************************************
@@ -57,20 +57,20 @@ export function ComponentLifecycleMixin<T extends Constructor<any>>(
     componentConnect(): void {
       super.componentConnect && super.componentConnect();
       this.setState(
-        "connected",
-        this.#connected,
+        "lifecycle_connected",
+        this.#lifecycle_connected,
         true,
-        next => (this.#connected = next)
+        next => (this.#lifecycle_connected = next)
       );
     }
 
     componentDisconnect(): void {
       super.componentDisconnect && super.componentDisconnect();
       this.setState(
-        "connected",
-        this.#connected,
+        "lifecycle_connected",
+        this.#lifecycle_connected,
         false,
-        next => (this.#connected = next)
+        next => (this.#lifecycle_connected = next)
       );
     }
 
@@ -82,7 +82,12 @@ export function ComponentLifecycleMixin<T extends Constructor<any>>(
      */
     componentInitialConnect(): void {
       super.componentInitialConnect && super.componentInitialConnect();
-      // this.setState("init", this.#init, true, next => (this.#init = next));
+      this.setState(
+        "lifecycle_init",
+        this.#lifecycle_init,
+        true,
+        next => (this.#lifecycle_init = next)
+      );
     }
 
     /**
@@ -148,16 +153,16 @@ export function ComponentLifecycleMixin<T extends Constructor<any>>(
      * @private
      */
     connectedCallback() {
-      if (this.#connected) {
+      if (this.#lifecycle_connected) {
         return;
       }
 
-      this.#connected = true;
-      this.#changePropertiesAndQueueUpdate("connected");
+      this.#lifecycle_connected = true;
+      this.#changePropertiesAndQueueUpdate("lifecycle_connected");
 
-      if (!this.#init) {
-        this.#init = true;
-        this.#changePropertiesAndQueueUpdate("init");
+      if (!this.#lifecycle_init) {
+        this.#lifecycle_init = true;
+        this.#changePropertiesAndQueueUpdate("lifecycle_init");
         this.componentInitialConnect();
       }
 
@@ -171,8 +176,8 @@ export function ComponentLifecycleMixin<T extends Constructor<any>>(
      */
     disconnectedCallback() {
       super.disconnectedCallback && super.disconnectedCallback();
-      this.#connected = false;
-      this.#changePropertiesAndQueueUpdate("connected");
+      this.#lifecycle_connected = false;
+      this.#changePropertiesAndQueueUpdate("lifecycle_connected");
     }
 
     #changePropertiesAndQueueUpdate(property: string): void {
@@ -222,6 +227,14 @@ export interface ComponentLifecycle {
    * This is a good place to construct the elements initial DOM children.
    */
   componentInitialConnect?(): void;
+  /**
+   * True when the component is connected.
+   */
+  readonly lifecycle_connected: boolean;
+  /**
+   * True when the component has been connected for the first time
+   */
+  readonly lifecycle_init: boolean;
   /**
    * Compares two values (shallow comparison using `===`) and returns a value
    * the indicates if the values are the same (false when the values are

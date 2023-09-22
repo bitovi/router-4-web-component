@@ -25,7 +25,7 @@ export class Restaurants extends TemplateMixin(
   constructor() {
     super();
 
-    this.templateSrc = "app/pages/restaurants/restaurants.html";
+    this.template_src = "app/pages/restaurants/restaurants.html";
     this._shadowRoot = this.attachShadow({ mode: "closed" });
 
     this.#getRegions();
@@ -109,7 +109,7 @@ export class Restaurants extends TemplateMixin(
       return;
     }
 
-    if (!this.templateHtml) {
+    if (!this.template_html) {
       return;
     }
 
@@ -269,12 +269,12 @@ export class Restaurants extends TemplateMixin(
   }
 
   #updateDOM(): void {
-    if (!this.templateHtml) {
+    if (!this.template_html) {
       return;
     }
 
     const div = document.createElement("div");
-    div.innerHTML = this.templateHtml;
+    div.innerHTML = this.template_html;
 
     const region = div.querySelector("#region") as HTMLSelectElement;
     const city = div.querySelector("#city") as HTMLSelectElement;

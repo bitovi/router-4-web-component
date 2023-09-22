@@ -39,10 +39,10 @@ Create a web component.
 import { ParamsListenerMixin } from "https://esm.sh/@bitovi/router-4-web-component";
 
 export class MyWebComponent extends ParamsListenerMixin(HTMLElement) {
-  override onParamsChange(params: Record<string, string>): void {
+  override _onParamsChange(params: Record<string, string>): void {
     // The params information in the `params` object depends on the tokens
     // included in the value of an `<r4w-route>` `path` attrbute.
-    console.log("onParamsChange: params=", params);
+    console.log("_onParamsChange: params=", params);
   }
 }
 
@@ -62,8 +62,43 @@ Use the web component.
 </r4w-router>
 ```
 
-When this code is executed the text "onParamsChange: params= { item: 42 }" will
+When this code is executed the text "\_onParamsChange: params= { item: 42 }" will
 be logged.
+
+---
+
+#### mixin `TemplateMixin`
+
+Fetch an HTML file and make its body available as a string to clients. The
+string can be set as the `innerHTML` of an element, typically a `<template>`.
+
+Can be used in a [mixin
+definition](https://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/)
+of a web component.
+
+Create a web component and apply the mixin to it.
+
+```ts
+import { TemplateMixin } from "https://esm.sh/@bitovi/router-4-web-component";
+
+export class MyWebComponent extends TemplateMixin(HTMLElement) {
+  constructor() {
+    super();
+    // Setting the `templateSrc` property starts the download.
+    this.templateSrc = "//example.com/template.html";
+  }
+
+  override _onTemplateReady(html: string) {
+    // The download has completed and the contents of the file are passes as the `html` arg.
+    const template = document.createElement("template");
+    template.innerHTML = html;
+  }
+}
+
+if (!customElements.get("my-web-component")) {
+  customElements.define("my-web-component", MyWebComponent);
+}
+```
 
 ---
 

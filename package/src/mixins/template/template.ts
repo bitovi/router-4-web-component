@@ -8,25 +8,25 @@ import { documentUrl } from "../../libs/url/url.ts";
 export function TemplateMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return class TemplateImpl extends baseType implements Template {
-    #templateSrc: string | undefined;
-    #templateHtml: string | undefined;
+    #template_src: string | undefined;
+    #template_html: string | undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
 
-    set templateSrc(src: string) {
+    set template_src(src: string) {
       this.setState(
-        "#templateSrc",
-        this.#templateSrc,
+        "#template_src",
+        this.#template_src,
         src,
-        next => (this.#templateSrc = next)
+        next => (this.#template_src = next)
       );
     }
 
-    get templateHtml(): string | undefined {
-      return this.#templateHtml;
+    get template_html(): string | undefined {
+      return this.#template_html;
     }
 
     /******************************************************************
@@ -36,12 +36,12 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
     override update(changedProperties: string[]): void {
       super.update && super.update(changedProperties);
 
-      if (changedProperties.includes("#templateSrc")) {
+      if (changedProperties.includes("#template_src")) {
         this.#fetchSrc();
       }
 
-      if (changedProperties.includes("templateHtml")) {
-        this.#templateHtml && this._onTemplateReady(this.#templateHtml);
+      if (changedProperties.includes("template_html")) {
+        this.#template_html && this._onTemplateReady(this.#template_html);
       }
     }
 
@@ -50,14 +50,14 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
      *****************************************************************/
 
     _getTemplateElement(): HTMLTemplateElement | void {
-      if (!this.#templateHtml) {
+      if (!this.#template_html) {
         return;
       }
 
       const template = document.createElement(
         "template"
       ) as HTMLTemplateElement;
-      template.innerHTML = this.#templateHtml;
+      template.innerHTML = this.#template_html;
 
       return template;
     }
@@ -76,11 +76,11 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
      *****************************************************************/
 
     async #fetchSrc() {
-      if (!this.#templateSrc) {
+      if (!this.#template_src) {
         return;
       }
 
-      const src = documentUrl(this.#templateSrc);
+      const src = documentUrl(this.#template_src);
 
       let response: Response | undefined;
       try {
@@ -97,10 +97,10 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
       const html = await response.text();
 
       this.setState(
-        "templateHtml",
-        this.#templateHtml,
+        "template_html",
+        this.#template_html,
         html,
-        next => (this.#templateHtml = next)
+        next => (this.#template_html = next)
       );
     }
   };
@@ -120,9 +120,9 @@ interface Template {
   /**
    * The URL to the template html file.
    */
-  templateSrc: string;
+  template_src: string;
   /**
-   * A template element that contains the HTML fetched from the `templateSrc`.
+   * A template element that contains the HTML fetched from the `template_src`.
    */
-  readonly templateHtml: string | undefined;
+  readonly template_html: string | undefined;
 }

@@ -40,7 +40,7 @@ export class RestaurantOrder extends ParamsListenerMixin(
     }
   }
 
-  override onParamsChange(params: Record<string, string> | undefined): void {
+  override _onParamsChange(params: Record<string, string> | undefined): void {
     this.setState(
       "#slug",
       this.#slug,
