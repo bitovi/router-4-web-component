@@ -21,7 +21,7 @@ export class RestaurantDetail extends ParamsListenerMixin(
   constructor() {
     super();
 
-    this.templateSrc = "app/pages/restaurant-detail/restaurant-detail.html";
+    this.template_src = "app/pages/restaurant-detail/restaurant-detail.html";
     this.#shadowRoot = this.attachShadow({ mode: "closed" });
 
     this.#getRestaurants();
@@ -47,13 +47,13 @@ export class RestaurantDetail extends ParamsListenerMixin(
     if (
       changedProperties.includes("#restaurants") ||
       changedProperties.includes("#slug") ||
-      changedProperties.includes("templateHtml")
+      changedProperties.includes("template_html")
     ) {
       this.#updateContent();
     }
   }
 
-  override onParamsChange(params: Record<string, string> | undefined): void {
+  override _onParamsChange(params: Record<string, string> | undefined): void {
     this.setState(
       "#slug",
       this.#slug,
@@ -123,11 +123,11 @@ export class RestaurantDetail extends ParamsListenerMixin(
       return;
     }
 
-    if (!this.templateHtml) {
+    if (!this.template_html) {
       return;
     }
 
-    this.#shadowRoot.innerHTML = this.templateHtml
+    this.#shadowRoot.innerHTML = this.template_html
       .replace("%%restaurant_resources_banner%%", restaurant.resources.banner)
       .replace("%%restaurant_name%%", restaurant.name)
       .replace("%%restaurant_address_street%%", restaurant.address.street)

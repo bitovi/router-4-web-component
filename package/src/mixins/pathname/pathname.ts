@@ -10,20 +10,20 @@ export function PathnameMixin<T extends Constructor>(baseType: T) {
     #handlePathnameChangeBound:
       | ((evt: CustomEvent<PathnameChangeEventDetails>) => void)
       | undefined;
-    #pathname: Pathname["pathname"];
-    #pattern: Pathname["pattern"];
+    #pathname_pathname: Pathname["pathname_pathname"];
+    #pathname_pattern: Pathname["pathname_pattern"];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
 
-    get pathname(): Pathname["pathname"] {
-      return this.#pathname;
+    get pathname_pathname(): Pathname["pathname_pathname"] {
+      return this.#pathname_pathname;
     }
 
-    get pattern(): Pathname["pattern"] {
-      return this.#pattern;
+    get pathname_pattern(): Pathname["pathname_pattern"] {
+      return this.#pathname_pattern;
     }
 
     /******************************************************************
@@ -72,22 +72,22 @@ export function PathnameMixin<T extends Constructor>(baseType: T) {
         detail: { pathname, pattern, routeUid }
       } = evt;
 
-      if (this.routeUid !== routeUid) {
+      if (this.routemx_routeUid !== routeUid) {
         return;
       }
 
       this.setState(
-        "pathname",
-        this.#pathname,
+        "pathname_pathname",
+        this.#pathname_pathname,
         pathname,
-        next => (this.#pathname = next)
+        next => (this.#pathname_pathname = next)
       );
 
       this.setState(
-        "pattern",
-        this.#pattern,
+        "pathname_pattern",
+        this.#pathname_pattern,
         pattern,
-        next => (this.#pattern = next)
+        next => (this.#pathname_pattern = next)
       );
     }
   };
@@ -99,6 +99,6 @@ type Constructor<T = HTMLElement & ComponentLifecycle & Route> = new (
 ) => T;
 
 export interface Pathname {
-  readonly pathname: string | undefined;
-  readonly pattern: string | undefined;
+  readonly pathname_pathname: string | undefined;
+  readonly pathname_pattern: string | undefined;
 }

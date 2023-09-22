@@ -116,9 +116,9 @@ export class Route extends ParamsMixin(
     super.update && super.update(changedProperties);
 
     // console.log(
-    //   `Route[${this.#uid}].update: changedProperties='${changedProperties
-    //     .map(p => `${p}='${this.#mapPropertyToValue(p)}'`)
-    //     .join(",")}'`
+    //   `Route[${this.#uid}].update: changedProperties='${changedProperties.join(
+    //     ", "
+    //   )}'`
     // );
 
     if (changedProperties.includes("#activated")) {
@@ -126,7 +126,7 @@ export class Route extends ParamsMixin(
     }
 
     if (
-      changedProperties.includes("connected") ||
+      changedProperties.includes("lifecycle_connected") ||
       changedProperties.includes("match")
     ) {
       this.setState(

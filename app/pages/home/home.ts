@@ -13,7 +13,7 @@ export class Home extends TemplateMixin(ComponentLifecycleMixin(HTMLElement)) {
   constructor() {
     super();
 
-    this.templateSrc = "app/pages/home/home.html";
+    this.template_src = "app/pages/home/home.html";
     this.#shadowRoot = this.attachShadow({ mode: "closed" });
   }
 
@@ -21,12 +21,12 @@ export class Home extends TemplateMixin(ComponentLifecycleMixin(HTMLElement)) {
     return "app-home";
   }
 
-  override _onTemplateReady(html: string): void {
+  override _onTemplateReady(): void {
     this.#updateDOM();
   }
 
   #updateDOM() {
-    if (!this.templateHtml) {
+    if (!this.template_html) {
       return;
     }
 
@@ -35,7 +35,7 @@ export class Home extends TemplateMixin(ComponentLifecycleMixin(HTMLElement)) {
     link.rel = "stylesheet";
 
     const div = document.createElement("div");
-    div.innerHTML = this.templateHtml;
+    div.innerHTML = this.template_html;
 
     this.#shadowRoot.append(link, div);
   }

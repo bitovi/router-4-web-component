@@ -29,8 +29,8 @@ export class Switch
     | ((evt: CustomEvent<SwitchUidRequestEventDetails>) => void)
     | undefined;
   #uid: string;
-  #routeActivationComplete = false;
-  #routeActivationMatch = false;
+  #switch_routeActivationComplete = false;
+  #switch_routeActivationMatch = false;
   #routeSet: { [id: string]: string[] } = {};
   protected _activeRoute: RouteMatchProps | null = null;
   protected _shadowRoot: ShadowRoot;
@@ -78,10 +78,13 @@ export class Switch
     super.update && super.update(changedProperties);
 
     if (
-      changedProperties.includes("#routeActivationComplete") ||
-      changedProperties.includes("#routeActivationMatch")
+      changedProperties.includes("#switch_routeActivationComplete") ||
+      changedProperties.includes("#switch_routeActivationMatch")
     ) {
-      if (this.#routeActivationComplete && !this.#routeActivationMatch) {
+      if (
+        this.#switch_routeActivationComplete &&
+        !this.#switch_routeActivationMatch
+      ) {
         // console.log("Switch.update: needs redirect.");
         this.#redirect();
       }
@@ -114,27 +117,27 @@ export class Switch
       // );
 
       this.setState(
-        "#routeActivationComplete",
-        this.#routeActivationComplete,
+        "#switch_routeActivationComplete",
+        this.#switch_routeActivationComplete,
         false,
-        next => (this.#routeActivationComplete = next)
+        next => (this.#switch_routeActivationComplete = next)
       );
 
       this.setState(
-        "#routeActivationMatch",
-        this.#routeActivationMatch,
+        "#switch_routeActivationMatch",
+        this.#switch_routeActivationMatch,
         false,
-        next => (this.#routeActivationMatch = next)
+        next => (this.#switch_routeActivationMatch = next)
       );
     } else {
       this.#routeSet[key].push(routeUid);
 
       if (routes.length <= this.#routeSet[key].length) {
         this.setState(
-          "#routeActivationComplete",
-          this.#routeActivationComplete,
+          "#switch_routeActivationComplete",
+          this.#switch_routeActivationComplete,
           true,
-          next => (this.#routeActivationComplete = next)
+          next => (this.#switch_routeActivationComplete = next)
         );
       }
     }
@@ -217,10 +220,10 @@ export class Switch
 
     if (same) {
       this.setState(
-        "#routeActivationMatch",
-        this.#routeActivationMatch,
+        "#switch_routeActivationMatch",
+        this.#switch_routeActivationMatch,
         true,
-        next => (this.#routeActivationMatch = next)
+        next => (this.#switch_routeActivationMatch = next)
       );
     }
 

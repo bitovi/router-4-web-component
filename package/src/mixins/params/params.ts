@@ -19,15 +19,15 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
     #handleParamsRequestEventBound:
       | ((evt: CustomEvent<ParamsRequestEventDetails>) => void)
       | undefined;
-    #params: Params["params"];
+    #params_params: Params["params_params"];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...cArgs: any[]) {
       super(...cArgs);
     }
 
-    get params(): Params["params"] {
-      return this.#params;
+    get params_params(): Params["params_params"] {
+      return this.#params_params;
     }
 
     /******************************************************************
@@ -52,9 +52,9 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
       oldValue: T,
       newValue: T
     ): boolean {
-      if (property === "params") {
-        const oldParams = oldValue as Params["params"];
-        const newParams = newValue as Params["params"];
+      if (property === "params_params") {
+        const oldParams = oldValue as Params["params_params"];
+        const newParams = newValue as Params["params_params"];
         if (!oldParams && !newParams) {
           return true;
         }
@@ -89,32 +89,40 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
     override update(changedProperties: string[]): void {
       super.update && super.update(changedProperties);
 
-      if (changedProperties.includes("routeUid")) {
+      // console.log(
+      //   `Params.update: changedProperties='${changedProperties.join(", ")}'`
+      // );
+
+      if (changedProperties.includes("routemx_routeUid")) {
         this.#dispatchPathnameRequestEvent();
       }
 
       if (
-        changedProperties.includes("pathname") ||
-        changedProperties.includes("pattern") ||
-        changedProperties.includes("routeUid")
+        changedProperties.includes("pathname_pathname") ||
+        changedProperties.includes("pathname_pattern") ||
+        changedProperties.includes("routemx_routeUid")
       ) {
-        if (this.pathname && this.pattern && this.routeUid) {
+        if (
+          this.pathname_pathname &&
+          this.pathname_pattern &&
+          this.routemx_routeUid
+        ) {
           const { match, params } = getPathnameData(
-            this.pathname,
-            this.pattern
+            this.pathname_pathname,
+            this.pathname_pattern
           );
           if (match) {
             this.setState(
-              "params",
-              this.#params,
+              "params_params",
+              this.#params_params,
               params,
-              next => (this.#params = next)
+              next => (this.#params_params = next)
             );
           }
         }
       }
 
-      if (changedProperties.includes("params")) {
+      if (changedProperties.includes("params_params")) {
         this.#dispatchParamsChangedEvent();
       }
     }
@@ -143,13 +151,13 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
     }
 
     #dispatchParamsChangedEvent() {
-      if (!this.routeUid) {
+      if (!this.routemx_routeUid) {
         return;
       }
 
       // console.log(
-      //   `Params.#dispatchParamsChangedEvent: dispatching; params='${
-      //     this.#params
+      //   `Params.#dispatchParamsChangedEvent: dispatching; params_params='${
+      //     this.#params_params
       //   }', routeUid='${this.routeUid}'`
       // );
 
@@ -157,13 +165,16 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
         new CustomEvent<ParamsChangeEventDetails>("r4w-params-change", {
           bubbles: true,
           composed: true,
-          detail: { params: this.#params, routeUid: this.routeUid }
+          detail: {
+            params: this.#params_params,
+            routeUid: this.routemx_routeUid
+          }
         })
       );
     }
 
     #dispatchPathnameRequestEvent() {
-      if (!this.routeUid) {
+      if (!this.routemx_routeUid) {
         return;
       }
 
@@ -171,7 +182,7 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
         new CustomEvent<PathnameRequestEventDetails>("r4w-pathname-request", {
           bubbles: true,
           composed: true,
-          detail: { routeUid: this.routeUid }
+          detail: { routeUid: this.routemx_routeUid }
         })
       );
     }
@@ -181,7 +192,7 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
         detail: { routeUid }
       } = evt;
 
-      if (this.routeUid !== routeUid) {
+      if (this.routemx_routeUid !== routeUid) {
         return;
       }
 
@@ -197,5 +208,5 @@ type Constructor<T = HTMLElement & ComponentLifecycle & Pathname & Route> =
   ) => T;
 
 export interface Params {
-  readonly params: Record<string, string> | undefined;
+  readonly params_params: Record<string, string> | undefined;
 }

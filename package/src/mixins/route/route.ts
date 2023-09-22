@@ -4,15 +4,15 @@ import type { Constructor, RouteUidRequestEventDetails } from "../../types.ts";
 export function RouteMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return class RouteImpl extends baseType implements Route {
-    #routeUid: Route["routeUid"];
+    #routemx_routeUid: Route["routemx_routeUid"];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
 
-    get routeUid(): Route["routeUid"] {
-      return this.#routeUid;
+    get routemx_routeUid(): Route["routemx_routeUid"] {
+      return this.#routemx_routeUid;
     }
 
     /******************************************************************
@@ -38,10 +38,10 @@ export function RouteMixin<T extends Constructor>(baseType: T) {
           detail: {
             callback: routeUid => {
               this.setState(
-                "routeUid",
-                this.#routeUid,
+                "routemx_routeUid",
+                this.#routemx_routeUid,
                 routeUid,
-                next => (this.#routeUid = next)
+                next => (this.#routemx_routeUid = next)
               );
             }
           }
@@ -52,5 +52,5 @@ export function RouteMixin<T extends Constructor>(baseType: T) {
 }
 
 export interface Route {
-  readonly routeUid: string | undefined;
+  readonly routemx_routeUid: string | undefined;
 }

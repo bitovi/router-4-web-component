@@ -18,7 +18,7 @@ export class Header extends TemplateMixin(
 
   constructor() {
     super();
-    this.templateSrc = "app/components/header/header.html";
+    this.template_src = "app/components/header/header.html";
   }
 
   static get webComponentName(): string {
@@ -62,7 +62,7 @@ export class Header extends TemplateMixin(
   }
 
   #updateDOM() {
-    if (!this.templateHtml) {
+    if (!this.template_html) {
       return;
     }
 
@@ -79,15 +79,13 @@ export class Header extends TemplateMixin(
       "/order-history"
     );
 
-    const template = this.templateHtml
+    this.innerHTML = this.template_html
       .replace("%%header_home_link%%", matchHome ? "active" : "")
       .replace("%%header_restaurants_link%%", matchRestaurants ? "active" : "")
       .replace(
         "%%header_order_history_link%%",
         matchOrderHistory ? "active" : ""
       );
-
-    this.innerHTML = template;
   }
 }
 
