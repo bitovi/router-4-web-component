@@ -62,11 +62,14 @@ export class Header extends TemplateMixin(
   }
 
   #updateDOM() {
-    if (!this.templateElement) {
+    if (!this.templateHtml) {
       return;
     }
 
-    const { match: matchRoot } = getPathnameData(window.location.pathname, "/");
+    const { match: matchHome } = getPathnameData(
+      window.location.pathname,
+      "/home"
+    );
     const { match: matchRestaurants } = getPathnameData(
       window.location.pathname,
       "/restaurants"
@@ -76,22 +79,15 @@ export class Header extends TemplateMixin(
       "/order-history"
     );
 
-    const temp = document.createElement("template") as HTMLTemplateElement;
-    temp.innerHTML = this.templateElement.innerHTML;
+    const template = this.templateHtml
+      .replace("%%header_home_link%%", matchHome ? "active" : "")
+      .replace("%%header_restaurants_link%%", matchRestaurants ? "active" : "")
+      .replace(
+        "%%header_order_history_link%%",
+        matchOrderHistory ? "active" : ""
+      );
 
-    temp.content
-      .querySelector("#header-home-link")
-      ?.setAttribute("class", matchRoot ? "active" : "");
-
-    temp.content
-      .querySelector("#header-restaurants-link")
-      ?.setAttribute("class", matchRestaurants ? "active" : "");
-
-    temp.content
-      .querySelector("#header-order-history-link")
-      ?.setAttribute("class", matchOrderHistory ? "active" : "");
-
-    this.innerHTML = temp.innerHTML;
+    this.innerHTML = template;
   }
 }
 
