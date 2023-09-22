@@ -1,54 +1,32 @@
 // import type { Link } from "https://esm.sh/@bitovi/router-4-web-component";
 // import {
 //   ComponentLifecycleMixin,
-//   getPathnameData
+//   getPathnameData,
+//   TemplateMixin
 // } from "https://esm.sh/@bitovi/router-4-web-component";
 import type { Link } from "../../../dist/src/index.js";
 import {
   ComponentLifecycleMixin,
-  getPathnameData
+  getPathnameData,
+  TemplateMixin
 } from "../../../dist/src/index.js";
 
-export class Header extends ComponentLifecycleMixin(HTMLElement) {
+export class Header extends TemplateMixin(
+  ComponentLifecycleMixin(HTMLElement)
+) {
   #currentPathname: string | undefined;
 
   constructor() {
     super();
+    this.templateSrc = "app/components/header/header.html";
   }
 
   static get webComponentName(): string {
     return "app-header";
   }
 
-  override componentInitialConnect(): void {
-    const { match: matchRoot } = getPathnameData(window.location.pathname, "/");
-    const { match: matchRestaurants } = getPathnameData(
-      window.location.pathname,
-      "/restaurants"
-    );
-    const { match: matchOrderHistory } = getPathnameData(
-      window.location.pathname,
-      "/order-history"
-    );
-
-    const html = `<header>
-  <nav>
-      <h1>place-my-order.com</h1>
-      <ul>
-          <li ${
-            matchRoot ? "class='active'" : ""
-          }><r4w-link to="/">Home</r4w-link></li>
-          <li ${
-            matchRestaurants ? "class='active'" : ""
-          }><r4w-link to="/restaurants">Restaurants</r4w-link></li>
-          <li ${
-            matchOrderHistory ? "class='active'" : ""
-          }><r4w-link to="/order-history">Order History</r4w-link></li>
-      </ul>
-  </nav>
-</header>`;
-
-    this.innerHTML = html;
+  override _onTemplateReady(): void {
+    this.#updateDOM();
   }
 
   onPathnameChange(pathname: string): void {
@@ -61,6 +39,8 @@ export class Header extends ComponentLifecycleMixin(HTMLElement) {
   }
 
   override update(changedProperties: string[]): void {
+    super.update && super.update(changedProperties);
+
     if (changedProperties.includes("#currentPathname")) {
       this.querySelectorAll("li").forEach(li => {
         const link = li.querySelector("r4w-link");
@@ -79,6 +59,39 @@ export class Header extends ComponentLifecycleMixin(HTMLElement) {
         }
       });
     }
+  }
+
+  #updateDOM() {
+    if (!this.templateElement) {
+      return;
+    }
+
+    const { match: matchRoot } = getPathnameData(window.location.pathname, "/");
+    const { match: matchRestaurants } = getPathnameData(
+      window.location.pathname,
+      "/restaurants"
+    );
+    const { match: matchOrderHistory } = getPathnameData(
+      window.location.pathname,
+      "/order-history"
+    );
+
+    const temp = document.createElement("template") as HTMLTemplateElement;
+    temp.innerHTML = this.templateElement.innerHTML;
+
+    temp.content
+      .querySelector("#header-home-link")
+      ?.setAttribute("class", matchRoot ? "active" : "");
+
+    temp.content
+      .querySelector("#header-restaurants-link")
+      ?.setAttribute("class", matchRestaurants ? "active" : "");
+
+    temp.content
+      .querySelector("#header-order-history-link")
+      ?.setAttribute("class", matchOrderHistory ? "active" : "");
+
+    this.innerHTML = temp.innerHTML;
   }
 }
 
