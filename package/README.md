@@ -115,7 +115,7 @@ Any element
 #### `<r4w-router>`
 
 All r4w elements must be nested under a single r4w-router. This is the most
-basic component and should probably be placed close to the `<body` element of
+basic component and should probably be placed close to the `<body>` element of
 the document.
 
 ##### Attributes
@@ -213,7 +213,7 @@ export class MyWebComponent extends TemplateMixin(HTMLElement) {
   }
 
   override _onTemplateReady(html: string) {
-    // The download has completed and the contents of the file are passes as the `html` arg.
+    // The download has completed and the contents of the file are passed as the `html` arg.
     const template = document.createElement("template");
     template.innerHTML = html;
   }

@@ -97,7 +97,7 @@ export class RestaurantDetail extends ParamsListenerMixin(
   }
 
   #updateContent() {
-    if (!this.#restaurants || !this.#slug) {
+    if (!this.#restaurants || !this.#slug || !this.template_html) {
       return;
     }
 
@@ -123,20 +123,17 @@ export class RestaurantDetail extends ParamsListenerMixin(
       return;
     }
 
-    if (!this.template_html) {
-      return;
-    }
-
-    this.#shadowRoot.innerHTML = this.template_html
-      .replace("%%restaurant_resources_banner%%", restaurant.resources.banner)
-      .replace("%%restaurant_name%%", restaurant.name)
-      .replace("%%restaurant_address_street%%", restaurant.address.street)
-      .replace("%%restaurant_address_city%%", restaurant.address.city)
-      .replace("%%restaurant_address_state%%", restaurant.address.state)
-      .replace("%%restaurant_address_zip%%", restaurant.address.zip)
-      .replace(/%%restaurant_name%%/g, restaurant.name)
-      .replace("%%restaurant_resources_owner%%", restaurant.resources.owner)
-      .replace("%%restaurant_slug%%", restaurant.slug);
+    this.#shadowRoot.innerHTML =
+      this._replace({
+        restaurant_resources_banner: restaurant.resources.banner,
+        restaurant_name: restaurant.name,
+        restaurant_address_street: restaurant.address.street,
+        restaurant_address_city: restaurant.address.city,
+        restaurant_address_state: restaurant.address.state,
+        restaurant_address_zip: restaurant.address.zip,
+        restaurant_resources_owner: restaurant.resources.owner,
+        restaurant_slug: restaurant.slug
+      }) ?? "";
   }
 }
 
