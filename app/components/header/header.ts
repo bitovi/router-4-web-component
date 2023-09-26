@@ -79,13 +79,12 @@ export class Header extends TemplateMixin(
       "/order-history"
     );
 
-    this.innerHTML = this.template_html
-      .replace("%%header_home_link%%", matchHome ? "active" : "")
-      .replace("%%header_restaurants_link%%", matchRestaurants ? "active" : "")
-      .replace(
-        "%%header_order_history_link%%",
-        matchOrderHistory ? "active" : ""
-      );
+    this.innerHTML =
+      this._replace({
+        header_home_link: matchHome ? "active" : "",
+        header_restaurants_link: matchRestaurants ? "active" : "",
+        header_order_history_link: matchOrderHistory ? "active" : ""
+      }) ?? "";
   }
 }
 

@@ -2,7 +2,9 @@ import type { Constructor } from "../../types.ts";
 import { documentUrl } from "../../libs/url/url.ts";
 
 /**
- *
+ * Supports basic "handlebars" type templates with replaceable tokens. Each
+ * token must start with "{{" and ends with "}}". The string between the braces
+ * is used as the key into an object with a replacement value.
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function TemplateMixin<T extends Constructor>(baseType: T) {
@@ -49,19 +51,6 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
      * protected
      *****************************************************************/
 
-    _getTemplateElement(): HTMLTemplateElement | void {
-      if (!this.#template_html) {
-        return;
-      }
-
-      const template = document.createElement(
-        "template"
-      ) as HTMLTemplateElement;
-      template.innerHTML = this.#template_html;
-
-      return template;
-    }
-
     /**
      * A protected method that is invoked after the template data has been
      * returned from the server.
@@ -69,6 +58,61 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
      */
     _onTemplateReady(html: string): void {
       // no op
+    }
+
+    /**
+     * Invoked by the class that extends this mixin after the template has been
+     * downloaded. Supports basic "handlebars" type templates with replaceable
+     * tokens in the value of `template_html`. Each token must start with "{{" and
+     * ends with "}}". The string between the braces is used as the key into the
+     * Record that's passed into this function via the `replacements` param.
+     *
+     * For example if
+     *  - template_html = "Hello {{name}}!"
+     *  - replacements = `{ name: "Alice", age: 30 }`
+     *
+     * then the method would return
+     *  - "Hello Alice!"
+     * @param replacements A collection of key:value pairs where a key matches the
+     * contents of a token.
+     * @returns The value of `template_html` with the tokens replaced.
+     * @protected
+     */
+    _replace(replacements: Record<string, unknown>): string | undefined {
+      if (!this.#template_html) {
+        return;
+      }
+
+      // I'm not sure but it seems like getting all the matches at once,
+      // converting them to an array, and iterating backward over the matches -
+      // to preserve the `index` in each match - is the most efficient way to do
+      // most template replacements. This might not be true if there are
+      // thousands of matches...
+      let output = this.#template_html;
+      const matches = output.matchAll(/({{)([^]+?)(}})/g);
+      const arrMatches = [...matches];
+
+      if (!matches || !arrMatches.length) {
+        return output;
+      }
+
+      for (let i = arrMatches.length - 1; 0 <= i; i--) {
+        const match = arrMatches[i];
+        if (!match.index && match.index !== 0) {
+          continue;
+        }
+
+        const groupKey = match[2];
+        if (groupKey in replacements) {
+          const right = match.index + 2 + groupKey.length + 2;
+          output =
+            output.slice(0, match.index) +
+            `${replacements[groupKey]}` +
+            output.slice(right);
+        }
+      }
+
+      return output;
     }
 
     /******************************************************************
@@ -108,15 +152,32 @@ export function TemplateMixin<T extends Constructor>(baseType: T) {
 
 interface Template {
   /**
-   * Protected method to get a template based on the current HTML.
-   */
-  _getTemplateElement(): HTMLTemplateElement | void;
-  /**
    * A protected method that is invoked after the template data has been
    * returned from the server.
-   * @param template
+   * @param html The HTML string with tokens; i.e. the HTML downloaded from
+   * `template_src`.
+   * @protected
    */
   _onTemplateReady(html: string): void;
+  /**
+   * Invoked by the class that extends this mixin after the template has been
+   * downloaded. Supports basic "handlebars" type templates with replaceable
+   * tokens in the value of `template_html`. Each token must start with "{{" and
+   * ends with "}}". The string between the braces is used as the key into the
+   * Record that's passed into this function via the `replacements` param.
+   *
+   * For example if
+   *  - template_html = "Hello {{name}}!"
+   *  - replacements = `{ name: "Alice", age: 30 }`
+   *
+   * then the method would return
+   *  - "Hello Alice!"
+   * @param replacements A collection of key:value pairs where a key matches the
+   * contents of a token.
+   * @returns The value of `template_html` with the tokens replaced.
+   * @protected
+   */
+  _replace(replacements: Record<string, unknown>): string | undefined;
   /**
    * The URL to the template html file.
    */
