@@ -48,7 +48,6 @@ export class Route extends ParamsMixin(
 
     uidCount = uidCount + 1;
     this.#uid = `r4w-route-${uidCount}`;
-    this.setAttribute("data-r4w-route", this.#uid);
   }
 
   static get observedAttributes(): string[] {
@@ -89,6 +88,9 @@ export class Route extends ParamsMixin(
   /******************************************************************
    * Basecomp
    *****************************************************************/
+  override componentInitialConnect(): void {
+    this.setAttribute("data-r4w-route", this.#uid);
+  }
 
   override componentConnect(): void {
     super.componentConnect && super.componentConnect();
