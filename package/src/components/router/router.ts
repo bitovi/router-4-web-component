@@ -77,9 +77,7 @@ export class Router extends ComponentLifecycleMixin(HTMLElement) {
   }
 
   #handlePopState(evt: PopStateEvent) {
-    // Ignore popstate events that don't include this instance's state..
-    evt.state === HISTORY_STATE &&
-      this.#dispatchNavigationEvent(window.location.pathname);
+    this.#dispatchNavigationEvent(window.location.pathname);
   }
 }
 
