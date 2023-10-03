@@ -110,6 +110,9 @@ browser history is updated, a matching route that is a child of the same
 
 ##### Attributes
 
+All attributes that can be applied to an `<a>` element - except `href` - as well
+as:
+
 - `to` - The path that will be pushed to browser history.
 
 ##### Descendants
