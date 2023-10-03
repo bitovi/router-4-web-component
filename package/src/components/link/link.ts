@@ -1,11 +1,13 @@
 import type { LinkEventDetails, WebComponent } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
+import { getAttributeNames } from "../../libs/dom/dom.ts";
 
 /**
  * Attributes:
  *   - to {string} Matches the path attribute of one route.
  */
 export class Link extends HTMLElement implements WebComponent {
+  #cachedAttributes: Record<string, string> | undefined;
   #init = false;
   #to: string | undefined;
 
@@ -15,7 +17,8 @@ export class Link extends HTMLElement implements WebComponent {
   }
 
   static get observedAttributes(): string[] {
-    return ["to"];
+    const attrs = getAttributeNames("a", "href");
+    return [...attrs, "to"];
   }
 
   static get webComponentName(): string {
@@ -29,6 +32,14 @@ export class Link extends HTMLElement implements WebComponent {
   ): void {
     if (name === "to") {
       this.#to = newValue;
+    } else {
+      const a = this.shadowRoot?.querySelector("a");
+      if (a) {
+        a.setAttribute(name, newValue);
+      } else {
+        this.#cachedAttributes = this.#cachedAttributes || {};
+        this.#cachedAttributes[name] = newValue;
+      }
     }
   }
 
@@ -39,11 +50,16 @@ export class Link extends HTMLElement implements WebComponent {
       const a = create(
         "a",
         {
+          attributes: this.#cachedAttributes || {},
           listeners: { click: this.#handleClick.bind(this) },
-          properties: { href: this.#to ?? "" }
+          properties: {
+            href: this.#to ?? ""
+          }
         },
         create("slot")
       );
+
+      this.#cachedAttributes = undefined;
 
       this.shadowRoot?.appendChild(a);
     }
