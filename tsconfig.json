@@ -10,7 +10,9 @@
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "paths": {
-      "@bitovi/router-4-web-component": ["./package/src/index"]
+      "@bitovi/router-4-web-component": ["./package/src/index"],
+      "aria-attributes": ["./node_modules/aria-attributes/index"],
+      "html-element-attributes": ["./node_modules/html-element-attributes/index"]
     },
     "strict": true,
     "target": "ES2022",
