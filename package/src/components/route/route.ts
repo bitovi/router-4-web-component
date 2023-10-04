@@ -22,7 +22,7 @@ let uidCount = 0;
 /**
  * Attributes:
  *   - path {string} The path that is cognate with the `to` attribute of a link.
- *   - src {string} The URL of the module associated with this route.
+ *   - src {string} Optional URL of a module to fetch when this route is activated.
  */
 export class Route extends ParamsMixin(
   PathnameMixin(RouteMixin(LoaderMixin(ComponentLifecycleMixin(HTMLElement))))
