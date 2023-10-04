@@ -4,11 +4,35 @@ A router for web components.
 
 ## Install
 
+### As part of an ES module
+
 Use "esm.sh" and import this module into a source file where you need to use the
 router.
 
 ```ts
 import from "https://esm.sh/@bitovi/router-4-web-component";
+```
+
+### As part of a bundle
+
+If you are bundling your source code you may need to use a dynamic `import` to
+load the library like so:
+
+```ts
+async function main() {
+  await import("https://esm.sh/@bitovi/router-4-web-component");
+}
+```
+
+### Using a script element
+
+The script can also be loaded in an HTML file, typically as part of the `<head>`
+element.
+
+```html
+<head>
+  <script src="https://esm.sh/@bitovi/router-4-web-component" type="module"></script>
+</head>
 ```
 
 Then you can use the router in your HTML.
@@ -141,16 +165,20 @@ None
 
 Child elements will be added to the DOM when its `path` matches the browser
 location and the route becomes active; child elements will be removed when it is
-deactivated. If the route has a `src` attribute the source file will be
-dynamically imported (and cached) when the route is activated then the children
-will be added to the DOM; otherwise children are immediately attached to the
-DOM.
+deactivated.
+
+If the route has a `src` attribute the source file will be dynamically imported
+(and cached) when the route is activated then the children will be added to the
+DOM; otherwise children are immediately attached to the DOM. A common use case
+is a web component as the route's child and the `src` is the URL of a JavaScript
+file that creates the web component's class and defines the web component in
+`customElements`.
 
 ##### Attributes
 
 - `path` - The path pushed to browser history.
-- `src` - A path to a source code file. Will be imported dynamically (and
-  cached) the first time the route is activated.
+- `src` - Optional URL to a resource, commonly another ES module. Will be
+  imported dynamically (and cached) the first time the route is activated.
 
 ##### Descendants
 
