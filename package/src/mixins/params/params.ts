@@ -1,13 +1,10 @@
-import type {
-  ParamsChangeEventDetails,
-  ParamsRequestEventDetails,
-  PathnameRequestEventDetails
-} from "../../types.ts";
-import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import type { R4WDataMap } from "../../types.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
 import type { Pathname } from "../pathname/pathname.ts";
 import type { Route } from "../route/route.ts";
 import type { ComponentLifecycle } from "../../libs/component-lifecycle/component-lifecycle.ts";
+import type { DisconnectCallback } from "../../libs/events/event.ts";
+import { receive, send } from "../../libs/events/event.ts";
 
 /**
  *
@@ -16,9 +13,7 @@ import type { ComponentLifecycle } from "../../libs/component-lifecycle/componen
 export function ParamsMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return class ParamsImpl extends baseType implements Params {
-    #handleParamsRequestEventBound:
-      | ((evt: CustomEvent<ParamsRequestEventDetails>) => void)
-      | undefined;
+    #disconnectParamsRequestEvent: DisconnectCallback | undefined;
     #params_params: Params["params_params"];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,22 +127,16 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
      *****************************************************************/
 
     #connectListeners() {
-      this.#handleParamsRequestEventBound =
-        this.#handleParamsRequestEvent.bind(this);
-      addEventListenerFactory(
+      this.#disconnectParamsRequestEvent = receive(
         "r4w-params-request",
-        window
-      )(this.#handleParamsRequestEventBound);
+        this.#handleParamsRequestEvent.bind(this)
+      );
     }
 
     #disconnectListeners() {
-      this.#handleParamsRequestEventBound &&
-        window.removeEventListener(
-          "r4w-params-request",
-          this.#handleParamsRequestEventBound as (evt: Event) => void
-        );
-
-      this.#handleParamsRequestEventBound = undefined;
+      this.#disconnectParamsRequestEvent &&
+        this.#disconnectParamsRequestEvent();
+      this.#disconnectParamsRequestEvent = undefined;
     }
 
     #dispatchParamsChangedEvent() {
@@ -161,16 +150,10 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
       //   }', routeUid='${this.routeUid}'`
       // );
 
-      window.dispatchEvent(
-        new CustomEvent<ParamsChangeEventDetails>("r4w-params-change", {
-          bubbles: true,
-          composed: true,
-          detail: {
-            params: this.#params_params,
-            routeUid: this.routemx_routeUid
-          }
-        })
-      );
+      send("r4w-params-change", {
+        params: this.#params_params,
+        routeUid: this.routemx_routeUid
+      });
     }
 
     #dispatchPathnameRequestEvent() {
@@ -178,20 +161,12 @@ export function ParamsMixin<T extends Constructor>(baseType: T) {
         return;
       }
 
-      window.dispatchEvent(
-        new CustomEvent<PathnameRequestEventDetails>("r4w-pathname-request", {
-          bubbles: true,
-          composed: true,
-          detail: { routeUid: this.routemx_routeUid }
-        })
-      );
+      send("r4w-pathname-request", {
+        routeUid: this.routemx_routeUid
+      });
     }
 
-    #handleParamsRequestEvent(evt: CustomEvent<ParamsRequestEventDetails>) {
-      const {
-        detail: { routeUid }
-      } = evt;
-
+    #handleParamsRequestEvent({ routeUid }: R4WDataMap["r4w-params-request"]) {
       if (this.routemx_routeUid !== routeUid) {
         return;
       }

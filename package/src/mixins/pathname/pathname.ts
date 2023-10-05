@@ -1,15 +1,14 @@
-import type { PathnameChangeEventDetails } from "../../types.ts";
-import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import type { R4WDataMap } from "../../types.ts";
 import type { ComponentLifecycle } from "../../libs/component-lifecycle/component-lifecycle.ts";
 import type { Route } from "../route/route.ts";
+import type { DisconnectCallback } from "../../libs/events/event.ts";
+import { receive } from "../../libs/events/event.ts";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function PathnameMixin<T extends Constructor>(baseType: T) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return class PathnameImpl extends baseType implements Pathname {
-    #handlePathnameChangeBound:
-      | ((evt: CustomEvent<PathnameChangeEventDetails>) => void)
-      | undefined;
+    #disconnectPathnameChangeEvent: DisconnectCallback | undefined;
     #pathname_pathname: Pathname["pathname_pathname"];
     #pathname_pattern: Pathname["pathname_pattern"];
 
@@ -49,29 +48,23 @@ export function PathnameMixin<T extends Constructor>(baseType: T) {
      *****************************************************************/
 
     #connectListeners() {
-      this.#handlePathnameChangeBound =
-        this.#handlePathnameChangeEvent.bind(this);
-      addEventListenerFactory(
+      this.#disconnectPathnameChangeEvent = receive(
         "r4w-pathname-change",
-        window
-      )(this.#handlePathnameChangeBound);
+        this.#handlePathnameChangeEvent.bind(this)
+      );
     }
 
     #disconnectListeners() {
-      this.#handlePathnameChangeBound &&
-        window.removeEventListener(
-          "r4w-pathname-change",
-          this.#handlePathnameChangeBound as (evt: Event) => void
-        );
-
-      this.#handlePathnameChangeBound = undefined;
+      this.#disconnectPathnameChangeEvent &&
+        this.#disconnectPathnameChangeEvent();
+      this.#disconnectPathnameChangeEvent = undefined;
     }
 
-    #handlePathnameChangeEvent(evt: CustomEvent<PathnameChangeEventDetails>) {
-      const {
-        detail: { pathname, pattern, routeUid }
-      } = evt;
-
+    #handlePathnameChangeEvent({
+      pathname,
+      pattern,
+      routeUid
+    }: R4WDataMap["r4w-pathname-change"]) {
       if (this.routemx_routeUid !== routeUid) {
         return;
       }

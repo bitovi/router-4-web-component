@@ -1,12 +1,11 @@
 import type {
   RouteMatchProps,
   ElementUidProps,
-  SwitchUidRequestEventDetails,
-  RouteActivateEventDetails,
-  LinkEventDetails
+  R4WDataMap
 } from "../../types.ts";
 import { create } from "../../libs/elementBuilder/elementBuilder.ts";
-import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import type { DisconnectCallback } from "../../libs/events/event.ts";
+import { receive, sendInternal } from "../../libs/events/event.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
 import { ComponentLifecycleMixin } from "../../libs/component-lifecycle/component-lifecycle.ts";
 
@@ -22,12 +21,8 @@ export class Switch
   extends ComponentLifecycleMixin(HTMLElement)
   implements ElementUidProps
 {
-  #handleRouteActivateEventBound:
-    | ((evt: CustomEvent<RouteActivateEventDetails>) => void)
-    | undefined;
-  #handleSwitchUidRequestEventBound:
-    | ((evt: CustomEvent<SwitchUidRequestEventDetails>) => void)
-    | undefined;
+  #disconnectRouteActivateEvent: DisconnectCallback | undefined;
+  #disconnectSwitchUidRequestEvent: DisconnectCallback | undefined;
   #uid: string;
   #switch_routeActivationComplete = false;
   #switch_routeActivationMatch = false;
@@ -144,51 +139,40 @@ export class Switch
   }
 
   #connectListeners() {
-    this.#handleSwitchUidRequestEventBound =
-      this.#handleSwitchUidRequestEvent.bind(this);
-
-    addEventListenerFactory(
-      "r4w-switch-uid-request",
-      this
-    )(this.#handleSwitchUidRequestEventBound);
-
-    this.#handleRouteActivateEventBound =
-      this.#handleRouteActivateEvent.bind(this);
-
-    addEventListenerFactory(
+    this.#disconnectRouteActivateEvent = receive(
       "r4w-route-activate",
+      this.#handleRouteActivateEvent.bind(this)
+    );
+
+    this.#disconnectSwitchUidRequestEvent = receive(
+      "r4w-switch-uid-request",
+      this.#handleSwitchUidRequestEvent.bind(this),
       this
-    )(this.#handleRouteActivateEventBound);
+    );
   }
 
   #disconnectListeners() {
-    this.#handleSwitchUidRequestEventBound &&
-      this.removeEventListener(
-        "r4w-switch-uid-request",
-        this.#handleSwitchUidRequestEventBound as (evt: Event) => void
-      );
+    this.#disconnectRouteActivateEvent && this.#disconnectRouteActivateEvent();
+    this.#disconnectRouteActivateEvent = undefined;
 
-    this.#handleSwitchUidRequestEventBound = undefined;
-
-    this.#handleRouteActivateEventBound &&
-      this.removeEventListener(
-        "r4w-route-activate",
-        this.#handleRouteActivateEventBound as (evt: Event) => void
-      );
-
-    this.#handleRouteActivateEventBound = undefined;
+    this.#disconnectSwitchUidRequestEvent &&
+      this.#disconnectSwitchUidRequestEvent();
+    this.#disconnectSwitchUidRequestEvent = undefined;
   }
 
-  #handleRouteActivateEvent(evt: CustomEvent<RouteActivateEventDetails>) {
-    const {
-      detail: { callback, match, pathname, self, switchUid }
-    } = evt;
-
+  #handleRouteActivateEvent({
+    callback,
+    handled,
+    match,
+    pathname,
+    self,
+    switchUid
+  }: R4WDataMap["r4w-route-activate"]) {
     if (this.#uid !== switchUid) {
       return;
     }
 
-    evt.stopImmediatePropagation();
+    handled({ stopProcessing: true });
 
     // console.log(
     //   `Switch.#handleRouteActivateEvent: self='${self.getAttribute(
@@ -230,30 +214,27 @@ export class Switch
     callback(same);
   }
 
-  #handleSwitchUidRequestEvent(
-    evt: CustomEvent<SwitchUidRequestEventDetails>
-  ): void {
-    const {
-      detail: { callback },
-      target
-    } = evt;
-
+  #handleSwitchUidRequestEvent({
+    callback,
+    handled,
+    source
+  }: R4WDataMap["r4w-switch-uid-request"]): void {
     // Unfortunately among sibling elements listeners are invoked in the order
     // they are registered, NOT first in the element that is the ancestor of
     // the event dispatcher then the other siblings. So we have to query our
     // children to see if the target is among them, if so we claim the event
     // for this route.
-    if (target instanceof HTMLElement) {
-      const match = [...this.querySelectorAll(target.localName)].find(
-        e => e === target
+    if (source) {
+      const match = [...this.querySelectorAll(source.localName)].find(
+        e => e === source
       );
 
       if (!match) {
         return;
       }
 
-      // We don't want upstream switches to get this event so `stopPropagation`.
-      evt.stopImmediatePropagation();
+      // We don't want upstream switches to get this event so `stopProcessing`.
+      handled({ stopProcessing: true });
 
       callback(this.#uid);
     }
@@ -266,14 +247,7 @@ export class Switch
     }
 
     const to = redirect.getAttribute("to");
-    to &&
-      window.dispatchEvent(
-        new CustomEvent<LinkEventDetails>("r4w-link-event", {
-          bubbles: true,
-          composed: true,
-          detail: { to }
-        })
-      );
+    to && sendInternal("r4w-link-event", { to });
   }
 }
 
