@@ -58,11 +58,14 @@ export class Route extends ParamsMixin(
     return "r4w-route";
   }
 
-  attributeChangedCallback(
+  override attributeChangedCallback(
     name: string,
     oldValue: string,
     newValue: string
   ): void {
+    super.attributeChangedCallback &&
+      super.attributeChangedCallback(name, oldValue, newValue);
+
     switch (name) {
       case "path": {
         this.setState(
@@ -71,15 +74,7 @@ export class Route extends ParamsMixin(
           newValue,
           next => (this.#pattern = next)
         );
-        break;
-      }
-      case "src": {
-        this.setState(
-          "moduleName",
-          this.moduleName,
-          newValue,
-          next => (this.moduleName = next)
-        );
+
         break;
       }
     }
