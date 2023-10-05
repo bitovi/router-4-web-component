@@ -31,7 +31,10 @@ element.
 
 ```html
 <head>
-  <script src="https://esm.sh/@bitovi/router-4-web-component" type="module"></script>
+  <script
+    src="https://esm.sh/@bitovi/router-4-web-component"
+    type="module"
+  ></script>
 </head>
 ```
 
@@ -45,9 +48,106 @@ Then you can use the router in your HTML.
 </r4w-router>
 ```
 
-### API
+## API
 
-#### mixin `ParamsListenerMixin`
+### Elements
+
+#### `<r4w-link>`
+
+Must be a **descendant** of the `<rw4-router>` element. When the link is clicked
+browser history is updated, a matching route that is a child of the same
+`<rw4-router>` ancestor element will be activated.
+
+##### Attributes
+
+All attributes that can be applied to an `<a>` element - except `href` - as well
+as:
+
+- `to` - The path that will be pushed to browser history.
+
+##### Descendants
+
+Same descendants as an `<a>` tag.
+
+---
+
+#### `<r4w-redirect />`
+
+Must be an **immediate** child of `<r4w-switch>`. Will be used to update browser
+history if none of the immediate child `<r4w-route>` elements match the current
+URL.
+
+##### Attributes
+
+- `to` - The path that will be pushed to browser history.
+
+##### Descendants
+
+None
+
+---
+
+#### `<r4w-route>`
+
+Child elements will be added to the DOM when its `path` matches the browser
+location and the route becomes active; child elements will be removed when it is
+deactivated.
+
+If the route has a `src` attribute the source file will be dynamically imported
+(and cached) when the route is activated then the children will be added to the
+DOM; otherwise children are immediately attached to the DOM. A common use case
+is a web component as the route's child and the `src` is the URL of a JavaScript
+file that creates the web component's class and defines the web component in
+`customElements`.
+
+##### Attributes
+
+- `path` - The path pushed to browser history.
+- `src` - Optional URL to a resource, commonly another ES module. Will be
+  imported dynamically (and cached) the first time the route is activated.
+
+##### Descendants
+
+Any element
+
+---
+
+#### `<r4w-router>`
+
+All r4w elements must be nested under a single r4w-router. This is the most
+basic component and should probably be placed close to the `<body` element of
+the document.
+
+##### Attributes
+
+None
+
+##### Descendants
+
+Any element
+
+---
+
+#### `<r4w-switch>`
+
+Activates a single child `<r4w-route>` element (that is an immediate child of
+the switch) when a `path` matches the browser location or an `<rw4-redirect>`
+takes effect.
+
+##### Attributes
+
+None
+
+##### Descendants
+
+Any element. The `<r4w-redirect>` element must be a direct child of this
+element.
+
+---
+
+### Mixins
+
+#### `ParamsListenerMixin`
 
 This mixin is used as a base for web components that want to get params
 information from a route's path. Must be a descendant of an `<r4w-route>`
@@ -91,7 +191,7 @@ be logged.
 
 ---
 
-#### mixin `TemplateMixin`
+#### `TemplateMixin`
 
 Fetch an HTML file and make its body available as a string to clients. The
 string can be set as the `innerHTML` of an element, typically a `<template>`.
@@ -124,97 +224,22 @@ if (!customElements.get("my-web-component")) {
 }
 ```
 
----
+### Functions
 
-#### element `<r4w-link>`
+#### `receive`
 
-Must be a **descendant** of the `<rw4-router>` element. When the link is clicked
-browser history is updated, a matching route that is a child of the same
-`<rw4-router>` ancestor element will be activated.
+Various messages are used to communicate status changes in the router system.
+The `receive` function is the method used to listen for those messages. Provide
+a handler that will be invoked when the named message arrives.
 
-##### Attributes
+##### parameters
 
-All attributes that can be applied to an `<a>` element - except `href` - as well
-as:
+- `name` {keyof R4WDetailMap} The name of the message to listen for.
+- `callback` {ReceiveCallback} This will be invoked when a message arrives.
+- `target` {EventTarget} An optional parameter that indicates the element that
+  message refers to, when provided this is the object that will receive
+  messages; defaults to `window`.
 
-- `to` - The path that will be pushed to browser history.
+##### returns
 
-##### Descendants
-
-Same descendants as an `<a>` tag.
-
----
-
-#### element `<r4w-redirect />`
-
-Must be an **immediate** child of `<r4w-switch>`. Will be used to update browser
-history if none of the immediate child `<r4w-route>` elements match the current
-URL.
-
-##### Attributes
-
-- `to` - The path that will be pushed to browser history.
-
-##### Descendants
-
-None
-
----
-
-#### element `<r4w-route>`
-
-Child elements will be added to the DOM when its `path` matches the browser
-location and the route becomes active; child elements will be removed when it is
-deactivated.
-
-If the route has a `src` attribute the source file will be dynamically imported
-(and cached) when the route is activated then the children will be added to the
-DOM; otherwise children are immediately attached to the DOM. A common use case
-is a web component as the route's child and the `src` is the URL of a JavaScript
-file that creates the web component's class and defines the web component in
-`customElements`.
-
-##### Attributes
-
-- `path` - The path pushed to browser history.
-- `src` - Optional URL to a resource, commonly another ES module. Will be
-  imported dynamically (and cached) the first time the route is activated.
-
-##### Descendants
-
-Any element
-
----
-
-#### element `<r4w-router>`
-
-All r4w elements must be nested under a single r4w-router. This is the most
-basic component and should probably be placed close to the `<body` element of
-the document.
-
-##### Attributes
-
-None
-
-##### Descendants
-
-Any element
-
----
-
-#### element `<r4w-switch>`
-
-Activates a single child `<r4w-route>` element (that is an immediate child of
-the switch) when a `path` matches the browser location or an `<rw4-redirect>`
-takes effect.
-
-##### Attributes
-
-None
-
-##### Descendants
-
-Any element. The `<r4w-redirect>` element must be a direct child of this
-element.
-
----
+{DisconnectCallback} Invoke when the you no longer need to receive messages.

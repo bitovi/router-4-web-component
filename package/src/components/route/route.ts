@@ -1,12 +1,6 @@
-import type {
-  NavigationEventDetails,
-  PathnameChangeEventDetails,
-  PathnameRequestEventDetails,
-  RouteActivateEventDetails,
-  RouteUidRequestEventDetails,
-  SwitchUidRequestEventDetails
-} from "../../types.ts";
-import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import type { R4WDataMap } from "../../types.ts";
+import type { DisconnectCallback } from "../../libs/events/event.ts";
+import { receive, receiveInternal, send } from "../../libs/events/event.ts";
 import { getPathnameData } from "../../libs/url/url.ts";
 import { ComponentLifecycleMixin } from "../../libs/component-lifecycle/component-lifecycle.ts";
 import { LoaderMixin } from "../../mixins/loader/loader.ts";
@@ -29,15 +23,9 @@ export class Route extends ParamsMixin(
 ) {
   #activated = false;
   #children: Element[] = [];
-  #handleNavigationEventBound:
-    | ((evt: CustomEvent<NavigationEventDetails>) => void)
-    | undefined;
-  #handlePathnameRequestEventBound:
-    | ((evt: CustomEvent<PathnameRequestEventDetails>) => void)
-    | undefined;
-  #handleRouteUidRequestEventBound:
-    | ((evt: CustomEvent<RouteUidRequestEventDetails>) => void)
-    | undefined;
+  #disconnectNavigationEvent: DisconnectCallback | undefined;
+  #disconnectPathnameRequestEvent: DisconnectCallback | undefined;
+  #disconnectRouteUidRequestEvent: DisconnectCallback | undefined;
   #pattern: string | undefined;
   #pathname: string | undefined;
   #switchUid: string | undefined;
@@ -196,51 +184,35 @@ export class Route extends ParamsMixin(
   }
 
   #connectListeners() {
-    this.#handleNavigationEventBound = this.#handleNavigationEvent.bind(this);
-    addEventListenerFactory(
+    this.#disconnectNavigationEvent = receiveInternal(
       "r4w-navigation-change",
-      window
-    )(this.#handleNavigationEventBound);
+      this.#handleNavigationEvent.bind(this)
+    );
 
-    this.#handleRouteUidRequestEventBound =
-      this.#handleRouteUidRequestEvent.bind(this);
-    addEventListenerFactory(
+    this.#disconnectRouteUidRequestEvent = receive(
       "r4w-route-uid-request",
+      this.#handleRouteUidRequestEvent.bind(this),
       this
-    )(this.#handleRouteUidRequestEventBound);
+    );
 
-    this.#handlePathnameRequestEventBound =
-      this.#handlePathnameRequestEvent.bind(this);
-    addEventListenerFactory(
+    this.#disconnectPathnameRequestEvent = receive(
       "r4w-pathname-request",
+      this.#handlePathnameRequestEvent.bind(this),
       this
-    )(this.#handlePathnameRequestEventBound);
+    );
   }
 
   #disconnectListeners() {
-    this.#handleNavigationEventBound &&
-      window.removeEventListener(
-        "r4w-navigation-change",
-        this.#handleNavigationEventBound as (evt: Event) => void
-      );
+    this.#disconnectNavigationEvent && this.#disconnectNavigationEvent();
+    this.#disconnectNavigationEvent = undefined;
 
-    this.#handleNavigationEventBound = undefined;
+    this.#disconnectRouteUidRequestEvent &&
+      this.#disconnectRouteUidRequestEvent();
+    this.#disconnectRouteUidRequestEvent = undefined;
 
-    this.#handleRouteUidRequestEventBound &&
-      this.removeEventListener(
-        "r4w-route-uid-request",
-        this.#handleRouteUidRequestEventBound as (evt: Event) => void
-      );
-
-    this.#handleRouteUidRequestEventBound = undefined;
-
-    this.#handlePathnameRequestEventBound &&
-      this.removeEventListener(
-        "r4w-pathname-request",
-        this.#handlePathnameRequestEventBound as (evt: Event) => void
-      );
-
-    this.#handlePathnameRequestEventBound = undefined;
+    this.#disconnectPathnameRequestEvent &&
+      this.#disconnectPathnameRequestEvent();
+    this.#disconnectPathnameRequestEvent = undefined;
   }
 
   #dispatchPathnameChangedEvent() {
@@ -256,15 +228,11 @@ export class Route extends ParamsMixin(
     //   }', pattern='${this.#pattern}', uid='${this.#uid}'`
     // );
 
-    window.dispatchEvent(
-      new CustomEvent<PathnameChangeEventDetails>("r4w-pathname-change", {
-        detail: {
-          pathname: this.#pathname,
-          pattern: this.#pattern,
-          routeUid: this.#uid
-        }
-      })
-    );
+    send("r4w-pathname-change", {
+      pathname: this.#pathname,
+      pattern: this.#pattern,
+      routeUid: this.#uid
+    });
   }
 
   #dispatchRouteActivateEvent(match: boolean): boolean {
@@ -278,19 +246,13 @@ export class Route extends ParamsMixin(
     }
 
     let permitted = false;
-    window.dispatchEvent(
-      new CustomEvent<RouteActivateEventDetails>("r4w-route-activate", {
-        bubbles: true,
-        composed: true,
-        detail: {
-          callback: activatePermitted => (permitted = activatePermitted),
-          match,
-          pathname: this.#pathname,
-          self: this,
-          switchUid: this.#switchUid
-        }
-      })
-    );
+    send("r4w-route-activate", {
+      callback: activatePermitted => (permitted = activatePermitted),
+      match,
+      pathname: this.#pathname,
+      self: this,
+      switchUid: this.#switchUid
+    });
 
     return permitted;
   }
@@ -299,14 +261,12 @@ export class Route extends ParamsMixin(
     // If we are not in a switch then nextSwitchUid will remain `undefined`.
     let nextSwitchUid;
 
-    this.dispatchEvent(
-      new CustomEvent<SwitchUidRequestEventDetails>("r4w-switch-uid-request", {
-        bubbles: true,
-        composed: true,
-        detail: {
-          callback: switchUid => (nextSwitchUid = switchUid)
-        }
-      })
+    send(
+      "r4w-switch-uid-request",
+      {
+        callback: switchUid => (nextSwitchUid = switchUid)
+      },
+      this
     );
 
     if (nextSwitchUid) {
@@ -321,47 +281,49 @@ export class Route extends ParamsMixin(
     }
   }
 
-  #handleNavigationEvent(evt: CustomEvent<NavigationEventDetails>) {
+  #handleNavigationEvent(data: R4WDataMap["r4w-navigation-change"]) {
     this.setState(
       "#pathname",
       this.#pathname,
-      evt.detail.pathname,
+      data.pathname,
       next => (this.#pathname = next)
     );
   }
 
-  #handlePathnameRequestEvent(evt: CustomEvent<PathnameRequestEventDetails>) {
-    if (this.#uid !== evt.detail.routeUid) {
+  #handlePathnameRequestEvent({
+    handled,
+    routeUid
+  }: R4WDataMap["r4w-pathname-request"]) {
+    if (this.#uid !== routeUid) {
       return;
     }
 
-    evt.stopImmediatePropagation();
+    handled({ stopProcessing: true });
 
     this.#dispatchPathnameChangedEvent();
   }
 
-  #handleRouteUidRequestEvent(evt: CustomEvent<RouteUidRequestEventDetails>) {
+  #handleRouteUidRequestEvent({
+    callback,
+    handled,
+    source
+  }: R4WDataMap["r4w-route-uid-request"]) {
     // console.log(
     //   `Route[${this.#uid}].#handleRouteUidRequestEvent: event arrived.`
     // );
-
-    const {
-      detail: { callback },
-      target
-    } = evt;
 
     // Unfortunately among sibling elements listeners are invoked in the order
     // they are registered, NOT first in the element that is the ancestor of
     // the event dispatcher then the other siblings. So we have to query our
     // children to see if the target is among them, if so we claim the event
     // for this route.
-    if (target instanceof HTMLElement) {
+    if (source) {
       // If a one of our mixins is firing the event the target will be us.
-      let match = this === target;
+      let match = this === source;
 
       if (!match) {
-        match = !![...this.querySelectorAll(target.localName)].find(
-          e => e === target
+        match = !![...this.querySelectorAll(source.localName)].find(
+          e => e === source
         );
       }
 
@@ -376,39 +338,10 @@ export class Route extends ParamsMixin(
       // We don't want upstream routes to get this event so `stopPropagation`.
       // There are probably sibling elements that are routes, we don't want
       // them to get this event so use `stopImmediatePropagation`.
-      evt.stopImmediatePropagation();
+      handled({ stopProcessing: true });
 
       callback(this.#uid);
     }
-  }
-
-  #mapPropertyToValue(property: string): unknown {
-    let value;
-
-    switch (property) {
-      case "#activated": {
-        value = this.#activated;
-        break;
-      }
-      case "#uid": {
-        value = this.#uid;
-        break;
-      }
-      case "#pathname": {
-        value = this.#pathname;
-        break;
-      }
-      case "#pattern": {
-        value = this.#pattern;
-        break;
-      }
-      case "#switchUid": {
-        value = this.#switchUid;
-        break;
-      }
-    }
-
-    return value;
   }
 
   #setInitialPathname() {

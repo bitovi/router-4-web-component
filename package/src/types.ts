@@ -4,6 +4,43 @@ import type { ComponentLifecycle } from "./libs/component-lifecycle/component-li
  * Event types
  *****************************************************************/
 /**
+ * Map from an event name to the type of the data passed to the receive
+ * callback.
+ */
+export interface R4WDataMap {
+  "r4w-link-event": LinkEventDetails & EventDetails;
+  "r4w-navigation-change": NavigationEventDetails;
+  "r4w-params-change": ParamsChangeEventDetails;
+  "r4w-params-request": ParamsRequestEventDetails;
+  "r4w-pathname-change": PathnameChangeEventDetails;
+  "r4w-pathname-request": PathnameRequestEventDetails & EventDetails;
+  "r4w-route-activate": RouteActivateEventDetails & EventDetails;
+  "r4w-route-uid-request": RouteUidRequestEventDetails & EventDetails;
+  "r4w-switch-uid-request": SwitchUidRequestEventDetails & EventDetails;
+}
+
+/**
+ * Map from an event name to the type of the data included in the event.
+ */
+export interface R4WInternalDetailMap extends R4WDetailMap {
+  "r4w-link-event": LinkEventDetails;
+  "r4w-navigation-change": NavigationEventDetails;
+}
+
+/**
+ * Map from a public event name to the type of the data included in the event.
+ */
+export interface R4WDetailMap {
+  "r4w-params-change": ParamsChangeEventDetails;
+  "r4w-params-request": ParamsRequestEventDetails;
+  "r4w-pathname-change": PathnameChangeEventDetails;
+  "r4w-pathname-request": PathnameRequestEventDetails;
+  "r4w-route-activate": RouteActivateEventDetails;
+  "r4w-route-uid-request": RouteUidRequestEventDetails;
+  "r4w-switch-uid-request": SwitchUidRequestEventDetails;
+}
+
+/**
  * Map event types (names) to the details property of a custom event.
  */
 export interface R4WEventMap {
@@ -16,6 +53,15 @@ export interface R4WEventMap {
   "r4w-route-activate": CustomEvent<RouteActivateEventDetails>;
   "r4w-route-uid-request": CustomEvent<RouteUidRequestEventDetails>;
   "r4w-switch-uid-request": CustomEvent<SwitchUidRequestEventDetails>;
+}
+
+export interface EventDetails {
+  handled: (options?: {
+    stopDefaultAction?: boolean; // preventDefault()
+    stopProcessing?: boolean; // stopImmediatePropagation()
+    stopPropagation?: boolean; // stopPropagation()
+  }) => void;
+  source: HTMLElement | null;
 }
 
 export interface LinkEventDetails {

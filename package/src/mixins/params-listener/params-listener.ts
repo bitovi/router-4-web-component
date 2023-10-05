@@ -1,10 +1,10 @@
 import type {
   Constructor,
   ParamsChangeEventDetails,
-  ParamsRequestEventDetails,
-  RouteUidRequestEventDetails
-} from "../../types.js";
-import { addEventListenerFactory } from "../../libs/r4w/r4w.js";
+  R4WDataMap
+} from "../../types.ts";
+import type { DisconnectCallback } from "../../libs/events/event.ts";
+import { receive, send } from "../../libs/events/event.ts";
 
 /**
  * Provides route params to a web component when they change.
@@ -12,9 +12,7 @@ import { addEventListenerFactory } from "../../libs/r4w/r4w.js";
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
   return class ParamsListenerImpl extends baseType implements ParamsListener {
-    #handleParamsChangeBound:
-      | ((evt: CustomEvent<ParamsChangeEventDetails>) => void)
-      | undefined;
+    #disconnectParamsChangeEvent: DisconnectCallback | undefined;
     #paramslistener_lastParams: ParamsChangeEventDetails | undefined;
     #paramslistener_params: ParamsChangeEventDetails["params"];
     #paramslistener_requestedRouteUid = false;
@@ -38,11 +36,10 @@ export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
     override componentConnect(): void {
       super.componentConnect && super.componentConnect();
 
-      this.#handleParamsChangeBound = this.#handleParamsChangeEvent.bind(this);
-      addEventListenerFactory(
+      this.#disconnectParamsChangeEvent = receive(
         "r4w-params-change",
-        window
-      )(this.#handleParamsChangeBound);
+        this.#handleParamsChangeEvent.bind(this)
+      );
 
       setTimeout(() => {
         this.#dispatchRouteUidRequestEvent();
@@ -52,13 +49,8 @@ export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
     override componentDisconnect(): void {
       super.componentDisconnect && super.componentDisconnect();
 
-      this.#handleParamsChangeBound &&
-        window.removeEventListener(
-          "r4w-params-change",
-          this.#handleParamsChangeBound as (evt: Event) => void
-        );
-
-      this.#handleParamsChangeBound = undefined;
+      this.#disconnectParamsChangeEvent && this.#disconnectParamsChangeEvent();
+      this.#disconnectParamsChangeEvent = undefined;
 
       this.#paramslistener_requestedRouteUid = false;
     }
@@ -136,30 +128,22 @@ export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
         return;
       }
 
-      window.dispatchEvent(
-        new CustomEvent<ParamsRequestEventDetails>("r4w-params-request", {
-          bubbles: true,
-          composed: true,
-          detail: { routeUid: this.#paramslistener_routeUid }
-        })
-      );
+      send("r4w-params-request", { routeUid: this.#paramslistener_routeUid });
     }
 
     #dispatchRouteUidRequestEvent() {
-      this.dispatchEvent(
-        new CustomEvent<RouteUidRequestEventDetails>("r4w-route-uid-request", {
-          bubbles: true,
-          composed: true,
-          detail: {
-            callback: routeUid =>
-              this.setState(
-                "#paramslistener_routeUid",
-                this.#paramslistener_routeUid,
-                routeUid,
-                next => (this.#paramslistener_routeUid = next)
-              )
-          }
-        })
+      send(
+        "r4w-route-uid-request",
+        {
+          callback: routeUid =>
+            this.setState(
+              "#paramslistener_routeUid",
+              this.#paramslistener_routeUid,
+              routeUid,
+              next => (this.#paramslistener_routeUid = next)
+            )
+        },
+        this
       );
 
       this.setState(
@@ -170,11 +154,11 @@ export function ParamsListenerMixin<T extends Constructor>(baseType: T) {
       );
     }
 
-    #handleParamsChangeEvent(evt: CustomEvent<ParamsChangeEventDetails>) {
+    #handleParamsChangeEvent(data: R4WDataMap["r4w-params-change"]) {
       this.setState(
         "#paramslistener_lastParams",
         this.#paramslistener_lastParams,
-        evt.detail,
+        data ? { params: data?.params, routeUid: data?.routeUid } : data,
         next => (this.#paramslistener_lastParams = next)
       );
     }

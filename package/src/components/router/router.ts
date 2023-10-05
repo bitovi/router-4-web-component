@@ -1,13 +1,12 @@
-import type { LinkEventDetails, NavigationEventDetails } from "../../types.ts";
+import type { R4WDataMap } from "../../types.ts";
 import { ComponentLifecycleMixin } from "../../libs/component-lifecycle/component-lifecycle.ts";
-import { addEventListenerFactory } from "../../libs/r4w/r4w.ts";
+import type { DisconnectCallback } from "../../libs/events/event.ts";
+import { receiveInternal, sendInternal } from "../../libs/events/event.ts";
 
 const HISTORY_STATE = "r4w-router";
 
 export class Router extends ComponentLifecycleMixin(HTMLElement) {
-  #handleLinkEventBound:
-    | ((evt: CustomEvent<LinkEventDetails>) => void)
-    | undefined;
+  #disconnectLinkEvent: DisconnectCallback | undefined;
   #handlePopStateBound: ((evt: PopStateEvent) => void) | undefined;
 
   constructor() {
@@ -40,8 +39,10 @@ export class Router extends ComponentLifecycleMixin(HTMLElement) {
     this.#handlePopStateBound = this.#handlePopState.bind(this);
     window.addEventListener("popstate", this.#handlePopStateBound);
 
-    this.#handleLinkEventBound = this.#handleLinkEvent.bind(this);
-    addEventListenerFactory("r4w-link-event", this)(this.#handleLinkEventBound);
+    this.#disconnectLinkEvent = receiveInternal(
+      "r4w-link-event",
+      this.#handleLinkEvent.bind(this)
+    );
   }
 
   #disconnectListeners() {
@@ -49,35 +50,23 @@ export class Router extends ComponentLifecycleMixin(HTMLElement) {
       window.removeEventListener("popstate", this.#handlePopStateBound);
     this.#handlePopStateBound = undefined;
 
-    this.#handleLinkEventBound &&
-      this.removeEventListener(
-        "r4w-link-event",
-        this.#handleLinkEventBound as (evt: Event) => void
-      );
-    this.#handleLinkEventBound = undefined;
+    this.#disconnectLinkEvent && this.#disconnectLinkEvent();
+    this.#disconnectLinkEvent = undefined;
   }
 
-  #dispatchNavigationEvent(pathname: string) {
-    window.dispatchEvent(
-      new CustomEvent<NavigationEventDetails>("r4w-navigation-change", {
-        detail: { pathname }
-      })
-    );
-  }
+  #handleLinkEvent({ handled, to }: R4WDataMap["r4w-link-event"]) {
+    handled({ stopPropagation: true });
 
-  #handleLinkEvent(evt: CustomEvent<LinkEventDetails>) {
-    evt.stopPropagation();
-    const { detail } = evt;
-
-    // We add our `uid` so that later when popstate events occur we know
-    // whether or not this instance of switch needs to handle or ignore the
-    // event.
-    window.history.pushState(HISTORY_STATE, "", detail.to);
-    this.#dispatchNavigationEvent(detail.to);
+    // We don't really need to store anything in state but we do just because we
+    // used to.
+    window.history.pushState(HISTORY_STATE, "", to);
+    sendInternal("r4w-navigation-change", { pathname: to });
   }
 
   #handlePopState(evt: PopStateEvent) {
-    this.#dispatchNavigationEvent(window.location.pathname);
+    sendInternal("r4w-navigation-change", {
+      pathname: window.location.pathname
+    });
   }
 }
 

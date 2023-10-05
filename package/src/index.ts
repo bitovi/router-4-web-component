@@ -1,4 +1,5 @@
 import { ComponentLifecycleMixin } from "./libs/component-lifecycle/component-lifecycle.ts";
+import { receive } from "./libs/events/event.ts";
 import { getPathnameData } from "./libs/url/url.ts";
 import { Link } from "./components/link/link.ts";
 import { ParamsListenerMixin } from "./mixins/params-listener/params-listener.ts";
@@ -12,6 +13,7 @@ export {
   getPathnameData,
   Link,
   ParamsListenerMixin,
+  receive,
   Route,
   Router,
   Switch,
