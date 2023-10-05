@@ -6,39 +6,58 @@ import { documentUrl } from "../../libs/url/url.ts";
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function LoaderMixin<T extends Constructor>(baseType: T) {
-  return class LoaderImpl
-    extends baseType
-    implements Loader, RouteActivationProps
-  {
-    #module = false;
+  return class LoaderImpl extends baseType implements RouteActivationProps {
+    #activating = false;
+    #loaded = false;
+    #loader_src: string | undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(...args: any[]) {
       super(...args);
     }
 
-    moduleName: string | undefined;
+    attributeChangedCallback(
+      name: string,
+      oldValue: string,
+      newValue: string
+    ): void {
+      switch (name) {
+        case "src": {
+          this.setState(
+            "#loader_src",
+            this.#loader_src,
+            newValue,
+            next => (this.#loader_src = next)
+          );
+
+          break;
+        }
+      }
+    }
 
     /******************************************************************
      * RouteActivation
      *****************************************************************/
     async activate(): Promise<void> {
-      if (this.#module || !this.moduleName) {
+      if (this.#loaded || !this.#loader_src) {
         return;
       }
 
-      const src = documentUrl(this.moduleName);
+      if (this.#activating) {
+        return;
+      }
 
-      this.#module = true;
-      return import(src);
+      this.#activating = true;
+
+      const src = documentUrl(this.#loader_src);
+      await import(src);
+
+      this.#activating = false;
+      this.#loaded = true;
     }
 
     deactivate(): void {
       // no-op
     }
   };
-}
-
-export interface Loader {
-  readonly moduleName: string | undefined;
 }
