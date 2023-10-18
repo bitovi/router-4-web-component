@@ -17,5 +17,5 @@
     "parser": { "syntax": "typescript" },
     "target": "esnext"
   },
-  "sourceMaps": true
+  "sourceMaps": "inline"
 }
